@@ -9,8 +9,9 @@ Deployment at: https://openthoughtfloor.herokuapp.com/
 - Clone via HTTPS or SSH(will need to set up SSH keys like in gitlab)
 - cd into directory
 - python -m venv venv
-- env\Scripts\activate (vscode does this automatically every time you start a terminal)
+- venv\Scripts\activate (vscode does this automatically every time you start a terminal)
 - pip intall -r requirements.txt
 
 # Running locally
+- venv\Scripts\activate (vscode does this automatically every time you start a terminal)
 - python app.py
