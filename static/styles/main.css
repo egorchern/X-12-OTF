@@ -1,0 +1,66 @@
+@import url("https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,400;0,700;1,400;1,700&family=Roboto:ital,wght@0,400;0,500;1,400;1,500&display=swap");
+* {
+  font-family: "Lato", sans-serif;
+  scroll-behavior: smooth;
+  word-wrap: break-word;
+  scroll-padding: 1rem;
+}
+img {
+  width: 100%;
+  height: auto;
+}
+html,
+body {
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  margin: 0;
+}
+:root{
+  --nav-background-color: hsla(180, 8%, 97%, 1);
+  --nav-border-color: hsla(0, 0%, 91%, 1);
+  --bs-sm: 0 1px 2px hsla(0,0%,0%,0.05),0 1px 4px hsla(0,0%,0%,0.05),0 2px 8px hsla(0,0%,0%,0.05);
+  --nav-button-hover-shadow: 0px 0px 6px 4px hsla(206, 74%, 67%, 1);
+  --nav-button-icon-size: 2.5rem;
+}
+.flex-horizontal{
+  display:flex;
+  flex-direction: row;
+}
+.flex-vertical{
+  display:flex;
+  flex-direction:column;
+}
+.align-center{
+  justify-content: center;
+  align-items: center;
+}
+.nav-logo-container{
+  width: 4rem;
+}
+.nav-heading{
+  font-size: 1.5rem;
+}
+.nav-button{
+  cursor: pointer;
+  transition: all 0.3s;
+  border-radius: 12px;
+}
+.nav-button:hover{
+  box-shadow: var(--nav-button-hover-shadow);
+}
+nav{
+  padding: 0.4rem;
+  border-bottom: 1px solid var(--nav-border-color);
+  background-color: var(--nav-background-color);
+  box-shadow: var(--bs-sm);
+}
+.nav-item-container{
+  flex-grow: 1;
+  margin:0.4rem;
+  padding: 0.2rem;
+}
+.nav-item-container .material-icons {
+  font-size: var(--nav-button-icon-size);
+  margin-right: 0.2rem;
+}
