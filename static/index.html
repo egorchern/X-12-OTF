@@ -18,19 +18,30 @@
 </head>
 
 <body>
-  <nav class="flex-horizontal">
+  <nav>
     <div>
       <div class="nav-logo-container flex-horizontal">
         <img src="/images/logo.png" alt="OpenThoughtFloor logo">
       </div>
     </div>
-    <div class="nav-item-container nav-button flex-horizontal align-center">
+    <div class="nav-item-container nav-button flex-horizontal">
       <span class="material-icons">
         home
       </span>
       <span class="nav-heading">Home</span>
     </div>
-    <div class="nav-item-container nav-button flex-horizontal align-center">
+    <div class="nav-item-container flex-vertical search-bar-container">
+      <form class="nav-search-bar flex-horizontal">
+        <div class="advanced-search-button">
+          Advanced search
+        </div>
+        <input type="text" class="form-control" name="search_query" id="quick-search-input">
+        <span class="material-icons" id="search-icon">
+          search
+        </span>
+      </form>
+    </div>
+    <div class="nav-item-container nav-button flex-horizontal">
       <span class="material-icons">
         lightbulb
       </span>
@@ -38,7 +49,7 @@
         Discover
       </span>
     </div>
-    <div class="nav-item-container nav-button flex-horizontal align-center">
+    <div class="nav-item-container nav-button flex-horizontal">
       <span class="material-icons">
         login
       </span>
