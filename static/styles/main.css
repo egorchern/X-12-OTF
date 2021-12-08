@@ -93,6 +93,11 @@ nav{
   font-size: var(--search-icon-size);
   margin-right: 0.3rem;
   margin-left: 0.3rem;
+  opacity: 0.4;
+  transition: all 0.3s;
+}
+#search-icon:hover{
+  opacity: 1;
 }
 #quick-search-input{
   margin-left: 0.3rem;
@@ -127,7 +132,9 @@ nav{
 }
 .poster-container{
   min-width: 13rem;
+
   width: 50%;
+  max-width: 33rem;
   margin: auto;
 }
 main{
@@ -143,6 +150,5 @@ main{
   }
   .search-bar-container{
     width: 100%;
-    height: var(--nav-search-bar-dimension);
   }
 }
