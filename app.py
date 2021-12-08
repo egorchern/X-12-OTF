@@ -63,6 +63,9 @@ def testdatabase():
     response = []
     # This is how to execute queries on a database
     result = db.session.execute('SELECT * FROM test')
+
+    db.session.close()
+
     for row in result:
         temp = row._asdict()
         response.append(temp)
