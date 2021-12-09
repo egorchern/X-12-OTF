@@ -121,8 +121,10 @@ nav{
 }
 .advanced-search-button{
   font-size: 1rem;
+
   border-radius: 0;
   padding: 0.2rem;
+
 
   text-align: center;
   color: white;
@@ -154,6 +156,7 @@ nav{
 }
 main{
   padding: 1rem;
+
   flex-grow: 1;
 }
 footer{
@@ -181,6 +184,7 @@ footer{
   text-decoration: underline;
 }
 
+
 @media screen and (max-width: 768px) {
   nav{
     flex-direction: column;
@@ -193,6 +197,7 @@ footer{
 
     height: var(--nav-search-bar-dimension);
 
+
   }
   footer{
     flex-direction: column;
@@ -202,5 +207,6 @@ footer{
     margin-top: 1rem;
     justify-content: center;
     align-items: center;
+
   }
 }
