@@ -16,10 +16,11 @@ body {
   padding: 0;
   margin: 0;
   overflow-x: hidden;
+  
 }
 
 :root{
-  --nav-background-color: hsla(180, 8%, 97%, 1);
+  --nav-background-color: hsla(180, 8%, 95%, 1);
   --nav-border-color: hsla(0, 0%, 91%, 1);
   --bs-sm: 0 1px 2px hsla(0,0%,0%,0.05),0 1px 4px hsla(0,0%,0%,0.05),0 2px 8px hsla(0,0%,0%,0.05);
   --nav-button-hover-shadow: 0px 0px 6px 4px hsla(206, 74%, 67%, 1);
@@ -31,6 +32,8 @@ body {
   --advanced-search-button-bg-color: hsl(206, 96%, 45%);
   --search-icon-size: 2rem;
   --nav-search-bar-dimension: 50%;
+  --footer-bg-color: #212529;
+  --footer-font-size: max(min(calc(0.5rem + 1vw), 1.4rem), 1rem);
 }
 .flex-horizontal{
   display:flex;
@@ -61,7 +64,7 @@ body {
 nav{
   display: flex;
   flex-direction: row;
-  padding: 0.4rem;
+  padding: 0.3rem;
   border-bottom: 1px solid var(--nav-border-color);
   background-color: var(--nav-background-color);
   box-shadow: var(--bs-sm);
@@ -69,7 +72,7 @@ nav{
 .nav-item-container{
   flex-grow: 1;
   margin:0.4rem;
-  padding: 0.2rem;
+  padding: 0.3rem;
   justify-content: center;
   align-items: center;
 }
@@ -82,6 +85,7 @@ nav{
   height: auto;
 }
 .nav-search-bar{
+  padding: 0;
   border-radius: 12px;
   position:relative;
   background-color: white;
@@ -118,7 +122,9 @@ nav{
 .advanced-search-button{
   font-size: 1rem;
 
-  padding: 0.1rem;
+  border-radius: 0;
+  padding: 0.2rem;
+
 
   text-align: center;
   color: white;
@@ -150,6 +156,32 @@ nav{
 }
 main{
   padding: 1rem;
+
+  flex-grow: 1;
+}
+footer{
+  /*font-size: var(--footer-font-size);*/
+  padding: 1rem;
+  background-color: var(--footer-bg-color);
+  color: white;
+  display: flex;
+  flex-direction: row;
+}
+.links-container{
+  flex-grow: 1;
+  margin-left: 1rem;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+}
+.links-container > span{
+  margin-left: 0.5rem;
+  margin-right: 0.5rem;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.links-container > span:hover{
+  text-decoration: underline;
 }
 
 
@@ -164,6 +196,17 @@ main{
     width: 100%;
 
     height: var(--nav-search-bar-dimension);
+
+
+  }
+  footer{
+    flex-direction: column;
+    
+  }
+  .links-container{
+    margin-top: 1rem;
+    justify-content: center;
+    align-items: center;
 
   }
 }
