@@ -2,8 +2,9 @@ import flask
 import os
 import PIL
 import bcrypt
-from flask_sqlalchemy import SQLAlchemy
 import json
+import sys
+from modules.database_interface import Database
 # Get database url
 database_uri = os.environ.get('DATABASE_URL')
 if database_uri is None:
@@ -19,8 +20,7 @@ app = flask.Flask(__name__, static_url_path='',
                   static_folder='static', template_folder='static')
 app.config["SQLALCHEMY_DATABASE_URI"] = database_uri
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
-db = SQLAlchemy(app)
-
+db = Database(app)
 # Just send the index html, will get content via fetch
 
 
@@ -62,9 +62,7 @@ def verify_password():
 def testdatabase():
     response = []
     # This is how to execute queries on a database
-    result = db.session.execute('SELECT * FROM test')
-
-    db.session.close()
+    result = db.select_from_test()
 
     for row in result:
         temp = row._asdict()
