@@ -5,6 +5,7 @@ import bcrypt
 import json
 import sys
 from modules.database_interface import Database
+from modules.auth import Auth
 # Get database url
 database_uri = os.environ.get('DATABASE_URL')
 if database_uri is None:
@@ -21,26 +22,13 @@ app = flask.Flask(__name__, static_url_path='',
 app.config["SQLALCHEMY_DATABASE_URI"] = database_uri
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 db = Database(app)
+auth = Auth(db)
 # Just send the index html, will get content via fetch
 
 
 @app.route('/', methods=['GET'])
 def index():
     return flask.render_template('index.html')
-
-
-@app.route("/hash_password", methods=['GET', 'POST'])
-def hash_password():
-    # This is how to hash
-    params = flask.request.args
-    password = params.get("password")
-    if password:
-        password = password.encode("utf-8")
-        salt = bcrypt.gensalt()
-        hash = bcrypt.hashpw(password, salt)
-        return hash
-    else:
-        return "Invalid params"
 
 
 @app.route("/verify_password", methods=["GET", "POST"])
@@ -70,6 +58,14 @@ def testdatabase():
     return json.dumps(response)
 
 
+@app.route("/auth/register", methods=['POST'])
+def register():
+    body = flask.request.json
+    result = auth.register(body)
+    return ""
+
+
 if __name__ == '__main__':
 
-    app.run(threaded=True, debug=True)
+    app.run(debug=True)
+
