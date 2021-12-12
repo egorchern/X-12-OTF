@@ -3,9 +3,10 @@ import os
 import PIL
 import bcrypt
 import json
-import sys
+import re
 from modules.database_interface import Database
 from modules.auth import Auth
+
 # Get database url
 database_uri = os.environ.get('DATABASE_URL')
 if database_uri is None:
@@ -13,6 +14,7 @@ if database_uri is None:
     database_uri = file.read()
     file.close()
 
+# Heroku database fix
 if database_uri.startswith("postgres://"):
     database_uri = database_uri.replace("postgres://", "postgresql://", 1)
 
@@ -21,13 +23,18 @@ app = flask.Flask(__name__, static_url_path='',
                   static_folder='static', template_folder='static')
 app.config["SQLALCHEMY_DATABASE_URI"] = database_uri
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
+# Initialize component classes
 db = Database(app)
 auth = Auth(db)
-# Just send the index html, will get content via fetch
+# For how long the users will be authenticated for
+authenticated_expiry_days = 15
+authenticated_expiry_seconds = authenticated_expiry_days * 24 * 60 * 60
 
-
+# Index route, simply send the html doc
 @app.route('/', methods=['GET'])
 def index():
+    request = flask.request
+    print(request.cookies.get("auth_token"))
     return flask.render_template('index.html')
 
 
@@ -46,25 +53,25 @@ def verify_password():
         return "Invalid params"
 
 
-@app.route("/testdatabase", methods=['GET', 'POST'])
-def testdatabase():
-    response = []
-    # This is how to execute queries on a database
-    result = db.select_from_test()
-
-    for row in result:
-        temp = row._asdict()
-        response.append(temp)
-    return json.dumps(response)
-
-
 @app.route("/auth/register", methods=['POST'])
 def register():
-    body = flask.request.json
-    result = auth.register(body)
-    return ""
+    request = flask.request
+    print(request.cookies)
+    result = auth.register(request.json)
+    return json.dumps(result)
 
 
+@app.route("/auth/login", methods=['POST'])
+def login():
+    request = flask.request
+    result = auth.login(request.json)
+    resp = flask.make_response()
+    resp.set_data(json.dumps(result))
+    if result.get("code") == 1:
+        resp.set_cookie("auth_token", result.get("token"), max_age=authenticated_expiry_seconds, httponly=True)
+    return resp
+
+    
 if __name__ == '__main__':
 
     app.run(debug=True)

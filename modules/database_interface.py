@@ -18,7 +18,25 @@ class Database:
         # self.db.session.commit()
         # self.db.session.close()
 
-    def return_formatted(self, result):
+    def get_user_password_hash(self, identifier: str) -> dict:
+        """Fetches password hash from the users table by either username or email"""
+        query = """
+        SELECT username, password_hash
+        FROM users
+        WHERE email=:identifier OR username=:identifier
+        LIMIT 1
+        """
+        try:
+            result = self.db.session.execute(query, {'identifier': identifier})
+            self.db.session.commit()
+            self.db.session.close()
+            return self.return_formatted(result)
+        # For catching errors and outputting them
+        except SQLAlchemyError as e:
+            error = str(e.__dict__['orig'])
+            return error
+
+    def return_formatted(self, result) -> dict:
         response = []
         for row in result:
             temp = row._asdict()
@@ -61,19 +79,12 @@ class Database:
         self.db.session.commit()
         self.db.session.close()
 
-    def select_from_test(self):
-        result = self.db.session.execute("""
-        SELECT * 
-        FROM test
-        ORDER BY test_id ASC
-        """)
-        self.db.session.commit()
-        self.db.session.close()
-        return result
-
     def insert_new_user(self, username: str, email: str, password_hash: str, date_of_birth: str):
+        """Insert new user into database
+        """
         default_avatar_image_id = 1
         try:
+            
             self.db.session.execute(
                 """
                 INSERT INTO users(username, email, password_hash, date_of_birth, date_created, date_last_accessed, avatar_image_id, access_level)
@@ -91,8 +102,9 @@ class Database:
             self.db.session.commit()
             self.db.session.close()
             return True
+        # For catching errors and outputting them
         except SQLAlchemyError as e:
             error = str(e.__dict__['orig'])
             return error
         
-        
+    

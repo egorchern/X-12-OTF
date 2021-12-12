@@ -1,5 +1,6 @@
 import bcrypt
-
+import re
+from secrets import token_urlsafe
 class Auth:
     def __init__(self, db):
 
@@ -7,6 +8,7 @@ class Auth:
 
         }
         self.db = db
+        self.token_length = 60
 
     def hash(self, text) -> str:
         """Returns a hashed text"""
@@ -15,16 +17,94 @@ class Auth:
         hash = bcrypt.hashpw(password, salt)
         return hash
 
-    def register(self, user_data: dict):
+    def credentials_matching(self, identifier: str, password: str) -> bool:
+        """Returns bool indicating whether the user with identifier exists and has matching password"""
+        temp = self.db.get_user_password_hash(identifier)
+        if len(temp) == 0:
+            return [None, False]
+        temp = temp[0]
+        password_hash = temp.get("password_hash").encode("utf-8")
+        password = password.encode("utf-8")
+        is_match = bcrypt.checkpw(password, password_hash)
+        return [temp.get("username"), is_match]
+        
+    def generate_token(self) -> str:
+        return token_urlsafe(self.token_length)
 
-        """Registers a new user, calls insert into database"""
-        hashed_password = self.hash(user_data.get("password"))
+    def login(self, user_data: dict) -> dict:
+        """Authenticates user. Sets the auth token via cookies
+        1 - successfull login
+        2 - invalid credentials
+        3 - some other error
+        """
+        # Get parameters from request
+        identifier = user_data.get("identifier")
+        password = user_data.get("password")
+        # Check that all parameters are of right format 
+        if not isinstance(identifier, str) or not isinstance(password, str):
+            return {
+                "code": 3
+            }
+        
+        username, credentials_matching = self.credentials_matching(identifier, password)
+        resp = {}
+        if credentials_matching:
+            # If credentials match, generate token and include in hashmap
+            token = self.generate_token()
+            self.tokens_dict[token] = username
+            resp["token"] = token
+            resp["code"] = 1
+        else:
+            resp["code"] = 2
+            
+        return resp
+            
+
+    def register(self, user_data: dict) -> dict:
+        """Registers a new user, calls insert into database
+        1 - successfull registration,
+        2 - username already exists,
+        3 - email already exists,
+        4 - invalid input,
+        5 - some other error
+        """
+        # Get parameters from request
+        username = user_data.get("username")
+        password = user_data.get("password")
+        date_of_birth = user_data.get("date_of_birth")
+        email = user_data.get("email")
+        # Check that all parameters are strings, so not empty or other data types
+        if not isinstance(username, str) or not isinstance(password, str) or not isinstance(date_of_birth, str) or not isinstance(email, str):
+            return {
+                "code": 4
+            }
+        # hash password using bcrypt
+        hashed_password = self.hash(password).decode("utf-8")
+        # Call insert into database
         result = self.db.insert_new_user(
-            user_data.get("username"),
-            user_data.get("email"),
+            username,
+            email,
             hashed_password,
-            user_data.get("date_of_birth")
+            date_of_birth
         )
-        print(result)
+        resp = {}
+        # if just successfully registered then retun 1
+        if result is True:
+            resp["code"] = 1
+            return resp
 
+        # If some error occured, find the error, whether email or the username already exists
+        temp = re.search("\((?P<column>.+)\)=", result)
+        if temp:
+            temp = temp.group("column")
+            if temp == "username":
+                resp["code"] = 2
+            elif temp == "email":
+                resp["code"] = 3
+        else:
+            # For other errors like invalid input, like letters in date of birth
+            resp["code"] = 5
+
+
+        return resp
 
