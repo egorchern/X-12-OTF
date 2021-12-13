@@ -2,7 +2,7 @@ import bcrypt
 import re
 from secrets import token_urlsafe
 class Auth:
-    def __init__(self, app,db):
+    def __init__(self, db):
 
         self.tokens_dict = {
 
@@ -73,7 +73,6 @@ class Auth:
             
         return resp
             
-
     def register(self, user_data: dict) -> dict:
         """Registers a new user, calls insert into database
         1 - successfull registration,
@@ -122,3 +121,15 @@ class Auth:
 
         return resp
 
+    def get_username_and_access_level(self, auth_token: str) -> list:
+        user_id = self.tokens_dict.get(auth_token)
+        if user_id is not None:
+            # Get username and access level
+            result = self.db.get_user_auth_info(user_id)
+            return result[0]
+        # If user is not logged in, their access level is 1
+        else:
+            return {
+                "username": None,
+                "access_level": 1
+            }

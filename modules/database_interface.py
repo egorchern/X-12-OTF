@@ -1,5 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import SQLAlchemyError
+import datetime
 #from flask_migrate import Migrate
 #result = db.session.execute('SELECT * FROM my_table WHERE my_column = :val', {'val': 5})
 
@@ -9,14 +10,6 @@ class Database:
         self.db = SQLAlchemy(app)
         # self.migrate = Migrate(app, self.db)
         self.create_database()
-
-        # self.db.session.execute("""
-        # UPDATE test
-        # SET test_text = 'This has been updated'
-        # WHERE test_id = 2
-        # """)
-        # self.db.session.commit()
-        # self.db.session.close()
 
     def get_user_password_hash(self, identifier: str) -> dict:
         """Fetches password hash from the users table by either username or email"""
@@ -36,10 +29,49 @@ class Database:
             error = str(e.__dict__['orig'])
             return error
 
+    def get_user_auth_info(self, user_id: str):
+        query = """
+        SELECT username, access_level
+        FROM users
+        WHERE user_id=:user_id
+        LIMIT 1
+        """
+        params = {'user_id': user_id}
+        try:
+            result = self.db.session.execute(query, params)
+            self.db.session.commit()
+            self.db.session.close()
+            return self.return_formatted(result)
+        # For catching errors and outputting them
+        except SQLAlchemyError as e:
+            error = str(e.__dict__['orig'])
+            return error
+    # Remove after testing!
+    def get_all_users(self):
+        query = """
+        SELECT *
+        FROM users
+        """
+        try:
+            result = self.db.session.execute(query)
+            self.db.session.commit()
+            self.db.session.close()
+            return self.return_formatted(result)
+        # For catching errors and outputting them
+        except SQLAlchemyError as e:
+            error = str(e.__dict__['orig'])
+            return error
+        
     def return_formatted(self, result) -> dict:
         response = []
         for row in result:
             temp = row._asdict()
+            # Need to convert dates to strings to avoid json errors
+            for key in temp.keys():
+                value = temp[key]
+                if isinstance(value, datetime.date):
+                    temp[key] = value.strftime('%d/%m/%Y')
+                    
             response.append(temp)
         return response
 

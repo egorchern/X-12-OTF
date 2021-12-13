@@ -54,5 +54,6 @@ function create_client_identifier() {
 }
 create_client_identifier()
 // register("egorcik", "egorch.formal@gmail.com", "123qwe", "02/12/2001")
-// register("julia", "jul.f@manchester.ac.uk", "polo157gfd$", "03/10/203")
+// register("julia", "jul.f@manchester.ac.uk", "polo157gfd$", "03/10/2003")
 // login("egorcik", "123qwe")
+// login("jul.f@manchester.ac.uk", "polo157gfd$")

@@ -7,6 +7,7 @@ import re
 from modules.database_interface import Database
 from modules.auth import Auth
 
+
 # Get database url
 database_uri = os.environ.get('DATABASE_URL')
 if database_uri is None:
@@ -25,7 +26,7 @@ app.config["SQLALCHEMY_DATABASE_URI"] = database_uri
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 # Initialize component classes
 db = Database(app)
-auth = Auth(app, db)
+auth = Auth(db)
 # For how long the users will be authenticated for
 authenticated_expiry_days = 15
 authenticated_expiry_seconds = authenticated_expiry_days * 24 * 60 * 60
@@ -58,7 +59,6 @@ def verify_password():
 @app.route("/auth/register", methods=['POST'])
 def register():
     request = flask.request
-    print(request.cookies)
     result = auth.register(request.json)
     return json.dumps(result)
 
@@ -85,6 +85,20 @@ def generate_client_identifier():
         }
 
     )
+
+# Just a test route, to test whether access levels and authentication is working
+@app.route("/test/get_all_users", methods=['GET', 'POST'])
+def get_all_users():
+    request = flask.request
+    auth_token = request.cookies.get("auth_token")
+    auth_info = auth.get_username_and_access_level(auth_token)
+    access_level = auth_info.get("access_level")
+    if access_level is not None and access_level >= 2:
+        all_users = db.get_all_users()
+        return json.dumps(all_users)
+    else:
+        return "You don't have permission to access this page"
+        
 
 
 if __name__ == '__main__':
