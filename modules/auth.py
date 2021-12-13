@@ -2,20 +2,31 @@ import bcrypt
 import re
 from secrets import token_urlsafe
 class Auth:
-    def __init__(self, db):
+    def __init__(self, app,db):
 
         self.tokens_dict = {
 
         }
         self.db = db
         self.token_length = 60
-
+        self.client_identifier_length = 60
+        self.load_auth_tokens()
+        print(self.tokens_dict)
+    
     def hash(self, text) -> str:
         """Returns a hashed text"""
         password = text.encode("utf-8")
         salt = bcrypt.gensalt()
         hash = bcrypt.hashpw(password, salt)
         return hash
+
+    def load_auth_tokens(self):
+        result = self.db.get_all_auth_tokens()
+        for row in result:
+            self.tokens_dict[row.get("auth_token")] = row.get("user_id") 
+
+    def generate_client_identifier(self) -> str:
+        return token_urlsafe(self.client_identifier_length)
 
     def credentials_matching(self, identifier: str, password: str) -> bool:
         """Returns bool indicating whether the user with identifier exists and has matching password"""
@@ -26,7 +37,7 @@ class Auth:
         password_hash = temp.get("password_hash").encode("utf-8")
         password = password.encode("utf-8")
         is_match = bcrypt.checkpw(password, password_hash)
-        return [temp.get("username"), is_match]
+        return [temp.get("user_id"), is_match]
         
     def generate_token(self) -> str:
         return token_urlsafe(self.token_length)
@@ -40,18 +51,21 @@ class Auth:
         # Get parameters from request
         identifier = user_data.get("identifier")
         password = user_data.get("password")
+        client_identifier = user_data.get("client_identifier")
         # Check that all parameters are of right format 
-        if not isinstance(identifier, str) or not isinstance(password, str):
+        if not isinstance(identifier, str) or not isinstance(password, str) or not isinstance(client_identifier, str):
             return {
                 "code": 3
             }
         
-        username, credentials_matching = self.credentials_matching(identifier, password)
+        user_id, credentials_matching = self.credentials_matching(identifier, password)
         resp = {}
         if credentials_matching:
             # If credentials match, generate token and include in hashmap
             token = self.generate_token()
-            self.tokens_dict[token] = username
+            self.tokens_dict[token] = user_id
+            result = self.db.insert_auth_token(user_id, token, client_identifier)
+            print(result)
             resp["token"] = token
             resp["code"] = 1
         else:

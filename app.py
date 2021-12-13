@@ -25,12 +25,14 @@ app.config["SQLALCHEMY_DATABASE_URI"] = database_uri
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 # Initialize component classes
 db = Database(app)
-auth = Auth(db)
+auth = Auth(app, db)
 # For how long the users will be authenticated for
 authenticated_expiry_days = 15
 authenticated_expiry_seconds = authenticated_expiry_days * 24 * 60 * 60
 
 # Index route, simply send the html doc
+
+
 @app.route('/', methods=['GET'])
 def index():
     request = flask.request
@@ -66,13 +68,25 @@ def login():
     request = flask.request
     result = auth.login(request.json)
     resp = flask.make_response()
-    resp.set_data(json.dumps(result))
+    # If successfully authenticated, set auth_token cookie
     if result.get("code") == 1:
-        resp.set_cookie("auth_token", result.get("token"), max_age=authenticated_expiry_seconds, httponly=True)
+        resp.set_cookie("auth_token", result.get("token"),
+                        max_age=authenticated_expiry_seconds, httponly=True)
+
+    resp.set_data(json.dumps({"code": result.get("code")}))
     return resp
 
-    
+
+@app.route("/auth/generate_client_identifier", methods=['POST'])
+def generate_client_identifier():
+    return json.dumps(
+        {
+            "client_identifier": auth.generate_client_identifier()
+        }
+
+    )
+
+
 if __name__ == '__main__':
 
     app.run(debug=True)
-

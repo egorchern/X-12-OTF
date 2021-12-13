@@ -21,7 +21,7 @@ class Database:
     def get_user_password_hash(self, identifier: str) -> dict:
         """Fetches password hash from the users table by either username or email"""
         query = """
-        SELECT username, password_hash
+        SELECT user_id, password_hash
         FROM users
         WHERE email=:identifier OR username=:identifier
         LIMIT 1
@@ -69,7 +69,22 @@ class Database:
             self.db.session.commit()
             self.db.session.close()
 
+        def create_auth_tokens_table():
+            query = """
+            CREATE TABLE IF NOT EXISTS auth_tokens
+            (
+                user_id integer NOT NULL,
+                client_identifier text NOT NULL,
+                auth_token text NOT NULL,
+                PRIMARY KEY(client_identifier)
+            )
+            """
+            self.db.session.execute(query)
+            self.db.session.commit()
+            self.db.session.close()
+
         create_users_table()
+        create_auth_tokens_table()
 
     def insert_dummy_data(self):
         self.db.session.execute("""
@@ -78,6 +93,22 @@ class Database:
         """)
         self.db.session.commit()
         self.db.session.close()
+
+    def get_all_auth_tokens(self):
+        query = """
+        SELECT user_id, auth_token
+        FROM auth_tokens
+        """
+        try:
+            result = self.db.session.execute(query)
+            self.db.session.commit()
+            self.db.session.close()
+            return self.return_formatted(result)
+
+        # For catching errors and outputting them
+        except SQLAlchemyError as e:
+            error = str(e.__dict__['orig'])
+            return error
 
     def insert_new_user(self, username: str, email: str, password_hash: str, date_of_birth: str):
         """Insert new user into database
@@ -106,5 +137,34 @@ class Database:
         except SQLAlchemyError as e:
             error = str(e.__dict__['orig'])
             return error
-        
     
+    def insert_auth_token(self, user_id: int, auth_token: str, client_identifier: str):
+        """Deletes old auth token with same identifier and inserts new auth_token"""
+        self.delete_redundant_auth_token(client_identifier)
+
+        query = """
+        INSERT INTO auth_tokens(user_id, auth_token, client_identifier)
+        VALUES(:user_id, :auth_token, :client_identifier)
+        """
+        try:
+            self.db.session.execute(query, {
+                "user_id": user_id,
+                "auth_token": auth_token,
+                "client_identifier": client_identifier
+            })
+            self.db.session.commit()
+            self.db.session.close()
+            return True
+        # For catching errors and outputting them
+        except SQLAlchemyError as e:
+            error = str(e.__dict__['orig'])
+            return error
+    
+    def delete_redundant_auth_token(self, client_identifier: str):
+        query = """
+        DELETE FROM auth_tokens
+        WHERE client_identifier = :client_identifier
+        """
+        self.db.session.execute(query, {"client_identifier": client_identifier})
+        self.db.session.commit()
+        self.db.session.close()
