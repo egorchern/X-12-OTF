@@ -11,10 +11,10 @@ function register(username, email, password, date_of_birth) {
             date_of_birth: date_of_birth
         })
     })
-        .then(result => result.json())
-        .then(result => {
-            console.log(result);
-        })
+    .then(result => result.json())
+    .then(result => {
+        console.log(result);
+    })
 }
 
 function login(identifier, password) {
@@ -31,10 +31,10 @@ function login(identifier, password) {
             }
         )
     })
-        .then(result => result.json())
-        .then(result => {
-            console.log(result);
-        })
+    .then(result => result.json())
+    .then(result => {
+        console.log(result);
+    })
 }
 function create_client_identifier() {
     let temp = localStorage.getItem("client_identifier");
@@ -45,14 +45,40 @@ function create_client_identifier() {
                 "Content-Type": "application/json"
             }
         })
-            .then(result => result.json())
-            .then(result => {
-                localStorage.setItem("client_identifier", result.client_identifier);
-            })
+        .then(result => result.json())
+        .then(result => {
+            localStorage.setItem("client_identifier", result.client_identifier);
+        })
     }
 
 }
+function logout() {
+    fetch("/auth/logout", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        }
+    })
+    .then(result => result.json())
+    .then(result => {
+        console.log(result);
+        location.reload()
+    })
+}
+function get_user_info() {
+    fetch("/auth/get_user_info", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        }
+    })
+    .then(result => result.json())
+    .then(result => {
+        console.log(result);
+    })
+}
 create_client_identifier()
+get_user_info()
 // register("egorcik", "egorch.formal@gmail.com", "123qwe", "02/12/2001")
 // register("julia", "jul.f@manchester.ac.uk", "polo157gfd$", "03/10/2003")
 // login("egorcik", "123qwe")

@@ -76,6 +76,24 @@ def login():
     resp.set_data(json.dumps({"code": result.get("code")}))
     return resp
 
+@app.route("/auth/logout", methods=['POST'])
+def logout():
+    request = flask.request
+    auth_token = request.cookies.get("auth_token")
+    result = auth.logout(auth_token)
+    print(result)
+    resp = flask.make_response()
+    if result.get("code") == 1:
+        resp.set_cookie("auth_token", "", expires=0)
+    resp.set_data(json.dumps(result))
+    return resp
+
+@app.route("/auth/get_user_info", methods=['POST'])
+def get_user_info():
+    request = flask.request
+    auth_token = request.cookies.get("auth_token")
+    return auth.get_username_and_access_level(auth_token)
+
 
 @app.route("/auth/generate_client_identifier", methods=['POST'])
 def generate_client_identifier():
@@ -86,19 +104,19 @@ def generate_client_identifier():
 
     )
 
+
 # Just a test route, to test whether access levels and authentication is working
 @app.route("/test/get_all_users", methods=['GET', 'POST'])
 def get_all_users():
     request = flask.request
     auth_token = request.cookies.get("auth_token")
-    auth_info = auth.get_username_and_access_level(auth_token)
-    access_level = auth_info.get("access_level")
-    if access_level is not None and access_level >= 2:
+    is_authenticated = auth.is_authenticated(
+        auth_token, required_access_level=2)
+    if is_authenticated:
         all_users = db.get_all_users()
         return json.dumps(all_users)
     else:
         return "You don't have permission to access this page"
-        
 
 
 if __name__ == '__main__':

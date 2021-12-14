@@ -192,11 +192,35 @@ class Database:
             error = str(e.__dict__['orig'])
             return error
     
+    def delete_auth_token(self, auth_token: str):
+        query = """
+        DELETE FROM auth_tokens
+        WHERE auth_token = :auth_token
+        """
+        params = {'auth_token': auth_token}
+        try:
+            result = self.db.session.execute(query, params)
+            self.db.session.commit()
+            self.db.session.close()
+            return result
+
+        # For catching errors and outputting them
+        except SQLAlchemyError as e:
+            error = str(e.__dict__['orig'])
+            return error
+        
+
     def delete_redundant_auth_token(self, client_identifier: str):
         query = """
         DELETE FROM auth_tokens
         WHERE client_identifier = :client_identifier
         """
-        self.db.session.execute(query, {"client_identifier": client_identifier})
-        self.db.session.commit()
-        self.db.session.close()
+        try:
+            result = self.db.session.execute(query, {"client_identifier": client_identifier})
+            self.db.session.commit()
+            self.db.session.close()
+            return result
+        # For catching errors and outputting them
+        except SQLAlchemyError as e:
+            error = str(e.__dict__['orig'])
+            return error

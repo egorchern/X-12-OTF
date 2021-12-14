@@ -65,14 +65,31 @@ class Auth:
             token = self.generate_token()
             self.tokens_dict[token] = user_id
             result = self.db.insert_auth_token(user_id, token, client_identifier)
-            print(result)
             resp["token"] = token
             resp["code"] = 1
         else:
             resp["code"] = 2
             
         return resp
-            
+    
+    def logout(self, auth_token: str) -> dict:
+        """Logs out the user
+        1 - successful log out
+        2 - not logged in
+        """
+        temp = self.tokens_dict.get(auth_token)
+        # If user is logged in
+        if temp is not None:
+            del self.tokens_dict[auth_token]
+            self.db.delete_auth_token(auth_token)
+            return {
+                "code" : 1
+            }
+        else:
+            return {
+                "code": 2
+            }
+
     def register(self, user_data: dict) -> dict:
         """Registers a new user, calls insert into database
         1 - successfull registration,
@@ -120,6 +137,15 @@ class Auth:
 
 
         return resp
+   
+    def is_authenticated(self, auth_token: str, required_username: str = None, required_access_level: int = 1) -> bool:
+        auth_info = self.get_username_and_access_level(auth_token)
+        if required_username is not None and auth_info.get("username") == required_username:
+            return True
+        elif required_access_level is not None and auth_info.get("access_level") >= required_access_level:
+            return True
+        else:
+            return False
 
     def get_username_and_access_level(self, auth_token: str) -> list:
         user_id = self.tokens_dict.get(auth_token)
