@@ -5,7 +5,7 @@ __pycache__/
 .vscode
 # C extensions
 *.so
-
+secret_key.txt
 # Distribution / packaging
 .Python
 build/

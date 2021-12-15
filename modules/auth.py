@@ -1,6 +1,7 @@
 import bcrypt
 import re
 from secrets import token_urlsafe
+from cryptography.fernet import Fernet
 class Auth:
     def __init__(self, db):
 
@@ -8,8 +9,10 @@ class Auth:
 
         }
         self.db = db
-        self.token_length = 60
-        self.client_identifier_length = 60
+        self.secret_key = open("secret_key.txt", "r").read().encode("utf-8")
+        self.f = Fernet(self.secret_key)
+        self.token_length = 48
+        self.client_identifier_length = 48
         self.load_auth_tokens()
         print(self.tokens_dict)
     
@@ -42,6 +45,9 @@ class Auth:
     def generate_token(self) -> str:
         return token_urlsafe(self.token_length)
 
+    def encrypt_token(self, token: str) -> str:
+        return self.f.encrypt(token.encode("utf-8")).decode("utf-8")
+
     def login(self, user_data: dict) -> dict:
         """Authenticates user. Sets the auth token via cookies
         1 - successfull login
@@ -64,8 +70,9 @@ class Auth:
             # If credentials match, generate token and include in hashmap
             token = self.generate_token()
             self.tokens_dict[token] = user_id
+            encrypted_token = self.encrypt_token(token)
             result = self.db.insert_auth_token(user_id, token, client_identifier)
-            resp["token"] = token
+            resp["token"] = encrypted_token
             resp["code"] = 1
         else:
             resp["code"] = 2
@@ -138,8 +145,8 @@ class Auth:
 
         return resp
    
-    def is_authenticated(self, auth_token: str, required_username: str = None, required_access_level: int = 1) -> bool:
-        auth_info = self.get_username_and_access_level(auth_token)
+    def is_authenticated(self, encrypted_auth_token: str, required_username: str = None, required_access_level: int = 1) -> bool:
+        auth_info = self.get_username_and_access_level(encrypted_auth_token)
         if required_username is not None and auth_info.get("username") == required_username:
             return True
         elif required_access_level is not None and auth_info.get("access_level") >= required_access_level:
@@ -147,14 +154,16 @@ class Auth:
         else:
             return False
 
-    def get_username_and_access_level(self, auth_token: str) -> list:
-        user_id = self.tokens_dict.get(auth_token)
-        if user_id is not None:
-            # Get username and access level
-            result = self.db.get_user_auth_info(user_id)
-            return result[0]
+    def get_username_and_access_level(self, encrypted_auth_token: str) -> list:
+        try:
+            auth_token = self.f.decrypt(encrypted_auth_token.encode("utf-8")).decode("utf-8")
+            user_id = self.tokens_dict.get(auth_token)
+            if user_id is not None:
+                # Get username and access level
+                result = self.db.get_user_auth_info(user_id)
+                return result[0]
         # If user is not logged in, their access level is 1
-        else:
+        except:
             return {
                 "username": None,
                 "access_level": 1
