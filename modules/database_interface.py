@@ -29,16 +29,18 @@ class Database:
             error = str(e.__dict__['orig'])
             return error
 
-    def get_user_auth_info(self, user_id: str):
+    def get_user_auth_info(self, auth_token: str) -> dict:
         query = """
         SELECT username, access_level
         FROM users
-        WHERE user_id=:user_id
+        INNER JOIN auth_tokens on users.user_id = auth_tokens.user_id
+        WHERE auth_token=:auth_token
         LIMIT 1
         """
-        params = {'user_id': user_id}
+        params = {"auth_token": auth_token}
         try:
             result = self.db.session.execute(query, params)
+            print(result)
             self.db.session.commit()
             self.db.session.close()
             return self.return_formatted(result)
@@ -126,22 +128,6 @@ class Database:
         self.db.session.commit()
         self.db.session.close()
 
-    def get_all_auth_tokens(self):
-        query = """
-        SELECT user_id, auth_token
-        FROM auth_tokens
-        """
-        try:
-            result = self.db.session.execute(query)
-            self.db.session.commit()
-            self.db.session.close()
-            return self.return_formatted(result)
-
-        # For catching errors and outputting them
-        except SQLAlchemyError as e:
-            error = str(e.__dict__['orig'])
-            return error
-
     def insert_new_user(self, username: str, email: str, password_hash: str, date_of_birth: str):
         """Insert new user into database
         """
@@ -209,7 +195,6 @@ class Database:
             error = str(e.__dict__['orig'])
             return error
         
-
     def delete_redundant_auth_token(self, client_identifier: str):
         query = """
         DELETE FROM auth_tokens

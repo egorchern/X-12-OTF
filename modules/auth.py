@@ -5,16 +5,11 @@ from cryptography.fernet import Fernet
 class Auth:
     def __init__(self, db):
 
-        self.tokens_dict = {
-
-        }
         self.db = db
         self.secret_key = open("secret_key.txt", "r").read().encode("utf-8")
         self.f = Fernet(self.secret_key)
         self.token_length = 48
         self.client_identifier_length = 48
-        self.load_auth_tokens()
-        print(self.tokens_dict)
     
     def hash(self, text) -> str:
         """Returns a hashed text"""
@@ -22,11 +17,6 @@ class Auth:
         salt = bcrypt.gensalt()
         hash = bcrypt.hashpw(password, salt)
         return hash
-
-    def load_auth_tokens(self):
-        result = self.db.get_all_auth_tokens()
-        for row in result:
-            self.tokens_dict[row.get("auth_token")] = row.get("user_id") 
 
     def generate_client_identifier(self) -> str:
         return token_urlsafe(self.client_identifier_length)
@@ -69,7 +59,6 @@ class Auth:
         if credentials_matching:
             # If credentials match, generate token and include in hashmap
             token = self.generate_token()
-            self.tokens_dict[token] = user_id
             encrypted_token = self.encrypt_token(token)
             result = self.db.insert_auth_token(user_id, token, client_identifier)
             resp["token"] = encrypted_token
@@ -81,21 +70,8 @@ class Auth:
     
     def logout(self, auth_token: str) -> dict:
         """Logs out the user
-        1 - successful log out
-        2 - not logged in
-        """
-        temp = self.tokens_dict.get(auth_token)
-        # If user is logged in
-        if temp is not None:
-            del self.tokens_dict[auth_token]
-            self.db.delete_auth_token(auth_token)
-            return {
-                "code" : 1
-            }
-        else:
-            return {
-                "code": 2
-            }
+        """ 
+        self.db.delete_auth_token(auth_token)
 
     def register(self, user_data: dict) -> dict:
         """Registers a new user, calls insert into database
@@ -157,11 +133,9 @@ class Auth:
     def get_username_and_access_level(self, encrypted_auth_token: str) -> list:
         try:
             auth_token = self.f.decrypt(encrypted_auth_token.encode("utf-8")).decode("utf-8")
-            user_id = self.tokens_dict.get(auth_token)
-            if user_id is not None:
-                # Get username and access level
-                result = self.db.get_user_auth_info(user_id)
-                return result[0]
+            result = self.db.get_user_auth_info(auth_token)
+            print(result)
+            return result[0]
         # If user is not logged in, their access level is 1
         except:
             return {

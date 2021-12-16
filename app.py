@@ -37,7 +37,7 @@ authenticated_expiry_seconds = authenticated_expiry_days * 24 * 60 * 60
 @app.route('/', methods=['GET'])
 def index():
     request = flask.request
-    print(request.cookies.get("auth_token"))
+    
     return flask.render_template('index.html')
 
 
@@ -81,7 +81,7 @@ def logout():
     request = flask.request
     auth_token = request.cookies.get("auth_token")
     result = auth.logout(auth_token)
-    print(result)
+    
     resp = flask.make_response()
     if result.get("code") == 1:
         resp.set_cookie("auth_token", "", expires=0)
