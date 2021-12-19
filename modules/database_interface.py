@@ -40,7 +40,6 @@ class Database:
         params = {"auth_token": auth_token}
         try:
             result = self.db.session.execute(query, params)
-            print(result)
             self.db.session.commit()
             self.db.session.close()
             return self.return_formatted(result)
@@ -110,7 +109,11 @@ class Database:
                 user_id integer NOT NULL,
                 client_identifier text NOT NULL,
                 auth_token text NOT NULL,
-                PRIMARY KEY(client_identifier)
+                PRIMARY KEY(client_identifier),
+                CONSTRAINT fk_user_id
+                    FOREIGN KEY(user_id) 
+                    REFERENCES users(user_id)
+                    ON DELETE CASCADE
             )
             """
             self.db.session.execute(query)

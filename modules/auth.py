@@ -72,6 +72,7 @@ class Auth:
         """Logs out the user
         """ 
         self.db.delete_auth_token(auth_token)
+        return {"code": 1}
 
     def register(self, user_data: dict) -> dict:
         """Registers a new user, calls insert into database
@@ -134,7 +135,6 @@ class Auth:
         try:
             auth_token = self.f.decrypt(encrypted_auth_token.encode("utf-8")).decode("utf-8")
             result = self.db.get_user_auth_info(auth_token)
-            print(result)
             return result[0]
         # If user is not logged in, their access level is 1
         except:
