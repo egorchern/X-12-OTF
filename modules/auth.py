@@ -2,15 +2,71 @@ import bcrypt
 import re
 from secrets import token_urlsafe
 from cryptography.fernet import Fernet
+from flask import Blueprint, request as req, make_response
+import json
 class Auth:
-    def __init__(self, db):
+    def __init__(self, db, fernet_secret):
 
         self.db = db
-        self.secret_key = open("secret_key.txt", "r").read().encode("utf-8")
-        self.f = Fernet(self.secret_key)
+        self.f = Fernet(fernet_secret)
         self.token_length = 48
         self.client_identifier_length = 48
-    
+        # For how long the users will be authenticated for
+        authenticated_expiry_days = 15
+        authenticated_expiry_seconds = authenticated_expiry_days * 24 * 60 * 60
+
+        self.auth_api = Blueprint("auth_api", __name__)
+        # Register endpoint
+        @self.auth_api.route("/auth/register", methods=['POST'])
+        def register():
+            request = req
+            result = self.register(request.json)
+            return json.dumps(result)
+
+        # Login endpoint
+        @self.auth_api.route("/auth/login", methods=['POST'])
+        def login():
+            request = req
+            result = self.login(request.json)
+            resp = make_response()
+            # If successfully authenticated, set auth_token cookie
+            if result.get("code") == 1:
+                resp.set_cookie("auth_token", result.get("token"),
+                                max_age=authenticated_expiry_seconds, httponly=True)
+
+            resp.set_data(json.dumps({"code": result.get("code")}))
+            return resp
+
+        # Logout endpoint
+        @self.auth_api.route("/auth/logout", methods=['POST'])
+        def logout():
+            request = req
+            auth_token = request.cookies.get("auth_token")
+            result = self.logout(auth_token)
+            
+            resp = make_response()
+            if result.get("code") == 1:
+                resp.set_cookie("auth_token", "", expires=0)
+            resp.set_data(json.dumps(result))
+            return resp
+
+        # User info enpoint
+        @self.auth_api.route("/auth/get_user_info", methods=['POST'])
+        def get_user_info():
+            request = req
+            auth_token = request.cookies.get("auth_token")
+            return self.get_username_and_access_level(auth_token)
+
+        # Gen client id endpoint
+        @self.auth_api.route("/auth/generate_client_identifier", methods=['POST'])
+        def generate_client_identifier():
+            return json.dumps(
+                {
+                    "client_identifier": self.generate_client_identifier()
+                }
+
+            )
+    # Hash password
     def hash(self, text) -> str:
         """Returns a hashed text"""
         password = text.encode("utf-8")
@@ -18,6 +74,7 @@ class Auth:
         hash = bcrypt.hashpw(password, salt)
         return hash
 
+    # Generates some client id
     def generate_client_identifier(self) -> str:
         return token_urlsafe(self.client_identifier_length)
 
@@ -123,6 +180,11 @@ class Auth:
         return resp
    
     def is_authenticated(self, encrypted_auth_token: str, required_username: str = None, required_access_level: int = 1) -> bool:
+        """
+        Returns bool indicating whether the user is authenticated to do something given the requirements:
+        required_username, default is None
+        required_access_level, default is 1, which is everybody
+        """
         auth_info = self.get_username_and_access_level(encrypted_auth_token)
         if required_username is not None and auth_info.get("username") == required_username:
             return True
@@ -132,6 +194,9 @@ class Auth:
             return False
 
     def get_username_and_access_level(self, encrypted_auth_token: str) -> list:
+        """
+        Returns username and access level given the encrypted auth token
+        """
         try:
             auth_token = self.f.decrypt(encrypted_auth_token.encode("utf-8")).decode("utf-8")
             result = self.db.get_user_auth_info(auth_token)
@@ -142,3 +207,4 @@ class Auth:
                 "username": None,
                 "access_level": 1
             }
+
