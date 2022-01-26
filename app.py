@@ -1,9 +1,6 @@
 import flask
 import os
-import PIL
-import bcrypt
 import json
-import re
 from modules.database_interface import Database
 from modules.auth import Auth
 
