@@ -47,6 +47,7 @@ class Database:
         except SQLAlchemyError as e:
             error = str(e.__dict__['orig'])
             return error
+            
     # Remove after testing!
     def get_all_users(self):
         query = """

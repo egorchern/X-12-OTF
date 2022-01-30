@@ -16,12 +16,6 @@ if database_uri is None:
 if database_uri.startswith("postgres://"):
     database_uri = database_uri.replace("postgres://", "postgresql://", 1)
 
-# Secret for fernet in auth
-fernet_secret = os.environ.get('SECRET_KEY')
-if fernet_secret is None:
-    fernet_secret = open("secret_key.txt", "r").read().encode('utf-8')
-else:
-    fernet_secret = fernet_secret.encode('utf-8')
 
 # Initialize flask app
 app = flask.Flask(__name__, static_url_path='',
@@ -30,7 +24,7 @@ app.config["SQLALCHEMY_DATABASE_URI"] = database_uri
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 # Initialize component classes
 db = Database(app)
-auth = Auth(db, fernet_secret)
+auth = Auth(db)
 
 
 # This registers routes from external modules

@@ -1,5 +1,5 @@
 let auth_info = {};
-let page_state = "home"
+let page_state = "login"
 function $(selector) {
     return document.querySelector(selector);
 }
@@ -23,8 +23,8 @@ function register(username, email, password, date_of_birth) {
         });
 }
 
-function login(identifier, password) {
-    fetch("/auth/login", {
+async function login(identifier, password) {
+    return fetch("/auth/login", {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -39,6 +39,9 @@ function login(identifier, password) {
         .then((result) => {
             if (result.code == 1) {
                 location.reload();
+            }
+            else{
+                return result.code
             }
         });
 }
@@ -88,25 +91,77 @@ function get_user_info() {
         });
 }
 
+async function fetchStyle(url){
+    return new Promise((resolve, reject) => {
+        let link = document.createElement('link');
+        link.type = 'text/css';
+        link.rel = 'stylesheet';
+        link.onload = function() { resolve(); console.log('style has loaded'); };
+        link.href = url;
+    
+        let headScript = document.querySelector('script');
+        headScript.parentNode.insertBefore(link, headScript);
+    });
+}
+
+async function on_login_click(){
+    let identifier = $("#identifier").value;
+    let password = $("#password").value;
+    
+    let code = await login(identifier, password);
+    console.log(code)
+}
 /*
 Page States:
 "home": Home
 "login": Login
 "about_us": About us
 */
-function change_page_state(newState){
+async function change_page_state(newState){
     page_state = newState;
     // Remove all elements from main
-    main_html = $("main")
+    let main_html = $("main")
     while (main_html.firstChild){
         main_html.removeChild(main_html.firstChild)
     }
-    login_domstring = `
-    <div>
-        Login
-    </div>
-    `
-    main_html.insertAdjacentHTML("beforeend", login_domstring);
+    if (page_state === "login"){
+        let login_domstring = `
+            <div class='login-page-container flex-vertical align-center'>
+                <div class='login-form flex-vertical align-center appear-animated'>
+                    <div >
+                        <label for='identifier' class='form-label'>Email or username</label>
+                        <input type='text' class="form-control" id='identifier' placeholder="identifier">
+                        
+                    </div>
+                    <div >
+                        <div >
+                            <label for='password' class='form-label'>Password</label>
+                            <span class='forgot-password'>Forgot password?</span>
+                        </div>
+                        
+                        <input type='password' class="form-control" id='password' placeholder="password">
+                        
+                    </div>
+                    <button class="btn btn-outline-primary" id="login-btn">Log in</button>
+                    <div class="flex-horizontal align-center">
+                        <span>Not registered yet?</span>
+                        <span class='register'>Register</span>
+                    </div>
+                </div>
+            </div>
+        `
+        main_html.insertAdjacentHTML("beforeend", login_domstring);
+        $("#login-btn").onclick = on_login_click
+    }
+    else if(page_state === "home"){
+        let home_domstring = `
+        <div class="poster-container">
+            <img src="/images/poster.png" alt="OpenThoughtFloor poster">
+        </div>
+        `
+        main_html.insertAdjacentHTML("beforeend", home_domstring);
+    }
+    
 
 }
 
@@ -155,6 +210,7 @@ document.addEventListener("DOMContentLoaded", (event) => {
     details_promise.then((details) => {
         main();
     });
+    change_page_state("login");
 });
 // register("egorcik", "egorch.formal@gmail.com", "123qwe", "02/12/2001")
 // register("julia", "jul.f@manchester.ac.uk", "polo157gfd$", "03/10/2003")

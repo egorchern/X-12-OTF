@@ -34,7 +34,11 @@ body {
   --nav-search-bar-dimension: 50%;
   --footer-bg-color: #212529;
   --footer-font-size: max(min(calc(0.5rem + 1vw), 1.4rem), 1rem);
+  --body-bg-color: hsl(0, 0%, 95%);
 }
+/* body{
+  background-color: var(--body-bg-color);
+} */
 .flex-horizontal{
   display:flex;
   flex-direction: row;
@@ -156,7 +160,6 @@ nav{
   margin: auto;
 }
 main{
-  padding: 1rem;
 
   flex-grow: 1;
 }
