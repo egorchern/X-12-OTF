@@ -1,49 +1,15 @@
 let auth_info = {};
-let page_state = "login"
+let page_state = ""
 function $(selector) {
     return document.querySelector(selector);
 }
 
-function register(username, email, password, date_of_birth) {
-    fetch("/auth/register", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-            username: username,
-            email: email,
-            password: password,
-            date_of_birth: date_of_birth,
-        }),
-    })
-        .then((result) => result.json())
-        .then((result) => {
-            console.log(result);
-        });
-}
-
-async function login(identifier, password) {
-    return fetch("/auth/login", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-            identifier: identifier,
-            password: password,
-            client_identifier: localStorage.getItem("client_identifier"),
-        }),
-    })
-        .then((result) => result.json())
-        .then((result) => {
-            if (result.code == 1) {
-                location.reload();
-            }
-            else{
-                return result.code
-            }
-        });
+function delete_dom_children(identifier){
+    let element = $(identifier);
+    while (element.firstChild){
+        element.removeChild(element.firstChild)
+    }
+    return element;
 }
 
 function create_client_identifier() {
@@ -91,76 +57,66 @@ function get_user_info() {
         });
 }
 
-async function fetchStyle(url){
-    return new Promise((resolve, reject) => {
-        let link = document.createElement('link');
-        link.type = 'text/css';
-        link.rel = 'stylesheet';
-        link.onload = function() { resolve(); console.log('style has loaded'); };
-        link.href = url;
-    
-        let headScript = document.querySelector('script');
-        headScript.parentNode.insertBefore(link, headScript);
-    });
-}
 
-async function on_login_click(){
-    let identifier = $("#identifier").value;
-    let password = $("#password").value;
-    
-    let code = await login(identifier, password);
-    console.log(code)
-}
 /*
 Page States:
 "home": Home
 "login": Login
 "about_us": About us
 */
-async function change_page_state(newState){
-    page_state = newState;
-    // Remove all elements from main
-    let main_html = $("main")
-    while (main_html.firstChild){
-        main_html.removeChild(main_html.firstChild)
+async function change_page_state(new_state){
+    if (new_state === page_state){
+        return null;
     }
-    if (page_state === "login"){
+    page_state = new_state;
+    // Remove all elements from main
+    let main_html = delete_dom_children("main");
+    if (new_state === "login"){
         let login_domstring = `
             <div class='login-page-container flex-vertical align-center'>
-                <div class='login-form flex-vertical align-center appear-animated'>
-                    <div >
-                        <label for='identifier' class='form-label'>Email or username</label>
-                        <input type='text' class="form-control" id='identifier' placeholder="identifier">
+                <div class="auth-grid">
+                    <div id="alert-box" class="flex-vertical align-center">
                         
                     </div>
-                    <div >
+                    <div class='login-form flex-vertical align-center animate__animated animate__fadeIn'>
                         <div >
-                            <label for='password' class='form-label'>Password</label>
-                            <span class='forgot-password'>Forgot password?</span>
+                            <label for='identifier' class='form-label'>Email or username</label>
+                            <input type='text' class="form-control" id='identifier' placeholder="Identifier">
+                            
                         </div>
-                        
-                        <input type='password' class="form-control" id='password' placeholder="password">
-                        
-                    </div>
-                    <button class="btn btn-outline-primary" id="login-btn">Log in</button>
-                    <div class="flex-horizontal align-center">
-                        <span>Not registered yet?</span>
-                        <span class='register'>Register</span>
+                        <div >
+                            <div >
+                                <label for='password' class='form-label'>Password</label>
+                                <span class='forgot-password'>Forgot password?</span>
+                            </div>
+                            
+                            <input type='password' class="form-control" id='password' placeholder="Password">
+                            
+                        </div>
+                        <button class="btn btn-outline-primary" id="login-btn">Log in</button>
+                        <div class="flex-horizontal align-center">
+                            <span>Not registered yet?</span>
+                            <span class='register'>Register</span>
+                        </div>
                     </div>
                 </div>
+                
             </div>
         `
+        
         main_html.insertAdjacentHTML("beforeend", login_domstring);
         $("#login-btn").onclick = on_login_click
     }
-    else if(page_state === "home"){
+    else if(new_state === "home"){
         let home_domstring = `
         <div class="poster-container">
             <img src="/images/poster.png" alt="OpenThoughtFloor poster">
         </div>
         `
         main_html.insertAdjacentHTML("beforeend", home_domstring);
+        
     }
+    
     
 
 }
@@ -199,6 +155,7 @@ function main() {
         $("#login").onclick = () => {change_page_state("login")}
 
     }
+    $("#home-btn").onclick = () => {change_page_state("home")}
 }
 
 create_client_identifier();

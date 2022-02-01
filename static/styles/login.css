@@ -1,12 +1,15 @@
 .login-page-container{
     height: 100%;
-    background-color: hsl(0, 0%, 95%);
+    background-color: hsl(0, 0%, 96.5%);
+}
+.auth-grid{
+    width: 100%;
+    max-width: 500px;
+    display: grid;
 }
 .login-form{
     background-color: white;
     padding: 0.65rem;
-    width: 100%;
-    max-width: 500px;
     border-radius: 0.8rem;
     box-shadow: 0 4px 16px 4px rgb(0 0 0 / 14%);
 }
@@ -19,11 +22,12 @@
     color: hsl(206, 100%, 40%);
     cursor: pointer;
 }
-.appear-animated{
-    animation-name: appear;
-    animation-duration: 1s;
-    animation-timing-function: cubic-bezier(0.19, 1, 0.22, 1);
+.alert{
+    width: 100%;
 }
+/* #alert-box{
+    max-height: 100px;
+} */
 .register{
     margin-left: 0.5rem;
     color: hsl(206, 100%, 40%);
@@ -39,11 +43,12 @@
     margin: 0.5rem;
     width: 30%;
 }
-@keyframes appear{
+.al
+/* @keyframes appear{
     0%{
         transform: translate(0.5rem, -1rem);
     }
     100%{
         transform: none;
     }
-}
+} */

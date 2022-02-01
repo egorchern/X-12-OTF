@@ -35,6 +35,8 @@ body {
   --footer-bg-color: #212529;
   --footer-font-size: max(min(calc(0.5rem + 1vw), 1.4rem), 1rem);
   --body-bg-color: hsl(0, 0%, 95%);
+  --animate-duration: 0.75s;
+  --animate-delay: 0.5s;
 }
 /* body{
   background-color: var(--body-bg-color);
