@@ -33,12 +33,12 @@ function register(username, email, password, date_of_birth) {
     })
         .then((result) => result.json())
         .then((result) => {
-            console.log(result);
+            return result.code;
         });
 }
 
 function switch_login_page_state(){
-    console.log(login_page_state);
+    
     let auth_grid = delete_dom_children(".auth-grid");
 
     if (login_page_state === "login"){
@@ -46,15 +46,18 @@ function switch_login_page_state(){
         <div id="alert-box" class="flex-vertical align-center">
                         
         </div>
-        <div class='login-form flex-vertical align-center animate__animated animate__fadeIn'>
+        <form class='login-form flex-vertical align-center animate__animated animate__fadeIn needs-validation' novalidate>
             <div >
                 <label for='email' class='form-label'>Email</label>
-                <input type='email' class="form-control" id='email'>
+                <input type='email' class="form-control" id='email' required>
+                <div class="invalid-feedback">
+                    Please include a valid email address.
+                </div>
                 
             </div>
             <div >
                 <label for='username' class='form-label'>Username</label>
-                <input type='text' class="form-control" id='username'>
+                <input type='text' class="form-control" id='username' required>
                 
             </div>
             <div >
@@ -62,18 +65,40 @@ function switch_login_page_state(){
                 <label for='password' class='form-label'>Password</label>
                     
                 
-                <input type='password' class="form-control" id='password'>
+                <input type='password' class="form-control" id='password' required>
                 
             </div>
-            <button class="btn btn-outline-primary" id="login-btn">Register</button>
-            <div class="flex-horizontal align-center">
+            <div >
+                
+                <label for='confirm-password' class='form-label'>Confirm Password</label>
+                    
+                
+                <input type='password' class="form-control" id='confirm-password' required>
+                
+            </div>
+            <div>
+                <label for="date-of-birth">Date Of Birth</label>
+                <input type="date" class="form-control" id='date-of-birth' required>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="" id="terms-agreement" required>
+                <label class="form-check-label" for="terms-agreement">
+                I agree to the <span class="hoverable-text"> Terms of Service </span>
+                </label>
+                <div class="invalid-feedback">
+                You must agree to the terms and conditions.
+                </div>
+            </div>
+            <button type="button" class="btn btn-outline-primary form-btn" id="register-btn">Register</button>
+            <div class="flex-horizontal align-center bottom-switch-sentence">
                 <span>Already registered?</span>
                 <span id='login-switch' class="hoverable-text">Login</span>
             </div>
-        </div>
+        </form>
         `;
         auth_grid.insertAdjacentHTML("beforeend", reg_domstring);
         $('#login-switch').onclick = switch_login_page_state
+        $('#register-btn').onclick = on_register_click
         login_page_state = "register";
     }
     else{
@@ -81,7 +106,7 @@ function switch_login_page_state(){
         <div id="alert-box" class="flex-vertical align-center">
                         
         </div>
-        <div class='login-form flex-vertical align-center animate__animated animate__fadeIn'>
+        <form class='login-form flex-vertical align-center animate__animated animate__fadeIn'>
             <div >
                 <label for='identifier' class='form-label'>Email or username</label>
                 <input type='text' class="form-control" id='identifier' >
@@ -96,12 +121,12 @@ function switch_login_page_state(){
                 <input type='password' class="form-control" id='password'>
                 
             </div>
-            <button class="btn btn-outline-primary" id="login-btn">Log in</button>
-            <div class="flex-horizontal align-center">
+            <button type="button" class="btn btn-outline-primary form-btn" id="login-btn" >Log in</button>
+            <div class="flex-horizontal align-center bottom-switch-sentence">
                 <span>Not registered yet? </span>
                 <span id='register-switch' class="hoverable-text" >Register</span>
             </div>
-        </div>
+        </form>
         `
         auth_grid.insertAdjacentHTML("beforeend", log_domstring);
         $('#login-btn').onclick = on_login_click;
@@ -132,4 +157,26 @@ async function on_login_click(){
     if (code === 1){
         setTimeout(() => {location.reload();}, refresh_interval);
     }
+}
+
+async function on_register_click(){
+    let email = $("#email").value;
+    let username = $("#username").value;
+    let password = $("#password").value;
+    let confirmPassword = $("#confirm-password").value;
+    let dob = $("#date-of-birth").value;
+    let terms_agreement = $("#terms-agreement").checked
+    // Validates the email via standard email regex
+    const validate_email = (str) => {
+        let email_regex = /(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])/
+        return email_regex.test(str)
+    }
+    let email_valid = validate_email(email);
+    let email_class = email_valid ? "is-valid" : "is-invalid";
+    let temp = $('#email');
+    // Remove all invalids or valids from possible previous validations and add current validation
+    temp.classList.remove("is-valid");
+    temp.classList.remove("is-invalid");
+    temp.classList.add(email_class);
+    
 }
