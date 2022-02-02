@@ -78,34 +78,14 @@ async function change_page_state(new_state){
                     <div id="alert-box" class="flex-vertical align-center">
                         
                     </div>
-                    <div class='login-form flex-vertical align-center animate__animated animate__fadeIn'>
-                        <div >
-                            <label for='identifier' class='form-label'>Email or username</label>
-                            <input type='text' class="form-control" id='identifier' placeholder="Identifier">
-                            
-                        </div>
-                        <div >
-                            <div >
-                                <label for='password' class='form-label'>Password</label>
-                                <span class='forgot-password'>Forgot password?</span>
-                            </div>
-                            
-                            <input type='password' class="form-control" id='password' placeholder="Password">
-                            
-                        </div>
-                        <button class="btn btn-outline-primary" id="login-btn">Log in</button>
-                        <div class="flex-horizontal align-center">
-                            <span>Not registered yet?</span>
-                            <span class='register'>Register</span>
-                        </div>
-                    </div>
+                    
                 </div>
                 
             </div>
         `
         
         main_html.insertAdjacentHTML("beforeend", login_domstring);
-        $("#login-btn").onclick = on_login_click
+        switch_login_page_state()
     }
     else if(new_state === "home"){
         let home_domstring = `
