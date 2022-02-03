@@ -94,8 +94,9 @@ class Auth:
     def login(self, user_data: dict) -> dict:
         """Authenticates user. Sets the auth token via cookies
         1 - successfull login
-        2 - invalid credentials
-        3 - some other error
+        2 - no record with such identifier
+        3 - missmatching passwords
+        4 - some other error
         """
         # Get parameters from request
         identifier = user_data.get("identifier")
@@ -105,17 +106,20 @@ class Auth:
         # Check that all parameters are of right format 
         if not isinstance(identifier, str) or not isinstance(password, str) or not isinstance(client_identifier, str):
             return {
-                "code": 3
+                "code": 4
             }
         
         user_id, credentials_matching = self.credentials_matching(identifier, password)
         resp = {}
-        if credentials_matching:
-            # If credentials match, generate token and include in hashmap
-            token = self.generate_token()
-            result = self.db.insert_auth_token(user_id, token, client_identifier)
-            resp["token"] = token
-            resp["code"] = 1
+        if user_id is not None:
+            if credentials_matching:
+                # If credentials match, generate token and include in hashmap
+                token = self.generate_token()
+                result = self.db.insert_auth_token(user_id, token, client_identifier)
+                resp["token"] = token
+                resp["code"] = 1
+            else:
+                resp["code"] = 3
         else:
             resp["code"] = 2
             
@@ -175,12 +179,13 @@ class Auth:
 
         return resp
    
-    def is_authenticated(self, auth_token: str, required_username: str = None, required_access_level: int = 1) -> bool:
+    def is_authenticated(self, request, required_username: str = None, required_access_level: int = 1) -> bool:
         """
         Returns bool indicating whether the user is authenticated to do something given the requirements:
         required_username, default is None
         required_access_level, default is 1, which is everybody
         """
+        auth_token = request.cookies.get("auth_token")
         auth_info = self.get_username_and_access_level(auth_token)
         if required_username is not None and auth_info.get("username") == required_username:
             return True

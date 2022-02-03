@@ -43,9 +43,8 @@ def index():
 @app.route("/test/get_all_users", methods=['GET', 'POST'])
 def get_all_users():
     request = flask.request
-    auth_token = request.cookies.get("auth_token")
     is_authenticated = auth.is_authenticated(
-        auth_token, required_access_level=2)
+        request, required_access_level=2)
     if is_authenticated:
         all_users = db.get_all_users()
         return json.dumps(all_users, sort_keys=True, indent=4)
