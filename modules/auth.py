@@ -3,6 +3,8 @@ import re
 from secrets import token_urlsafe
 from flask import Blueprint, request as req, make_response
 import json
+from datetime import datetime, timedelta
+# TODO server-side verification for registering
 class Auth:
     def __init__(self, db):
 
@@ -137,18 +139,39 @@ class Auth:
         2 - username already exists,
         3 - email already exists,
         4 - invalid input,
-        5 - some other error
         """
+        
+        def validate_inputs(username, password, date_of_birth, email):
+            # Validates register input, need to do this to confirm to don't trust client security.
+            temp = re.match("^\w{1,30}$", username)
+            if not temp:
+                return False
+            temp = re.match("(?=\w*\W{1,}\w*)(?=\D*\d{1,}\D*)(?=.{8,})", password)
+            if not temp:
+                return False
+            temp = datetime.now()
+            try:
+                converted_date = datetime.strptime(date_of_birth, "%Y-%m-%d")
+                if converted_date >= temp:
+                    return False
+            except:
+                return False
+            temp = re.match('(?:[a-z0-9!#$%&\'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&\'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])', email)
+            if not temp:
+                return False
+            else:
+                return True
+
         # Get parameters from request
         username = user_data.get("username")
         password = user_data.get("password")
         date_of_birth = user_data.get("date_of_birth")
         email = user_data.get("email")
-        # Check that all parameters are strings, so not empty or other data types
-        if not isinstance(username, str) or not isinstance(password, str) or not isinstance(date_of_birth, str) or not isinstance(email, str):
-            return {
-                "code": 4
-            }
+        resp = {}
+        temp = validate_inputs(username, password, date_of_birth, email)
+        if not temp:
+            resp["code"] = 4
+            return resp
         # hash password using bcrypt
         hashed_password = self.hash(password).decode("utf-8")
         # Call insert into database
@@ -158,9 +181,10 @@ class Auth:
             hashed_password,
             date_of_birth
         )
-        resp = {}
+        
         # if just successfully registered then retun 1
         if result is True:
+            print(f"User registered: {username}, {email}")
             resp["code"] = 1
             return resp
 

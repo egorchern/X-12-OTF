@@ -150,6 +150,6 @@ document.addEventListener("DOMContentLoaded", (event) => {
     change_page_state("login");
 });
 // register("egorcik", "egorch.formal@gmail.com", "123qwe", "02/12/2001")
-// register("julia", "jul.f@manchester.ac.uk", "polo157gfd$", "03/10/2003")
+// register("julia", "jul.f@manchester.ac.uk", "polasdfsdfdsasfad14F141$$$", "2021-03-21")
 // login("egorcik", "123qwe")
 // login("jul.f@manchester.ac.uk", "polo157gfd$")
