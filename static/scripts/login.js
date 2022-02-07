@@ -108,7 +108,7 @@ function switch_login_page_state() {
             <button type="button" class="btn btn-outline-primary form-btn" id="register-btn">Register</button>
             <div class="flex-horizontal align-center bottom-switch-sentence">
                 <span>Already registered?</span>
-                <span id='login-switch' class="hoverable-text">Login</span>
+                <button id='login-switch' class="hoverable-text" role="navigation" tabindex="0">Login</button>
             </div>
         </form>
         `;
@@ -133,7 +133,7 @@ function switch_login_page_state() {
             <div >
                 <div >
                     <label for='password' class='form-label'>Password</label>
-                    <span id='forgot-password' class="hoverable-text">Forgot password?</span>
+                    <button id='forgot-password' class="hoverable-text" role="navigation" tabindex="0">Forgot password?</button>
                     
                 </div>
                 
@@ -146,7 +146,7 @@ function switch_login_page_state() {
             <button type="button" class="btn btn-outline-primary form-btn" id="login-btn" >Log in</button>
             <div class="flex-horizontal align-center bottom-switch-sentence">
                 <span>Not registered yet? </span>
-                <span id='register-switch' class="hoverable-text" >Register</span>
+                <button id='register-switch' class="hoverable-text" role="navigation" tabindex="0">Register</button>
             </div>
         </form>
         `

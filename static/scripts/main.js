@@ -122,7 +122,7 @@ async function change_page_state(new_state){
 
 function main() {
     let login_domstring = `
-    <div class="nav-item-container nav-button flex-horizontal" id="login" role="navigation" tabindex="0">
+    <button class="nav-item-container nav-button flex-horizontal" id="login" role="navigation" tabindex="0">
 
       <span class="material-icons">
         login
@@ -130,19 +130,19 @@ function main() {
       <span class="nav-heading">
         Login/Register
       </span>
-    </div>
+    </button>
     `;
     let profile_domstring = `
-    <div class="nav-item-container nav-button flex-horizontal" role="navigation" tabindex="0" id="profile">
+    <button class="nav-item-container nav-button flex-horizontal" role="navigation" tabindex="0" id="profile">
 
-    <span class="material-icons">
-        account_circle
-    </span>
-    <span class="nav-heading">
-        Profile
-    </span>
+        <span class="material-icons">
+            account_circle
+        </span>
+        <span class="nav-heading">
+            Profile
+        </span>
       
-    </div>
+    </button>
     `;
     // Insert either a profile nav element or login nav element depending on authentication info
     let nav_element = $("nav");
