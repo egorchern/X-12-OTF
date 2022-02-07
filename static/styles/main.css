@@ -164,6 +164,7 @@ nav{
 main{
 
   flex-grow: 1;
+  padding: 1rem;
 }
 footer{
   /*font-size: var(--footer-font-size);*/

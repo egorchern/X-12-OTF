@@ -37,6 +37,14 @@ app.register_blueprint(auth.auth_api)
 def index():
     return flask.render_template('index.html')
 
+@app.route('/home', methods=['GET'])
+def home():
+    return flask.render_template('index.html')
+
+@app.route('/login-register', methods=['GET'])
+def login_register():
+    return flask.render_template('index.html')
+
 # Just a test route, to test whether access levels and authentication is working
 
 

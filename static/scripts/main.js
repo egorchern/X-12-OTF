@@ -1,5 +1,11 @@
 let auth_info = {};
-let page_state = ""
+let page_state = "";
+// This makes it possible to go back using the back button in hte browser, using history api
+window.onpopstate = (ev) => {
+    let state = ev.state;
+    change_page_state(state.page_state);
+}
+
 function $(selector) {
     return document.querySelector(selector);
 }
@@ -57,6 +63,16 @@ function get_user_info() {
         });
 }
 
+// This changes page state depending on the url. So makes possible to go straight to some page
+function initialize_page_state(){
+    let path = document.location.pathname;
+    if (path === "/home"){
+        change_page_state("home");
+    }
+    else if(path === "/login-register"){
+        change_page_state("login");
+    }
+}
 
 /*
 Page States:
@@ -65,6 +81,8 @@ Page States:
 "about_us": About us
 */
 async function change_page_state(new_state){
+    console.log(page_state, new_state);
+    // If trying to switch to the same state, no need to do anything
     if (new_state === page_state){
         return null;
     }
@@ -83,7 +101,7 @@ async function change_page_state(new_state){
                 
             </div>
         `
-        
+        history.pushState({page_state: page_state}, null, "/login-register")
         main_html.insertAdjacentHTML("beforeend", login_domstring);
         switch_login_page_state()
     }
@@ -93,6 +111,7 @@ async function change_page_state(new_state){
             <img src="/images/poster.png" alt="OpenThoughtFloor poster">
         </div>
         `
+        history.pushState({page_state: page_state}, null, "/home")
         main_html.insertAdjacentHTML("beforeend", home_domstring);
         
     }
@@ -147,7 +166,7 @@ document.addEventListener("DOMContentLoaded", (event) => {
     details_promise.then((details) => {
         main();
     });
-    change_page_state("login");
+    initialize_page_state();
 });
 // register("egorcik", "egorch.formal@gmail.com", "123qwe", "02/12/2001")
 // register("julia", "jul.f@manchester.ac.uk", "polasdfsdfdsasfad14F141$$$", "2021-03-21")
