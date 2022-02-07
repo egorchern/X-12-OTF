@@ -17,11 +17,13 @@ body {
   margin: 0;
   overflow-x: hidden;
   
+
 }
 button{
   border: none;
   background: transparent;
   padding: 0;
+
 }
 :root{
   --nav-background-color: hsla(180, 8%, 95%, 1);
@@ -38,6 +40,7 @@ button{
   --nav-search-bar-dimension: 50%;
   --footer-bg-color: #212529;
   --footer-font-size: max(min(calc(0.5rem + 1vw), 1.4rem), 1rem);
+
   --body-bg-color: hsl(0, 0%, 95%);
   --animate-duration: 0.65s;
   --animate-delay: 0.45s;
@@ -45,6 +48,7 @@ button{
 /* body{
   background-color: var(--body-bg-color);
 } */
+
 .flex-horizontal{
   display:flex;
   flex-direction: row;
@@ -83,8 +87,10 @@ nav{
 
 .nav-item-container{
   flex-grow: 1;
+
   margin:0.25rem;
   padding: 0.25rem;
+
   justify-content: center;
   align-items: center;
 }
@@ -170,6 +176,32 @@ main{
 
   flex-grow: 1;
   padding: 1rem;
+
+  flex-grow: 1;
+}
+footer{
+  /*font-size: var(--footer-font-size);*/
+  padding: 1rem;
+  background-color: var(--footer-bg-color);
+  color: white;
+  display: flex;
+  flex-direction: row;
+}
+.links-container{
+  flex-grow: 1;
+  margin-left: 1rem;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+}
+.links-container > span{
+  margin-left: 0.5rem;
+  margin-right: 0.5rem;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.links-container > span:hover{
+  text-decoration: underline;
 }
 footer{
   /*font-size: var(--footer-font-size);*/
