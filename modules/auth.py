@@ -45,6 +45,7 @@ class Auth:
             result = self.logout(auth_token)
             
             resp = make_response()
+            # if logged out, expire the auth token
             if result.get("code") == 1:
                 resp.set_cookie("auth_token", "", expires=0)
             resp.set_data(json.dumps(result))

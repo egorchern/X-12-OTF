@@ -31,23 +31,21 @@ auth = Auth(db)
 app.register_blueprint(auth.auth_api)
 
 # Index route, simply send the html doc
-
-
 @app.route('/', methods=['GET'])
 def index():
     return flask.render_template('index.html')
 
+# Routes for internal page states
 @app.route('/home', methods=['GET'])
 def home():
     return flask.render_template('index.html')
 
+# Routes for internal page states
 @app.route('/login-register', methods=['GET'])
 def login_register():
     return flask.render_template('index.html')
 
 # Just a test route, to test whether access levels and authentication is working
-
-
 @app.route("/test/get_all_users", methods=['GET', 'POST'])
 def get_all_users():
     request = flask.request
@@ -59,7 +57,7 @@ def get_all_users():
     else:
         return "You don't have permission to access this page"
 
-
+# Run the flask server
 if __name__ == '__main__':
 
     app.run(debug=True)

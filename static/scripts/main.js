@@ -6,10 +6,12 @@ window.onpopstate = (ev) => {
     change_page_state(state.page_state);
 }
 
+// Jquery like selection, because I like it
 function $(selector) {
     return document.querySelector(selector);
 }
 
+// Deletes all children from element
 function delete_dom_children(identifier){
     let element = $(identifier);
     while (element.firstChild){
@@ -18,6 +20,7 @@ function delete_dom_children(identifier){
     return element;
 }
 
+// Creates a unique identifier for client
 function create_client_identifier() {
     let temp = localStorage.getItem("client_identifier");
     if (temp === null) {
@@ -37,6 +40,7 @@ function create_client_identifier() {
     }
 }
 
+// Logs the client out of their account. Send request to "auth/logout" server route.
 function logout() {
     fetch("/auth/logout", {
         method: "POST",
@@ -50,6 +54,7 @@ function logout() {
         });
 }
 
+// Get details of the currently logged user. Send request to "auth/userinfo" server route.
 function get_user_info() {
     return fetch("/auth/get_user_info", {
         method: "POST",
@@ -59,7 +64,7 @@ function get_user_info() {
     })
         .then((result) => result.json())
         .then((result) => {
-            auth_info = result;
+            return result;
         });
 }
 
@@ -75,6 +80,7 @@ function initialize_page_state(){
 }
 
 /*
+Change page state
 Page States:
 "home": Home
 "login": Login
@@ -120,6 +126,7 @@ async function change_page_state(new_state){
 
 }
 
+// Called after userinfo is loaded. Initializes the page
 function main() {
     let login_domstring = `
     <button class="nav-item-container nav-button flex-horizontal" id="login" role="navigation" tabindex="0">

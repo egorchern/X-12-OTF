@@ -1,5 +1,6 @@
 let login_page_state = "register";
 
+// Logs the client in. Sends params to server route "/auth/login" via fetch and returns response code
 async function login(identifier, password) {
     return fetch("/auth/login", {
         method: "POST",
@@ -18,6 +19,7 @@ async function login(identifier, password) {
         });
 }
 
+// Registers the client. Sends params to server route "/auth/register" via fetch and returns response code
 async function register(username, email, password, date_of_birth) {
     return fetch("/auth/register", {
         method: "POST",
@@ -37,6 +39,7 @@ async function register(username, email, password, date_of_birth) {
         });
 }
 
+// Deletes valid/invalid classes from the element and assigns new class from params
 const validate_element = (identifier, cls) => {
     let element = $(identifier);
     element.classList.remove("is-valid");
@@ -44,6 +47,7 @@ const validate_element = (identifier, cls) => {
     element.classList.add(cls);
 }
 
+// Switches the state of the login form. From login to register and vice versa
 function switch_login_page_state() {
 
     let auth_grid = delete_dom_children(".auth-grid");
@@ -206,21 +210,23 @@ async function on_register_click() {
     let terms_agreement_checked = $("#terms-agreement").checked;
     // Function to remove previous validation classes and assign the new class
     
-
+    // Validates the email via standard email regex
     const validate_email = (str) => {
-        // Validates the email via standard email regex
+        
         let email_regex = /(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])/
         return email_regex.test(str)
     }
 
+    // username can only contain letters, numbers and underscores. Must be fewer than or equal to 30 characters
     const validate_username = (str) => {
-        // username can only contain letters, numbers and underscores. Must be fewer than or equal to 30 characters
+        
         let username_valid = /^\w{1,30}$/.test(username);
         return username_valid
     }
 
+    // Password has to be at least 8 characters, at least one special character, at least one capital letter
     const validate_passwords = (password, repeatPassword) => {
-        // Password has to be at least 8 characters, at least one special character, at least one capital letter
+        
         let password_regex = /(?=\w*\W{1,}\w*)(?=\D*\d{1,}\D*)(?=.{8,})/
         let password_valid = password_regex.test(password);
         let passwords_match = password === repeatPassword;
@@ -229,8 +235,10 @@ async function on_register_click() {
             passwords_match: passwords_match
         };
     }
+
+    // We will simply check that there is a date of birth and its not in the future
     const validate_dob = (dob) => {
-        // We will simply check that there is a date of birth and its not in the future
+        
         if (dob.length === 0) {
             return false;
         }
@@ -241,6 +249,7 @@ async function on_register_click() {
 
     let email_valid = validate_email(email);
     let email_class = email_valid ? "is-valid" : "is-invalid";
+    // This is needed because email field can be invalid for two reasons. This is for invalid email
     if (email_valid === false) {
         $("#email-invalid-feedback").innerHTML = "Please enter a valid email address";
     }
@@ -252,11 +261,13 @@ async function on_register_click() {
         $("#username-invalid-feedback").innerHTML = "Please enter a username of length 1-30, using only: letters, numbers and underscores";
     }
     validate_element("#username", username_class);
+    // Validate password
     let temp = validate_passwords(password, confirmPassword);
     let password_class = temp.password_valid ? "is-valid" : "is-invalid";
     let confirmPassword_class = temp.passwords_match ? "is-valid" : "is-invalid";
     validate_element("#password", password_class);
     validate_element("#confirm-password", confirmPassword_class);
+    // Validate date of birth
     let dob_valid = validate_dob(dob);
     let dob_class = dob_valid ? "is-valid" : "is-invalid";
     validate_element("#date-of-birth", dob_class);
@@ -273,11 +284,14 @@ async function on_register_click() {
         $("#username-invalid-feedback").innerHTML = "Please choose a different username, as this username is already taken";
         validate_element("#username", "is-invalid");
     }
+    // This means the chosen email is taken
     else if(code === 3){
         $("#email-invalid-feedback").innerHTML = "Please choose a different email address, as an account with this email address already exists";
         validate_element("#email", "is-invalid");
     }
+    // This means successfully registered
     else if(code === 1){
+        // Push alert to alert box with successfull register message
         let alert = `
         <div class="alert alert-success alert-dismissible fade show flex-horizontal align-center" role="alert">
             <span class="material-icons">

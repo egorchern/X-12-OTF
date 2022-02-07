@@ -29,6 +29,7 @@ class Database:
             error = str(e.__dict__['orig'])
             return error
 
+    # Return user info
     def get_user_auth_info(self, auth_token: str) -> dict:
         query = """
         SELECT username, access_level
@@ -63,7 +64,8 @@ class Database:
         except SQLAlchemyError as e:
             error = str(e.__dict__['orig'])
             return error
-        
+    
+    # Format the sql result into nice array
     def return_formatted(self, result) -> dict:
         response = []
         for row in result:
