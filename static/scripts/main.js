@@ -71,7 +71,10 @@ function get_user_info() {
 // This changes page state depending on the url. So makes possible to go straight to some page
 function initialize_page_state(){
     let path = document.location.pathname;
-    if (path === "/home"){
+    if (path === "/"){
+        change_page_state("home");
+    }
+    else if (path === "/home"){
         change_page_state("home");
     }
     else if(path === "/login-register"){
@@ -85,6 +88,7 @@ Page States:
 "home": Home
 "login": Login
 "about_us": About us
+"profile": Profile
 */
 async function change_page_state(new_state){
     console.log(page_state, new_state);
@@ -114,12 +118,23 @@ async function change_page_state(new_state){
     else if(new_state === "home"){
         let home_domstring = `
         <div class="poster-container">
-            <img src="/images/poster.png" alt="OpenThoughtFloor poster">
+            <img src="/images/poster.webp" alt="OpenThoughtFloor poster">
         </div>
         `
         history.pushState({page_state: page_state}, null, "/home")
         main_html.insertAdjacentHTML("beforeend", home_domstring);
         
+    }
+    else if(new_state === "profile"){
+        let profile_domstring = `
+            <div>
+                <div class="flex-vertical">
+                    <span>Hello, <span class="username-span">${auth_info.username}</span></span>
+                    <span>Your access level is: ${auth_info.access_level}</span>
+                </div>
+            </div>
+        `;
+        main_html.insertAdjacentHTML("beforeend", profile_domstring);
     }
     
     
@@ -128,35 +143,38 @@ async function change_page_state(new_state){
 
 // Called after userinfo is loaded. Initializes the page
 function main() {
-    let login_domstring = `
-    <button class="nav-item-container nav-button flex-horizontal" id="login" role="navigation" tabindex="0">
-
-      <span class="material-icons">
-        login
-      </span>
-      <span class="nav-heading">
-        Login/Register
-      </span>
-    </button>
-    `;
-    let profile_domstring = `
-    <button class="nav-item-container nav-button flex-horizontal" role="navigation" tabindex="0" id="profile">
-
-        <span class="material-icons">
-            account_circle
-        </span>
-        <span class="nav-heading">
-            Profile
-        </span>
-      
-    </button>
-    `;
+    
+    
     // Insert either a profile nav element or login nav element depending on authentication info
     let nav_element = $("nav");
     if (auth_info.username != null) {
+        let profile_domstring = `
+            <button class="nav-item-container nav-button flex-horizontal" role="navigation" tabindex="0" id="profile">
+
+                <span class="material-icons">
+                    account_circle
+                </span>
+                <span class="nav-heading">
+                    Profile
+                </span>
+            
+            </button>
+        `;
         nav_element.insertAdjacentHTML("beforeend", profile_domstring);
+        $("#profile").onclick = () => {change_page_state("profile")};
         
     } else {
+        let login_domstring = `
+            <button class="nav-item-container nav-button flex-horizontal" id="login" role="navigation" tabindex="0">
+
+            <span class="material-icons">
+                login
+            </span>
+            <span class="nav-heading">
+                Login/Register
+            </span>
+            </button>
+        `;
         nav_element.insertAdjacentHTML("beforeend", login_domstring);
         $("#login").onclick = () => {change_page_state("login")}
 
@@ -170,7 +188,8 @@ let details_promise = get_user_info();
 // When all static content is loaded
 document.addEventListener("DOMContentLoaded", (event) => {
     // need to have details ready before executing main
-    details_promise.then((details) => {
+    details_promise.then((user_details) => {
+        auth_info = user_details
         main();
     });
     initialize_page_state();
