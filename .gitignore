@@ -2,10 +2,10 @@
 __pycache__/
 *.py[cod]
 *$py.class
-
+.vscode
 # C extensions
 *.so
-
+secret_key.txt
 # Distribution / packaging
 .Python
 build/
