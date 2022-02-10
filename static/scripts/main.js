@@ -72,23 +72,26 @@ function get_user_info() {
 function initialize_page_state(){
     let path = document.location.pathname;
     if (path === "/"){
-        change_page_state("home");
+        change_page_state("/home");
     }
     else if (path === "/home"){
-        change_page_state("home");
+        change_page_state("/home");
     }
     else if(path === "/login-register"){
-        change_page_state("login");
+        change_page_state("/login");
+    }
+    else if(/^\/profile\/(?<username>.+)$/.test(path)){
+        change_page_state(path);
     }
 }
 
 /*
 Change page state
 Page States:
-"home": Home
-"login": Login
-"about_us": About us
-"profile": Profile
+"/home": Home
+"/login": Login
+"/about_us": About us
+"profile/<username>": Profile of a certain username
 */
 async function change_page_state(new_state){
     console.log(page_state, new_state);
@@ -99,7 +102,7 @@ async function change_page_state(new_state){
     page_state = new_state;
     // Remove all elements from main
     let main_html = delete_dom_children("main");
-    if (new_state === "login"){
+    if (new_state === "/login"){
         let login_domstring = `
             <div class='login-page-container flex-vertical align-center'>
                 <div class="auth-grid">
@@ -115,7 +118,7 @@ async function change_page_state(new_state){
         main_html.insertAdjacentHTML("beforeend", login_domstring);
         switch_login_page_state()
     }
-    else if(new_state === "home"){
+    else if(new_state === "/home"){
         let home_domstring = `
         <div class="poster-container">
             <img src="/images/poster.webp" alt="OpenThoughtFloor poster">
@@ -125,16 +128,24 @@ async function change_page_state(new_state){
         main_html.insertAdjacentHTML("beforeend", home_domstring);
         
     }
-    else if(new_state === "profile"){
+    else if(/^\/profile\/.+$/.test(new_state)){
+        let temp = /^\/profile\/(?<username>.+)$/.exec(new_state);
+        
+        if(temp === null){
+            return null;
+        }
+        let username = temp.groups.username;
         let profile_domstring = `
             <div>
                 <div class="flex-vertical">
-                    <span>Hello, <span class="username-span">${auth_info.username}</span></span>
-                    <span>Your access level is: ${auth_info.access_level}</span>
+                    <span>Hello, <span class="username-span"></span></span>
+                    <span>Your access level is: </span>
                 </div>
             </div>
         `;
+        history.pushState({page_state: page_state}, null, `/profile/${username}`);
         main_html.insertAdjacentHTML("beforeend", profile_domstring);
+        profile_main(username);
     }
     
     
@@ -161,7 +172,7 @@ function main() {
             </button>
         `;
         nav_element.insertAdjacentHTML("beforeend", profile_domstring);
-        $("#profile").onclick = () => {change_page_state("profile")};
+        $("#profile").onclick = () => {change_page_state(`/profile/${auth_info.username}`)};
         
     } else {
         let login_domstring = `
@@ -176,10 +187,10 @@ function main() {
             </button>
         `;
         nav_element.insertAdjacentHTML("beforeend", login_domstring);
-        $("#login").onclick = () => {change_page_state("login")}
+        $("#login").onclick = () => {change_page_state("/login")}
 
     }
-    $("#home-btn").onclick = () => {change_page_state("home")}
+    $("#home-btn").onclick = () => {change_page_state("/home")}
 }
 
 create_client_identifier();

@@ -29,6 +29,9 @@ class Database:
             error = str(e.__dict__['orig'])
             return error
 
+    def get_all_user_info(username: str):
+        pass;
+        
     # Return user info
     def get_user_auth_info(self, auth_token: str) -> dict:
         query = """

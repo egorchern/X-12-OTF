@@ -45,6 +45,10 @@ def home():
 def login_register():
     return flask.render_template('index.html')
 
+@app.route('/profile/<username>', methods=['GET'])
+def profile_page(username):
+    return flask.render_template('index.html')
+
 # Just a test route, to test whether access levels and authentication is working
 @app.route("/test/get_all_users", methods=['GET', 'POST'])
 def get_all_users():
