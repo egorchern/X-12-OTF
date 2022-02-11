@@ -136,10 +136,18 @@ async function change_page_state(new_state){
         }
         let username = temp.groups.username;
         let profile_domstring = `
-            <div>
-                <div class="flex-vertical">
-                    <span>Hello, <span class="username-span"></span></span>
-                    <span>Your access level is: </span>
+            <div id="profile-container">
+                <div id="profile-control-container">
+                </div>
+                <div class="profile-header-container flex-vertical align-center">
+                    <img id="avatar-img">
+                    <h4 id="username-text"></h4>
+                    
+                </div>
+                <div id="personal-description-container" class="flex-vertical">
+                    <h3 style="text-align: center">Personal Description</h3>
+                    <div id="profile-description-text">
+                    </div>
                 </div>
             </div>
         `;
