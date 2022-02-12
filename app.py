@@ -25,7 +25,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 # Initialize component classes
 db = Database(app)
 auth = Auth(db)
-api = Api(db)
+api = Api(db, auth)
 
 # This registers routes from external modules
 app.register_blueprint(auth.auth_api)

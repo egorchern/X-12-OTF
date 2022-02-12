@@ -136,8 +136,8 @@ async function change_page_state(new_state){
         }
         let username = temp.groups.username;
         let profile_domstring = `
-            <div id="profile-container">
-                <div id="profile-control-container">
+            <div id="profile-container" class="animate__animated animate__fadeIn">
+                <div id="profile-control-container" >
                 </div>
                 <div class="profile-header-container flex-vertical align-center">
                     <img id="avatar-img">
@@ -146,7 +146,7 @@ async function change_page_state(new_state){
                 </div>
                 <div id="personal-description-container" class="flex-vertical">
                     <h3 style="text-align: center">Personal Description</h3>
-                    <div id="profile-description-text">
+                    <div id="profile-description-text" class="profile-description-box">
                     </div>
                 </div>
             </div>

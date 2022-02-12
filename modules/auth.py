@@ -212,12 +212,17 @@ class Auth:
         """
         auth_token = request.cookies.get("auth_token")
         auth_info = self.get_username_and_access_level(auth_token)
-        if required_username is not None and auth_info.get("username") == required_username:
-            return True
-        elif required_access_level is not None and auth_info.get("access_level") >= required_access_level:
-            return True
-        else:
-            return False
+        if required_username is not None:
+            if auth_info.get("username") == required_username:
+                return True
+            else:
+                return False
+        elif required_access_level is not None:
+            if auth_info.get("access_level") >= required_access_level:
+                return True
+            else:
+                return False
+        return True
 
     def get_username_and_access_level(self, auth_token: str) -> list:
         """

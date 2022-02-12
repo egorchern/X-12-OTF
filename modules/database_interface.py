@@ -66,7 +66,25 @@ class Database:
         except SQLAlchemyError as e:
             error = str(e.__dict__['orig'])
             return error
-            
+    
+    def update_user_info(self, user_info: dict):
+        # Updates the users information with parameters. Only personal descr for now
+        query = """
+        UPDATE users
+        SET personal_description = :personal_description
+        WHERE username = :username
+        """
+        params = user_info
+        try:
+            result = self.db.session.execute(query, params)
+            self.db.session.commit()
+            self.db.session.close()
+            return None
+        # For catching errors and outputting them
+        except SQLAlchemyError as e:
+            error = str(e.__dict__['orig'])
+            return error
+
     # Remove after testing!
     def get_all_users(self):
         query = """

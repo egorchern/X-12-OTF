@@ -20,7 +20,7 @@
 #username-text{
     margin-top: 0.5rem;
 }
-#profile-description-text{
+.profile-description-box{
     flex-grow: 1;
     background-color: white;
     padding: 0.65rem;
