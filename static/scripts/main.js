@@ -120,8 +120,16 @@ async function change_page_state(new_state){
     }
     else if(new_state === "/home"){
         let home_domstring = `
-        <div class="poster-container">
-            <img src="/images/poster.webp" alt="OpenThoughtFloor poster">
+        <div class="home-container">
+            <div class="blog-tile">
+                <div class="flex-vertical align-center">
+                    <img class="author-avatar" src="/images/avatar_1.webp">
+                    <div class="flex-vertical align-center">
+                        <span>Created by:</span>
+                        <strong>Jessica_Hershley</strong>
+                    </div>
+                </div>
+            </div>
         </div>
         `
         history.pushState({page_state: page_state}, null, "/home")

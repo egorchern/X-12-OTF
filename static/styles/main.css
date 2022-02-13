@@ -84,7 +84,19 @@ nav{
   background-color: var(--nav-background-color);
   box-shadow: var(--bs-sm);
 }
-
+.author-avatar{
+  max-width: 50%;
+}
+.blog-tile{
+  background-color: white;
+  padding: 0.65rem;
+  border: 1px solid hsl(0deg 0% 85%);
+  border-radius: 0.8rem;
+  box-shadow: 0 4px 16px 4px rgb(0 0 0 / 14%);
+  display: grid;
+  grid-template-columns: 30fr 70fr;
+  max-width: 500px;
+}
 .nav-item-container{
   flex-grow: 1;
 
@@ -178,6 +190,9 @@ main{
   padding: 1rem;
 
   flex-grow: 1;
+}
+main > div{
+  height: 100%;
 }
 footer{
   /*font-size: var(--footer-font-size);*/
