@@ -231,7 +231,6 @@ class Database:
         create_users_table()
         create_auth_tokens_table()
         create_blog_table()
-        insert_new_blog()
     
 
     def insert_dummy_data(self):

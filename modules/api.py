@@ -31,3 +31,18 @@ class Api:
             else:
                 resp["code"] = 2
             return resp
+        
+        @self.api.route("/api/blog/create", methods=["POST"])
+        def create_blog():
+            #TODO implement this, call database function
+            pass
+
+        @self.api.route("/api/blog/delete/<blog_id>", methods =["DELETE"])
+        def delete_blog(blog_id):
+            #TODO implement this, check that the user is authenticated to delete the blog (admin or the owner). and if allowed, call databse function
+            pass
+
+        @self.api.route("/api/blog/edit/<blog_id>", methods =["PUT"])
+        def edit_blog(blog_id):
+            #TODO implement this, check that user is authenticated to edit the blog (owner) and if allowed, call database Function
+            pass
