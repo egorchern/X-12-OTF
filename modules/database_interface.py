@@ -17,7 +17,8 @@ class Database:
 
     def update_existing_blog(self):
         #TODO update the existing blog here, with parameters passed
-        
+        pass
+    
     def delete_blog(self):
         #TODO delete blog here, with parameters
         pass
