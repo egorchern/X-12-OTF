@@ -11,17 +11,51 @@ class Database:
         # self.migrate = Migrate(app, self.db)
         self.create_database()
     
-    def create_new_blog(self):
-        #TODO create new blog here, with parameters passed
-        pass
-
-    def update_existing_blog(self):
+    def update_existing_blog(self, blog_info: dict):
         #TODO update the existing blog here, with parameters passed
-        
-    def delete_blog(self):
-        #TODO delete blog here, with parameters
-        pass
+        query = """
+        UPDATE blogs
+        SET blog_body = :blog_body, blog_title = :blog_title, date_modified = :date_modified, category = :category, word_count = :word_count
+        WHERE blog_id = :blog_id
+        """
+        params = blog_info
+        try: 
+            result = self.db.session.execute(query, params)
+            self.db.session.commmit()
+            self.db.close()
+        except SQLAlchemyError as e:
+            error = str(e.__dict__['orig'])
+            return error
 
+
+    def insert_new_blog(self):
+            self.db.session.execute(
+            """
+            INSERT INTO blogs (blog_body,blog_title,author_user_id, date_created,date_modified,category,word_count)
+            VALUES('Testing this new fangled blog thing','Obligatory Blog Title',2345678,'2022-02-16','2022-02-16','comedy',6)
+            """
+            )
+            self.db.session.commit()
+            self.db.session.close()
+
+    def delete_blog(self, blog_id: int):
+        #TODO delete blog here, with parameters
+        query = """
+        DELETE FROM blogs
+        WHERE blog_id = :blog_id
+        """
+        params = {'blog_id': blog_id}
+        try:
+            result = self.db.session.execute(query, params)
+            self.db.session.commit()
+            self.db.session.close()
+            return result
+
+        # For catching errors and outputting them
+        except SQLAlchemyError as e:
+            error = str(e.__dict__['orig'])
+            return error
+        
     def get_user_password_hash(self, identifier: str) -> dict:
         """Fetches password hash from the users table by either username or email"""
         query = """
@@ -96,6 +130,8 @@ class Database:
             error = str(e.__dict__['orig'])
             return error
 
+
+    
     # Remove after testing!
     def get_all_users(self):
         query = """
@@ -152,6 +188,28 @@ class Database:
             self.db.session.commit()
             self.db.session.close()
 
+        def create_blog_table():
+            #TODO create new blog here, with parameters passed
+            self.db.session.execute("""
+            CREATE TABLE IF NOT EXISTS blogs
+            (
+                blog_id serial NOT NULL,
+                blog_body VARCHAR(2000) NOT NULL,
+                blog_title VARCHAR(500) NOT NULL,
+                author_user_id SERIAL NOT NULL,
+                date_created DATE NOT NULL,
+                date_modified DATE NOT NULL,
+                category VARCHAR(40) NOT NULL,
+                word_count INT NOT NULL
+            );
+            """
+            )
+            self.db.session.commit()
+            self.db.session.close()
+
+
+        
+
         def create_auth_tokens_table():
             query = """
             CREATE TABLE IF NOT EXISTS auth_tokens
@@ -172,6 +230,9 @@ class Database:
 
         create_users_table()
         create_auth_tokens_table()
+        create_blog_table()
+        insert_new_blog()
+    
 
     def insert_dummy_data(self):
         self.db.session.execute("""
@@ -180,6 +241,13 @@ class Database:
         """)
         self.db.session.commit()
         self.db.session.close()
+
+
+
+    
+
+
+
 
     def insert_new_user(self, username: str, email: str, password_hash: str, date_of_birth: str):
         """Insert new user into database
