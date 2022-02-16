@@ -3,7 +3,7 @@ import os
 import json
 from modules.database_interface import Database
 from modules.auth import Auth
-
+from modules.api import Api
 
 # Get database url
 database_uri = os.environ.get('DATABASE_URL')
@@ -25,10 +25,11 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 # Initialize component classes
 db = Database(app)
 auth = Auth(db)
-
+api = Api(db, auth)
 
 # This registers routes from external modules
 app.register_blueprint(auth.auth_api)
+app.register_blueprint(api.api)
 
 # Index route, simply send the html doc
 @app.route('/', methods=['GET'])
@@ -43,6 +44,10 @@ def home():
 # Routes for internal page states
 @app.route('/login-register', methods=['GET'])
 def login_register():
+    return flask.render_template('index.html')
+
+@app.route('/profile/<username>', methods=['GET'])
+def profile_page(username):
     return flask.render_template('index.html')
 
 # Just a test route, to test whether access levels and authentication is working

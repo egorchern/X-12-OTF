@@ -29,6 +29,24 @@ class Database:
             error = str(e.__dict__['orig'])
             return error
 
+    def get_public_profile_user_info(self, username: str):
+        query = """
+        SELECT avatar_image_id, date_created, date_last_accessed, personal_description
+        FROM users
+        WHERE username=:username
+        LIMIT 1
+        """
+        params = {'username': username}
+        try:
+            result = self.db.session.execute(query, params)
+            self.db.session.commit()
+            self.db.session.close()
+            return self.return_formatted(result)
+        # For catching errors and outputting them
+        except SQLAlchemyError as e:
+            error = str(e.__dict__['orig'])
+            return error
+        
     # Return user info
     def get_user_auth_info(self, auth_token: str) -> dict:
         query = """
@@ -48,7 +66,25 @@ class Database:
         except SQLAlchemyError as e:
             error = str(e.__dict__['orig'])
             return error
-            
+    
+    def update_user_info(self, user_info: dict):
+        # Updates the users information with parameters. Only personal descr for now
+        query = """
+        UPDATE users
+        SET personal_description = :personal_description
+        WHERE username = :username
+        """
+        params = user_info
+        try:
+            result = self.db.session.execute(query, params)
+            self.db.session.commit()
+            self.db.session.close()
+            return None
+        # For catching errors and outputting them
+        except SQLAlchemyError as e:
+            error = str(e.__dict__['orig'])
+            return error
+
     # Remove after testing!
     def get_all_users(self):
         query = """
