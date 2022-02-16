@@ -10,6 +10,17 @@ class Database:
         self.db = SQLAlchemy(app)
         # self.migrate = Migrate(app, self.db)
         self.create_database()
+    
+    def create_new_blog(self):
+        #TODO create new blog here, with parameters passed
+        pass
+
+    def update_existing_blog(self):
+        #TODO update the existing blog here, with parameters passed
+        
+    def delete_blog(self):
+        #TODO delete blog here, with parameters
+        pass
 
     def get_user_password_hash(self, identifier: str) -> dict:
         """Fetches password hash from the users table by either username or email"""
