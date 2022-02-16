@@ -11,32 +11,38 @@ class Database:
         # self.migrate = Migrate(app, self.db)
         self.create_database()
     
-    def update_existing_blog(self, blog_info: dict):
+    def update_existing_blog(self, blog_data: dict):
         #TODO update the existing blog here, with parameters passed
         query = """
         UPDATE blogs
         SET blog_body = :blog_body, blog_title = :blog_title, date_modified = :date_modified, category = :category, word_count = :word_count
         WHERE blog_id = :blog_id
         """
-        params = blog_info
         try: 
-            result = self.db.session.execute(query, params)
+            result = self.db.session.execute(query, blog_data)
             self.db.session.commmit()
             self.db.close()
+            return None
+
         except SQLAlchemyError as e:
             error = str(e.__dict__['orig'])
             return error
 
 
-    def insert_new_blog(self):
-            self.db.session.execute(
-            """
-            INSERT INTO blogs (blog_body,blog_title,author_user_id, date_created,date_modified,category,word_count)
-            VALUES('Testing this new fangled blog thing','Obligatory Blog Title',2345678,'2022-02-16','2022-02-16','comedy',6)
-            """
-            )
-            self.db.session.commit()
-            self.db.session.close()
+    def insert_new_blog(self, blog_data: dict):
+        query = """
+        INSERT INTO blogs (blog_body,blog_title,author_user_id, date_created,date_modified,category,word_count)
+        VALUES(:blog_body, :blog_title , :author_user_id , CURRENT_TIMESTAMP, CURRENT_TIMESTAMP , :category, :word_count)
+        """
+        try: 
+            result = self.db.session.execute(query, blog_data)
+            self.db.session.commmit()
+            self.db.close()
+            return None
+            
+        except SQLAlchemyError as e:
+            error = str(e.__dict__['orig'])
+            return error
 
     def delete_blog(self, blog_id: int):
         #TODO delete blog here, with parameters
