@@ -55,8 +55,8 @@ class Auth:
         @self.auth_api.route("/auth/get_user_info", methods=['POST'])
         def get_user_info():
             request = req
-            auth_token = request.cookies.get("auth_token")
-            return self.get_username_and_access_level(auth_token)
+            
+            return self.get_username_and_access_level(request)
 
         # Gen client id endpoint
         @self.auth_api.route("/auth/generate_client_identifier", methods=['POST'])
@@ -210,8 +210,7 @@ class Auth:
         required_username, default is None
         required_access_level, default is 1, which is everybody
         """
-        auth_token = request.cookies.get("auth_token")
-        auth_info = self.get_username_and_access_level(auth_token)
+        auth_info = self.get_username_and_access_level(request)
         if required_username is not None:
             if auth_info.get("username") == required_username:
                 return True
@@ -224,11 +223,12 @@ class Auth:
                 return False
         return True
 
-    def get_username_and_access_level(self, auth_token: str) -> list:
+    def get_username_and_access_level(self, request) -> list:
         """
-        Returns username and access level given the encrypted auth token
+        Returns username and access level given the request
         """
         try:
+            auth_token = request.cookies.get("auth_token")
             result = self.db.get_user_auth_info(auth_token)
             return result[0]
         # If user is not logged in, their access level is 1

@@ -20,8 +20,8 @@ class Database:
         """
         try: 
             result = self.db.session.execute(query, blog_data)
-            self.db.session.commmit()
-            self.db.close()
+            self.db.session.commit()
+            self.db.session.close()
             return None
 
         except SQLAlchemyError as e:
@@ -36,8 +36,8 @@ class Database:
         """
         try: 
             result = self.db.session.execute(query, blog_data)
-            self.db.session.commmit()
-            self.db.close()
+            self.db.session.commit()
+            self.db.session.close()
             return None
             
         except SQLAlchemyError as e:
@@ -101,7 +101,7 @@ class Database:
     # Return user info
     def get_user_auth_info(self, auth_token: str) -> dict:
         query = """
-        SELECT username, access_level
+        SELECT username, access_level, users.user_id
         FROM users
         INNER JOIN auth_tokens on users.user_id = auth_tokens.user_id
         WHERE auth_token=:auth_token

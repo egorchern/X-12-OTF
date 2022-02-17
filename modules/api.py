@@ -34,8 +34,13 @@ class Api:
         
         @self.api.route("/api/blog/create", methods=["POST"])
         def create_blog():
-            #TODO implement this, call database function
-            pass
+            request = req
+            resp = {}
+            blog_data = request.json
+            # Need to attach currently logged in user's user id.
+            blog_data["author_user_id"] = self.auth.get_username_and_access_level(request).get("user_id")
+            result = self.db.insert_new_blog(blog_data)
+            return resp
 
         @self.api.route("/api/blog/delete/<blog_id>", methods =["DELETE"])
         def delete_blog(blog_id):
