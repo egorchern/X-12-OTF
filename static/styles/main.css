@@ -19,6 +19,9 @@ body {
   
 
 }
+#create-blog-btn{
+  margin-bottom: 1rem;
+}
 button{
   border: none;
   background: transparent;

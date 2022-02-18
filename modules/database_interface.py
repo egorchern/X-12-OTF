@@ -11,6 +11,24 @@ class Database:
         # self.migrate = Migrate(app, self.db)
         self.create_database()
     
+    def get_particular_blog_data(self, blog_id: int):
+        query = """
+        SELECT *
+        FROM blogs
+        WHERE blog_id = :blog_id
+        LIMIT 1
+        """
+        params = {'blog_id': blog_id}
+        try: 
+            result = self.db.session.execute(query, params)
+            self.db.session.commit()
+            self.db.session.close()
+            return self.return_formatted(result)
+
+        except SQLAlchemyError as e:
+            error = str(e.__dict__['orig'])
+            return error
+
     def get_blog_author_username(self, blog_id: int):
         query = """
         SELECT users.username
@@ -55,12 +73,13 @@ class Database:
         query = """
         INSERT INTO blogs (blog_body,blog_title,author_user_id, date_created,date_modified,category,word_count)
         VALUES(:blog_body, :blog_title , :author_user_id , CURRENT_TIMESTAMP, CURRENT_TIMESTAMP , :category, :word_count)
+            RETURNING blog_id
         """
         try: 
             result = self.db.session.execute(query, blog_data)
             self.db.session.commit()
             self.db.session.close()
-            return None
+            return self.return_formatted(result)
             
         except SQLAlchemyError as e:
             error = str(e.__dict__['orig'])

@@ -177,6 +177,8 @@ function initialize_page_state() {
         change_page_state("/login");
     } else if (/^\/profile\/(?<username>.+)$/.test(path)) {
         change_page_state(path);
+    } else if (/^\/edit_blog\/\d+$/.test(path)) {
+        change_page_state(path);
     }
 }
 
@@ -186,7 +188,8 @@ Page States:
 "/home": Home
 "/login": Login
 "/about_us": About us
-"profile/<username>": Profile of a certain username
+"/profile/<username>": Profile of a certain username
+"/edit_blog/<blog_id>": Edit some blog
 */
 async function change_page_state(new_state) {
     console.log(page_state, new_state);
@@ -209,17 +212,46 @@ async function change_page_state(new_state) {
                 
             </div>
         `;
-        history.pushState({page_state: page_state}, null, "/login-register");
+        history.pushState({ page_state: page_state }, null, "/login-register");
         main_html.insertAdjacentHTML("beforeend", login_domstring);
         switch_login_page_state();
     } else if (new_state === "/home") {
+        let create_blog_dom_string = `
+        <button class="btn btn-outline-primary profile-control-button flex-horizontal align-center" id="create-blog-btn" type="button" tabindex="0">
+            <span class="material-icons">
+            article
+            </span>
+            Create new blog
+        </button>
+        `
+
         let home_domstring = `
         <div class="home-container">
+            ${(auth_info.username != null) ? create_blog_dom_string : null}
             ${get_blog_tile("Jessica_Hersley", "24/11/2021", "457", "Programming", "Why PHP is the best choice for backend", 8.9, 7.4, 2.3, ["Technology", "PHP", "Web Development"])}
         </div>
         `;
-        history.pushState({page_state: page_state}, null, "/home");
+
+        history.pushState({ page_state: page_state }, null, "/home");
         main_html.insertAdjacentHTML("beforeend", home_domstring);
+        if (auth_info.username != null) {
+            $("#create-blog-btn").onclick = async function() {
+                let result = await create_blog(
+                    {
+                        blog_body: { text: "Default" },
+                        blog_title: "Default",
+                        category: "testing",
+                        word_count: 1
+                    }
+                )
+                if (result.code === 1){
+                    render_edit_blog(result.blog_id);
+                }
+                
+                
+            }
+        }
+
     } else if (/^\/profile\/.+$/.test(new_state)) {
         let temp = /^\/profile\/(?<username>.+)$/.exec(new_state);
 
@@ -244,12 +276,27 @@ async function change_page_state(new_state) {
             </div>
         `;
         history.pushState(
-            {page_state: page_state},
+            { page_state: page_state },
             null,
             `/profile/${username}`
         );
         main_html.insertAdjacentHTML("beforeend", profile_domstring);
         profile_main(username);
+    }
+    else if (/^\/edit_blog\/\d+$/.test(new_state)) {
+        let temp = /^\/edit_blog\/(?<blog_id>\d+)$/.exec(new_state);
+
+        if (temp === null) {
+            return null;
+        }
+        let blog_id = temp.groups.blog_id;
+        let edit_blog_dom_string = `
+        <div class="edit-blog-container">
+        </div>
+        `
+        history.pushState({ page_state: page_state }, null, `/edit_blog/${blog_id}`);
+        main_html.insertAdjacentHTML("beforeend", edit_blog_dom_string);
+        render_edit_blog(blog_id);
     }
 }
 
@@ -294,6 +341,7 @@ function main() {
     $("#home-btn").onclick = () => {
         change_page_state("/home");
     };
+    initialize_page_state();
 }
 
 create_client_identifier();
@@ -306,7 +354,7 @@ document.addEventListener("DOMContentLoaded", (event) => {
         auth_info = user_details;
         main();
     });
-    initialize_page_state();
+
 });
 // register("egorcik", "egorch.formal@gmail.com", "123qwe", "02/12/2001")
 // register("julia", "jul.f@manchester.ac.uk", "polasdfsdfdsasfad14F141$$$", "2021-03-21")

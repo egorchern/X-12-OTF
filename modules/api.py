@@ -35,6 +35,19 @@ class Api:
                 resp["code"] = 2
             return resp
 
+        @self.api.route("/api/blog/<blog_id>", methods=["GET"])
+        def get_blog(blog_id: int):
+            # Codes: 1 - successful
+            # 2 - blog with this blog_id does not exist
+            resp = {}
+            result = self.db.get_particular_blog_data(blog_id)
+            if len(result) == 0:
+                resp["code"] = 2
+            else:
+                resp["code"] = 1
+                resp["blog_data"] = result[0]
+            return resp
+
         @self.api.route("/api/blog/create", methods=["POST"])
         def create_blog():
             # CODES: 1 - successfully created the blog
@@ -55,10 +68,11 @@ class Api:
             blog_data["blog_body"] = json.dumps(blog_data.get("blog_body"))
             result = self.db.insert_new_blog(blog_data)
             # This means, no problems with inserting a new blog
-            if result is not None:
+            if len(result) == 0:
                 resp["code"] = 3
             else:
                 resp["code"] = 1
+                resp["blog_id"] = result[0]["blog_id"]
             return resp
 
         @self.api.route("/api/blog/delete/<blog_id>", methods=["DELETE"])

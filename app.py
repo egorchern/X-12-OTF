@@ -50,6 +50,10 @@ def login_register():
 def profile_page(username):
     return flask.render_template('index.html')
 
+@app.route('/edit_blog/<blog_id>', methods=['GET'])
+def edit_blog(blog_id):
+    return flask.render_template('index.html')
+
 # Just a test route, to test whether access levels and authentication is working
 @app.route("/test/get_all_users", methods=['GET', 'POST'])
 def get_all_users():
