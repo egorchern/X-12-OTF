@@ -11,7 +11,30 @@ class Database:
         # self.migrate = Migrate(app, self.db)
         self.create_database()
     
-    def update_existing_blog(self, blog_data: dict):
+    def get_blog_author_username(self, blog_id: int):
+        query = """
+        SELECT users.username
+        FROM users
+        WHERE user_id = (
+            SELECT author_user_id
+            FROM blogs
+            WHERE blog_id = :blog_id
+            LIMIT 1
+        )
+        LIMIT 1
+        """
+        params = {'blog_id': blog_id}
+        try: 
+            result = self.db.session.execute(query, params)
+            self.db.session.commit()
+            self.db.session.close()
+            return self.return_formatted(result)
+
+        except SQLAlchemyError as e:
+            error = str(e.__dict__['orig'])
+            return error
+
+    def update_blog(self, blog_data: dict):
         #TODO update the existing blog here, with parameters passed
         query = """
         UPDATE blogs
@@ -27,7 +50,6 @@ class Database:
         except SQLAlchemyError as e:
             error = str(e.__dict__['orig'])
             return error
-
 
     def insert_new_blog(self, blog_data: dict):
         query = """
@@ -55,7 +77,7 @@ class Database:
             result = self.db.session.execute(query, params)
             self.db.session.commit()
             self.db.session.close()
-            return result
+            return None
 
         # For catching errors and outputting them
         except SQLAlchemyError as e:
@@ -136,8 +158,6 @@ class Database:
             error = str(e.__dict__['orig'])
             return error
 
-
-    
     # Remove after testing!
     def get_all_users(self):
         query = """
@@ -200,21 +220,23 @@ class Database:
             CREATE TABLE IF NOT EXISTS blogs
             (
                 blog_id serial NOT NULL,
-                blog_body VARCHAR(2000) NOT NULL,
+                blog_body JSONB NOT NULL,
                 blog_title VARCHAR(500) NOT NULL,
                 author_user_id SERIAL NOT NULL,
                 date_created DATE NOT NULL,
                 date_modified DATE NOT NULL,
                 category VARCHAR(40) NOT NULL,
-                word_count INT NOT NULL
+                word_count integer NOT NULL,
+                PRIMARY KEY (blog_id),
+                CONSTRAINT fk_author_user_id
+                    FOREIGN KEY(author_user_id)
+                    REFERENCES users(user_id)
+                    ON DELETE CASCADE
             );
             """
             )
             self.db.session.commit()
             self.db.session.close()
-
-
-        
 
         def create_auth_tokens_table():
             query = """
@@ -237,7 +259,6 @@ class Database:
         create_users_table()
         create_auth_tokens_table()
         create_blog_table()
-    
 
     def insert_dummy_data(self):
         self.db.session.execute("""
@@ -246,13 +267,6 @@ class Database:
         """)
         self.db.session.commit()
         self.db.session.close()
-
-
-
-    
-
-
-
 
     def insert_new_user(self, username: str, email: str, password_hash: str, date_of_birth: str):
         """Insert new user into database

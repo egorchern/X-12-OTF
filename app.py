@@ -21,7 +21,7 @@ if database_uri.startswith("postgres://"):
 app = flask.Flask(__name__, static_url_path='',
                   static_folder='static', template_folder='static')
 app.config["SQLALCHEMY_DATABASE_URI"] = database_uri
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 # Initialize component classes
 db = Database(app)
 auth = Auth(db)

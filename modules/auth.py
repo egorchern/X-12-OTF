@@ -105,7 +105,6 @@ class Auth:
         identifier = user_data.get("identifier")
         password = user_data.get("password")
         client_identifier = user_data.get("client_identifier")
-        print(identifier, password, client_identifier)
         # Check that all parameters are of right format 
         if not isinstance(identifier, str) or not isinstance(password, str) or not isinstance(client_identifier, str):
             return {

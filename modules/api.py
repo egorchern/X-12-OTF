@@ -1,4 +1,6 @@
 from flask import Blueprint, request as req, make_response
+import json
+
 
 class Api:
     def __init__(self, db, auth):
@@ -23,31 +25,69 @@ class Api:
         def edit_profile(username):
             request = req
             resp = {}
-            is_authenticated = self.auth.is_authenticated(request, required_username=username)
-            #TODO add some input validation for the edit data
+            is_authenticated = self.auth.is_authenticated(
+                request, required_username=username)
+            # TODO add some input validation for the edit data
             if is_authenticated:
                 result = self.db.update_user_info(request.json)
                 resp["code"] = 1
             else:
                 resp["code"] = 2
             return resp
-        
+
         @self.api.route("/api/blog/create", methods=["POST"])
         def create_blog():
+            # CODES: 1 - successfully created the blog
+            # 2 - Not logged in
+            # 3 - invalid input
             request = req
             resp = {}
             blog_data = request.json
             # Need to attach currently logged in user's user id.
-            blog_data["author_user_id"] = self.auth.get_username_and_access_level(request).get("user_id")
+            temp = self.auth.get_username_and_access_level(
+                request).get("user_id")
+            # This happens when user is not logged in and attempts to create a blog.
+            if temp is None:
+                resp["code"] = 2
+                return resp
+            blog_data["author_user_id"] = temp
+            # Need to JSON the blog body
+            blog_data["blog_body"] = json.dumps(blog_data.get("blog_body"))
             result = self.db.insert_new_blog(blog_data)
+            # This means, no problems with inserting a new blog
+            if result is not None:
+                resp["code"] = 3
+            else:
+                resp["code"] = 1
             return resp
 
-        @self.api.route("/api/blog/delete/<blog_id>", methods =["DELETE"])
+        @self.api.route("/api/blog/delete/<blog_id>", methods=["DELETE"])
         def delete_blog(blog_id):
-            #TODO implement this, check that the user is authenticated to delete the blog (admin or the owner). and if allowed, call databse function
-            pass
+            # CODES: 1 - successfully deleted the blog
+            # 2 - Not authenticated
+            # 3 - invalid blog id
+            request = req
+            resp = {}
+            # Fetch required username from db
+            tempUsername = self.db.get_blog_author_username(blog_id)
+            # This means that the blog being deleted does not exist.
+            if len(tempUsername) == 0:
+                resp["code"] = 3
+                return resp
+            author_username = tempUsername[0]["username"]
+            is_authenticated = self.auth.is_authenticated(
+                request, required_username=author_username)
+            if not is_authenticated:
+                resp["code"] = 2
+                return resp
+            result = self.db.delete_blog(blog_id)
+            if result is None:
+                resp["code"] = 1
+            else:
+                resp['code'] = 3
+            return resp
 
-        @self.api.route("/api/blog/edit/<blog_id>", methods =["PUT"])
+        @self.api.route("/api/blog/edit/<blog_id>", methods=["PUT"])
         def edit_blog(blog_id):
-            #TODO implement this, check that user is authenticated to edit the blog (owner) and if allowed, call database Function
+            # TODO implement this, check that user is authenticated to edit the blog (owner) and if allowed, call database Function
             pass
