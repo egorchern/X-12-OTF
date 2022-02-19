@@ -51,7 +51,9 @@ button{
 /* body{
   background-color: var(--body-bg-color);
 } */
-
+.material-icons{
+  margin-right: 0.2rem;
+}
 .flex-horizontal{
   display:flex;
   flex-direction: row;

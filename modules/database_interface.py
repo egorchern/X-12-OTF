@@ -4,6 +4,7 @@ import datetime
 #from flask_migrate import Migrate
 #result = db.session.execute('SELECT * FROM my_table WHERE my_column = :val', {'val': 5})
 
+#TODO update last accessed field for users when they login
 
 class Database:
     def __init__(self, app):
@@ -56,7 +57,7 @@ class Database:
         #TODO update the existing blog here, with parameters passed
         query = """
         UPDATE blogs
-        SET blog_body = :blog_body, blog_title = :blog_title, date_modified = :date_modified, category = :category, word_count = :word_count
+        SET blog_body = :blog_body, blog_title = :blog_title, date_modified = CURRENT_TIMESTAMP, category = :category, word_count = :word_count
         WHERE blog_id = :blog_id
         """
         try: 

@@ -103,5 +103,31 @@ class Api:
 
         @self.api.route("/api/blog/edit/<blog_id>", methods=["PUT"])
         def edit_blog(blog_id):
-            # TODO implement this, check that user is authenticated to edit the blog (owner) and if allowed, call database Function
-            pass
+            # Codes: 1 - successfully edited the blog
+            # 2 - not authenticated
+            # 3 - blog with blog id does not exist
+            resp = {}
+            request = req
+            resp = {}
+            # Fetch required username from db
+            tempUsername = self.db.get_blog_author_username(blog_id)
+            # This means that the blog being deleted does not exist.
+            if len(tempUsername) == 0:
+                resp["code"] = 3
+                return resp
+            author_username = tempUsername[0]["username"]
+            is_authenticated = self.auth.is_authenticated(
+                request, required_username=author_username)
+            if not is_authenticated:
+                resp["code"] = 2
+                return resp
+            blog_data = request.json
+            # Need to serialize blog body to JSON
+            blog_data["blog_body"] = json.dumps(blog_data.get("blog_body"))
+            result = self.db.update_blog(blog_data)
+            if result is None:
+                resp["code"] = 1
+            else:
+                resp["code"] = 3
+
+            return resp

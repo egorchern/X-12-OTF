@@ -227,7 +227,7 @@ async function change_page_state(new_state) {
 
         let home_domstring = `
         <div class="home-container">
-            ${(auth_info.username != null) ? create_blog_dom_string : null}
+            ${(auth_info.username != null) ? create_blog_dom_string : ""}
             ${get_blog_tile("Jessica_Hersley", "24/11/2021", "457", "Programming", "Why PHP is the best choice for backend", 8.9, 7.4, 2.3, ["Technology", "PHP", "Web Development"])}
         </div>
         `;
@@ -245,7 +245,7 @@ async function change_page_state(new_state) {
                     }
                 )
                 if (result.code === 1){
-                    render_edit_blog(result.blog_id);
+                    change_page_state(`/edit_blog/${result.blog_id}`);
                 }
                 
                 
@@ -291,7 +291,7 @@ async function change_page_state(new_state) {
         }
         let blog_id = temp.groups.blog_id;
         let edit_blog_dom_string = `
-        <div class="edit-blog-container">
+        <div id="edit-blog-container">
         </div>
         `
         history.pushState({ page_state: page_state }, null, `/edit_blog/${blog_id}`);
