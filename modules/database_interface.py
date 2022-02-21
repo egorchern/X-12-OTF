@@ -13,6 +13,7 @@ class Database:
         self.create_database()
     
     def get_all_blog_ids(self):
+        """Fetches all existing blog ids"""
         query = """
         SELECT blog_id
         FROM blogs
@@ -29,6 +30,7 @@ class Database:
             return error
     
     def get_particular_blog_tile_data(self, blog_id:int):
+        """Returns information required for the blog tile for particular blog"""
         query = """
         SELECT blog_id, blog_title, date_created, author_user_id, category, word_count, date_modified
         FROM blogs
@@ -47,6 +49,7 @@ class Database:
             return error
 
     def get_particular_blog_data(self, blog_id: int):
+        """Returns full information for particular blog"""
         query = """
         SELECT *
         FROM blogs
@@ -65,6 +68,7 @@ class Database:
             return error
 
     def get_blog_author_info(self, blog_id: int):
+        """Returns the information about the author of the blog"""
         query = """
         SELECT users.username, users.avatar_image_id
         FROM users
@@ -88,7 +92,7 @@ class Database:
             return error
 
     def update_blog(self, blog_data: dict):
-        #TODO update the existing blog here, with parameters passed
+        """Updates the blog with given data"""
         query = """
         UPDATE blogs
         SET blog_body = :blog_body, blog_title = :blog_title, date_modified = CURRENT_TIMESTAMP, category = :category, word_count = :word_count
@@ -105,6 +109,7 @@ class Database:
             return error
 
     def insert_new_blog(self, blog_data: dict):
+        """Inserts a new blog into the database"""
         query = """
         INSERT INTO blogs (blog_body,blog_title,author_user_id, date_created,date_modified,category,word_count)
         VALUES(:blog_body, :blog_title , :author_user_id , CURRENT_TIMESTAMP, CURRENT_TIMESTAMP , :category, :word_count)
@@ -121,7 +126,7 @@ class Database:
             return error
 
     def delete_blog(self, blog_id: int):
-        #TODO delete blog here, with parameters
+        """Deletes the blog given a blog id"""
         query = """
         DELETE FROM blogs
         WHERE blog_id = :blog_id
@@ -157,6 +162,7 @@ class Database:
             return error
 
     def get_public_profile_user_info(self, username: str):
+        """Returns public profile information of the user"""
         query = """
         SELECT avatar_image_id, date_created, date_last_accessed, personal_description
         FROM users
@@ -174,8 +180,9 @@ class Database:
             error = str(e.__dict__['orig'])
             return error
     
-    # Return user info
+    
     def get_user_auth_info(self, auth_token: str) -> dict:
+        """Returns user auth information given a token"""
         query = """
         SELECT username, access_level, users.user_id
         FROM users
@@ -195,7 +202,7 @@ class Database:
             return error
     
     def update_user_info(self, user_info: dict):
-        # Updates the users information with parameters. Only personal descr for now
+        """Updates the users information with parameters. Only personal descr for now"""
         query = """
         UPDATE users
         SET personal_description = :personal_description
@@ -212,8 +219,9 @@ class Database:
             error = str(e.__dict__['orig'])
             return error
 
-    # Remove after testing!
+    
     def get_all_users(self):
+        """Returns information about all users. Delete after testing"""
         query = """
         SELECT *
         FROM users
@@ -228,8 +236,9 @@ class Database:
             error = str(e.__dict__['orig'])
             return error
     
-    # Format the sql result into nice array
+    
     def return_formatted(self, result) -> dict:
+        """Formats the sql output into a nice array with dictionaries"""
         response = []
         for row in result:
             temp = row._asdict()
@@ -243,8 +252,10 @@ class Database:
         return response
 
     def create_database(self):
+        """Creates the database"""
 
         def create_users_table():
+            """Creates the users table"""
             self.db.session.execute("""
             CREATE TABLE IF NOT EXISTS users 
             (
@@ -269,7 +280,7 @@ class Database:
             self.db.session.close()
 
         def create_blog_table():
-            #TODO create new blog here, with parameters passed
+            """Creates the blog table"""
             self.db.session.execute("""
             CREATE TABLE IF NOT EXISTS blogs
             (
@@ -293,6 +304,7 @@ class Database:
             self.db.session.close()
 
         def create_auth_tokens_table():
+            """Creates the auth tokens table"""
             query = """
             CREATE TABLE IF NOT EXISTS auth_tokens
             (
@@ -313,14 +325,6 @@ class Database:
         create_users_table()
         create_auth_tokens_table()
         create_blog_table()
-
-    def insert_dummy_data(self):
-        self.db.session.execute("""
-        INSERT INTO test (test_text)
-        VALUES('Hello worlds')
-        """)
-        self.db.session.commit()
-        self.db.session.close()
 
     def insert_new_user(self, username: str, email: str, password_hash: str, date_of_birth: str):
         """Insert new user into database
@@ -373,6 +377,7 @@ class Database:
             return error
     
     def delete_auth_token(self, auth_token: str):
+        """Deletes auth token """
         query = """
         DELETE FROM auth_tokens
         WHERE auth_token = :auth_token

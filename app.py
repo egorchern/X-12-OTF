@@ -7,6 +7,7 @@ from modules.api import Api
 
 # Get database url
 database_uri = os.environ.get('DATABASE_URL')
+# If working on local database
 if database_uri is None:
     file = open("database_url.txt", 'r')
     database_uri = file.read()

@@ -10,9 +10,15 @@ class Api:
 
         @self.api.route("/api/profile/<username>", methods=["GET"])
         def get_profile_public_info(username):
+            """
+            This returns the public profile information for a user with a given username.
+            Codes: 1 - successful
+            2 - user does not exist
+            """
             request = req
             result = self.db.get_public_profile_user_info(username)
             resp = {}
+            # This means that user with that username exists
             if len(result) > 0:
                 resp["code"] = 1
                 resp["data"] = result[0]
@@ -23,6 +29,11 @@ class Api:
 
         @self.api.route("/api/edit/profile/<username>", methods=["PUT"])
         def edit_profile(username):
+            """
+            Edits the profile given information in the body of the request. Authenticated to only the owner
+            Codes: 1 - successful
+            2 - Not authenticated
+            """
             request = req
             resp = {}
             is_authenticated = self.auth.is_authenticated(
@@ -37,8 +48,11 @@ class Api:
 
         @self.api.route("/api/blog/<blog_id>", methods=["GET"])
         def get_blog(blog_id: int):
-            # Codes: 1 - successful
-            # 2 - blog with this blog_id does not exist
+            """
+            Returns a blog information given blog_id.
+            Codes: 1 - successful
+            2 - blog with that id does not exist
+            """
             resp = {}
             result = self.db.get_particular_blog_data(blog_id)
             if len(result) == 0:
@@ -50,9 +64,13 @@ class Api:
 
         @self.api.route("/api/blog/create", methods=["POST"])
         def create_blog():
-            # CODES: 1 - successfully created the blog
-            # 2 - Not logged in
-            # 3 - invalid input
+            """
+            Creates a new blog given blog data in the body of the request
+            CODES: 1 - successfully created the blog
+            2 - Not logged in
+            3 - invalid input
+            """
+            
             request = req
             resp = {}
             blog_data = request.json
@@ -77,9 +95,13 @@ class Api:
 
         @self.api.route("/api/blog/delete/<blog_id>", methods=["DELETE"])
         def delete_blog(blog_id):
-            # CODES: 1 - successfully deleted the blog
-            # 2 - Not authenticated
-            # 3 - invalid blog id
+            """
+            Deletes a blog given blog id. authenticated to the owner only (currently)
+            CODES: 1 - successfully deleted the blog
+            2 - Not authenticated
+            3 - invalid blog id
+            """
+            
             request = req
             resp = {}
             # Fetch required username from db
@@ -103,9 +125,13 @@ class Api:
 
         @self.api.route("/api/blog/edit/<blog_id>", methods=["PUT"])
         def edit_blog(blog_id):
-            # Codes: 1 - successfully edited the blog
-            # 2 - not authenticated
-            # 3 - blog with blog id does not exist
+            """
+            Edits the blog given blog id. authenticated to the owner only (currently)
+            Codes: 1 - successfully edited the blog
+            2 - not authenticated
+            3 - blog with blog id does not exist
+            """
+            
             resp = {}
             request = req
             resp = {}
@@ -135,6 +161,9 @@ class Api:
         # For testing only
         @self.api.route("/api/get_all_blog_tiles_data", methods=["GET"])
         def get_all_blog_tiles_data():
+            """
+            Returns all of the existing blog tiles data in the array.
+            """
             blog_ids = self.db.get_all_blog_ids()
             resp = {}
             out_list = []
