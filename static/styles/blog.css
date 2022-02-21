@@ -8,6 +8,9 @@
     height: 100%;
     border-radius: 12px;
 }
+.flex-wrap{
+    flex-wrap: wrap;
+}
 .blog-tile {
     background-color: white;
     padding: 0.65rem;
@@ -16,7 +19,7 @@
     box-shadow: 0 4px 16px 4px rgb(0 0 0 / 14%);
     max-width: 450px;
     transition: all 0.3s;
-    margin: 4rem;
+    margin: 2rem;
     cursor: pointer;
 }
 .blog-tile:hover{

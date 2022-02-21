@@ -264,7 +264,7 @@ async function change_page_state(new_state) {
         let home_domstring = `
         <div id="home-container">
             ${(auth_info.username != null) ? create_blog_dom_string : ""}
-            <div class="flex-horizontal align-center margin-children" id="blog_tiles">
+            <div class="flex-horizontal align-center margin-children flex-wrap" id="blog_tiles">
                 
             </div>
         </div>

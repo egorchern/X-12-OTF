@@ -3,7 +3,7 @@
 let categories = ["Programming", "Cooking", "Some other thing"]
 
 async function delete_blog(blog_id){
-    fetch(`/api/blog/delete/${blog_id}`, {
+    return fetch(`/api/blog/delete/${blog_id}`, {
         method: "DELETE",
         headers: {
             "Content-Type": "application/json",
@@ -70,6 +70,19 @@ async function on_save_blog_edit_click(blog_id){
     }
 }
 
+async function on_delete_blog_click(blog_id){
+    let user_sure = window.confirm("Are you sure you want to delete this blog?")
+    if (!user_sure){
+        return null;
+    }
+    let temp = await delete_blog(blog_id)
+    console.log(temp);
+    if (temp.code != 1){
+        return null;
+    }
+    change_page_state("/home");
+}
+
 function render_word_count(){
     const count_words = (text) => {
         const regexp = /\b(\w+)\b/g;
@@ -111,6 +124,12 @@ async function render_edit_blog(blog_id){
             </span>
             Save
         </button>
+        <button class="btn btn-outline-danger profile-control-button flex-horizontal align-center" id="delete-blog-btn" type="button" tabindex="0">
+            <span class="material-icons">
+            delete
+            </span>
+            Delete
+        </button>
         
         
     </div>
@@ -145,4 +164,5 @@ async function render_edit_blog(blog_id){
     $("#edit-blog-body").oninput = render_word_count;
     $("#save-blog-edit").onclick = () => {on_save_blog_edit_click(blog_id)};
     $("#view-blog").onclick = () => {change_page_state(`/blog/${blog_id}`)};
+    $("#delete-blog-btn").onclick = () => {on_delete_blog_click(blog_id)};
 }
