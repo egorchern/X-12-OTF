@@ -12,6 +12,40 @@ class Database:
         # self.migrate = Migrate(app, self.db)
         self.create_database()
     
+    def get_all_blog_ids(self):
+        query = """
+        SELECT blog_id
+        FROM blogs
+        """
+        params = {}
+        try: 
+            result = self.db.session.execute(query, params)
+            self.db.session.commit()
+            self.db.session.close()
+            return self.return_formatted(result)
+
+        except SQLAlchemyError as e:
+            error = str(e.__dict__['orig'])
+            return error
+    
+    def get_particular_blog_tile_data(self, blog_id:int):
+        query = """
+        SELECT blog_id, blog_title, date_created, author_user_id, category, word_count, date_modified
+        FROM blogs
+        WHERE blog_id = :blog_id
+        LIMIT 1
+        """
+        params = {'blog_id': blog_id}
+        try: 
+            result = self.db.session.execute(query, params)
+            self.db.session.commit()
+            self.db.session.close()
+            return self.return_formatted(result)
+
+        except SQLAlchemyError as e:
+            error = str(e.__dict__['orig'])
+            return error
+
     def get_particular_blog_data(self, blog_id: int):
         query = """
         SELECT *
@@ -30,9 +64,9 @@ class Database:
             error = str(e.__dict__['orig'])
             return error
 
-    def get_blog_author_username(self, blog_id: int):
+    def get_blog_author_info(self, blog_id: int):
         query = """
-        SELECT users.username
+        SELECT users.username, users.avatar_image_id
         FROM users
         WHERE user_id = (
             SELECT author_user_id
@@ -139,7 +173,7 @@ class Database:
         except SQLAlchemyError as e:
             error = str(e.__dict__['orig'])
             return error
-        
+    
     # Return user info
     def get_user_auth_info(self, auth_token: str) -> dict:
         query = """

@@ -7,6 +7,19 @@ window.onpopstate = (ev) => {
     change_page_state(state.page_state);
 };
 
+async function get_all_blog_tiles_data(){
+    return fetch("/api/get_all_blog_tiles_data", {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+        }
+    })
+    .then((result) => result.json())
+    .then((result) => {
+        return result
+    });
+}
+
 // Jquery like selection, because I like it
 function $(selector) {
     return document.querySelector(selector);
@@ -75,19 +88,24 @@ function get_blog_tile(
     word_count,
     category,
     title,
-    controversial_rating,
-    relevancy_rating,
-    impression_rating,
-    tags
+    blog_id,
+    avatar_image_id,
+    controversial_rating = Math.random() * rating_limit,
+    relevancy_rating = Math.random() * rating_limit,
+    impression_rating = Math.random() * rating_limit,
+    tags = []
 ) {
-    let controversial_percentage = `${(controversial_rating / rating_limit * 100).toFixed(1)}%`;
-    let relevancy_percentage = `${(relevancy_rating / rating_limit * 100).toFixed(1)}%`;
-    let impression_percentage = `${(impression_rating / rating_limit * 100).toFixed(1)}%`;
+    controversial_rating = Number(controversial_rating.toFixed(1))
+    relevancy_rating = Number(relevancy_rating.toFixed(1))
+    impression_rating = Number(impression_rating.toFixed(1))
+    let controversial_percentage = `${(controversial_rating / rating_limit * 100).toFixed(2)}%`;
+    let relevancy_percentage = `${(relevancy_rating / rating_limit * 100).toFixed(2)}%`;
+    let impression_percentage = `${(impression_rating / rating_limit * 100).toFixed(2)}%`;
     let blog_tile_dom_string = `
-    <div class="blog-tile">
+    <div class="blog-tile animate__animated animate__fadeIn" id="blog-tile-${blog_id}">
         <div class="blog-tile-top">
             <div class="flex-vertical align-center blog-tile-left">
-                <img class="author-avatar" src="/images/avatar_1.webp">
+                <img class="author-avatar" src="/images/avatar_${avatar_image_id}.webp">
                 <div class="flex-vertical align-center">
                     <span>Created by:</span>
                     <strong>${name}</strong>
@@ -166,6 +184,20 @@ function get_blog_tile(
     return blog_tile_dom_string;
 }
 
+async function get_all_blog_tiles(){
+    let return_dom_string = ``
+    let temp = await get_all_blog_tiles_data();
+    if (temp.code != 1){
+        return ""
+    }
+    let all_blog_tiles_data = temp.data
+    console.log(all_blog_tiles_data)
+    all_blog_tiles_data.forEach((blog_data, index) => {
+        return_dom_string += get_blog_tile(blog_data.username, blog_data.date_created, blog_data.word_count, blog_data.category, blog_data.blog_title, blog_data.blog_id, blog_data.avatar_image_id)
+    })
+    return {dom_string: return_dom_string, data: all_blog_tiles_data}
+}
+
 // This changes page state depending on the url. So makes possible to go straight to some page
 function initialize_page_state() {
     let path = document.location.pathname;
@@ -179,7 +211,10 @@ function initialize_page_state() {
         change_page_state(path);
     } else if (/^\/edit_blog\/\d+$/.test(path)) {
         change_page_state(path);
+    } else if(/^\/blog\/\d+$/.test(path)){
+        change_page_state(path)
     }
+    
 }
 
 /*
@@ -190,6 +225,7 @@ Page States:
 "/about_us": About us
 "/profile/<username>": Profile of a certain username
 "/edit_blog/<blog_id>": Edit some blog
+"/blog/<blog_id>": View blog
 */
 async function change_page_state(new_state) {
     console.log(page_state, new_state);
@@ -226,9 +262,11 @@ async function change_page_state(new_state) {
         `
 
         let home_domstring = `
-        <div class="home-container">
+        <div id="home-container">
             ${(auth_info.username != null) ? create_blog_dom_string : ""}
-            ${get_blog_tile("Jessica_Hersley", "24/11/2021", "457", "Programming", "Why PHP is the best choice for backend", 8.9, 7.4, 2.3, ["Technology", "PHP", "Web Development"])}
+            <div class="flex-horizontal align-center margin-children" id="blog_tiles">
+                
+            </div>
         </div>
         `;
 
@@ -251,6 +289,12 @@ async function change_page_state(new_state) {
                 
             }
         }
+        let blog_tiles = await get_all_blog_tiles();
+        $("#blog_tiles").insertAdjacentHTML("beforeend", blog_tiles.dom_string);
+        blog_tiles.data.forEach((blog_data) => {
+            $(`#blog-tile-${blog_data.blog_id}`).onclick = () => {change_page_state(`/blog/${blog_data.blog_id}`);};
+        })
+
 
     } else if (/^\/profile\/.+$/.test(new_state)) {
         let temp = /^\/profile\/(?<username>.+)$/.exec(new_state);
@@ -291,17 +335,32 @@ async function change_page_state(new_state) {
         }
         let blog_id = temp.groups.blog_id;
         let edit_blog_dom_string = `
-        <div id="edit-blog-container">
+        <div id="edit-blog-container" class="animate__animated animate__fadeIn">
         </div>
         `
         history.pushState({ page_state: page_state }, null, `/edit_blog/${blog_id}`);
         main_html.insertAdjacentHTML("beforeend", edit_blog_dom_string);
         render_edit_blog(blog_id);
     }
+    else if(/^\/blog\/\d+$/.test(new_state)){
+        let temp = /^\/blog\/(?<blog_id>\d+)$/.exec(new_state);
+        if (temp === null) {
+            return null;
+        }
+        let blog_id = temp.groups.blog_id;
+        let view_blog_dom_string = `
+        <div id="view-blog-container" class="animate__animated animate__fadeIn">
+        </div>
+        `
+        history.pushState({ page_state: page_state }, null, `/blog/${blog_id}`);
+        main_html.insertAdjacentHTML("beforeend", view_blog_dom_string);
+        render_view_blog(blog_id);
+
+    }
 }
 
 // Called after userinfo is loaded. Initializes the page
-function main() {
+async function main() {
     // Insert either a profile nav element or login nav element depending on authentication info
     let nav_element = $("nav");
     if (auth_info.username != null) {

@@ -34,7 +34,7 @@ async function toggle_edit_state(){
         let edit_btn = delete_dom_children("#edit-btn")
         let edit_btn_domstring = `
             <span class="material-icons">
-                check_circle
+            save
             </span>
             Save
         `;

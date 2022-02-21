@@ -83,7 +83,7 @@ class Api:
             request = req
             resp = {}
             # Fetch required username from db
-            tempUsername = self.db.get_blog_author_username(blog_id)
+            tempUsername = self.db.get_blog_author_info(blog_id)
             # This means that the blog being deleted does not exist.
             if len(tempUsername) == 0:
                 resp["code"] = 3
@@ -110,7 +110,7 @@ class Api:
             request = req
             resp = {}
             # Fetch required username from db
-            tempUsername = self.db.get_blog_author_username(blog_id)
+            tempUsername = self.db.get_blog_author_info(blog_id)
             # This means that the blog being deleted does not exist.
             if len(tempUsername) == 0:
                 resp["code"] = 3
@@ -130,4 +130,21 @@ class Api:
             else:
                 resp["code"] = 3
 
+            return resp
+        
+        # For testing only
+        @self.api.route("/api/get_all_blog_tiles_data", methods=["GET"])
+        def get_all_blog_tiles_data():
+            blog_ids = self.db.get_all_blog_ids()
+            resp = {}
+            out_list = []
+            for value in blog_ids:
+                blog_id = value["blog_id"]
+                author_info = self.db.get_blog_author_info(blog_id)[0]
+                tile_info = self.db.get_particular_blog_tile_data(blog_id)[0]
+                # This combines blog info and author info into one dict
+                tile_info = tile_info | author_info
+                out_list.append(tile_info)
+            resp["data"] = out_list
+            resp["code"] = 1
             return resp

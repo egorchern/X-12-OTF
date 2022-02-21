@@ -1,4 +1,7 @@
-// TODO blog stuff
+
+// Static categories for now.
+let categories = ["Programming", "Cooking", "Some other thing"]
+
 async function delete_blog(blog_id){
     fetch(`/api/blog/delete/${blog_id}`, {
         method: "DELETE",
@@ -55,14 +58,16 @@ async function on_save_blog_edit_click(blog_id){
     let blog_data = {
         blog_title: $("#blog-title").value,
         blog_body: {
-            text: $("#blog-body").value
+            text: $("#edit-blog-body").value
         },
         word_count: render_word_count(),
-        category: $("#blog-category").value,
+        category: categories[$("#blog-category").selectedIndex],
         blog_id: blog_id
     }
     let result = await submit_edit_blog(blog_data)
-    console.log(result)
+    if (result.code === 1){
+        location.reload();
+    }
 }
 
 function render_word_count(){
@@ -71,7 +76,7 @@ function render_word_count(){
         const array = [...text.matchAll(regexp)]
         return array.length;
     }
-    let blog_body = $("#blog-body");
+    let blog_body = $("#edit-blog-body");
     let word_count = count_words(blog_body.value)
     $("#word_count").innerHTML = word_count;
     return word_count;
@@ -84,20 +89,30 @@ async function render_edit_blog(blog_id){
         return null;
     }
     let blog_data = temp.blog_data;
-    let categories = ["Programming", "Cooking", "Some other thing"]
     let category_options_dom_string = ``
     categories.forEach((category, index) => {
         category_options_dom_string += `
-        <option value=${index}>${category}</option>
+        <option ${blog_data.category === category ? "selected": ""} value=${index}>${category}</option>
         `
     })
+    
     // ${get_blog_tile(blog_data.username, blog_data.date_created, blog_data.word_count, blog_data.category, blog_data.blog_title, 5, 7.8, 4.3, "" )}
     let edit_blog_dom_string = `
-    <div id="blog-buttons-container">
+    <div id="blog-buttons-container" class="flex-horizontal align-end">
+        <button class="btn btn-outline-primary profile-control-button flex-horizontal align-center" id="view-blog" type="button" tabindex="0">
+            <span class="material-icons">
+            preview
+            </span>
+            View
+        </button>
+        <button class="btn btn-outline-primary profile-control-button flex-horizontal align-center" id="save-blog-edit" type="button" tabindex="0">
+            <span class="material-icons">
+            save
+            </span>
+            Save
+        </button>
         
-    </div>
-    <div class="blog-top-info-container">
-        Some info here
+        
     </div>
     <div class="page-container flex-vertical align-center">
         <div class="blog-container width-full">
@@ -111,33 +126,23 @@ async function render_edit_blog(blog_id){
                 <h3 style="margin:0; margin-right:1rem;">Title: </h3>
                 <input type="text" id ="blog-title" class="transparent-input form-control" value="${blog_data.blog_title}">
             </div>
-            <div class="flex-vertical align-center">
+            <div class="flex-vertical align-center" style="flex-grow:1">
                 <div class="flex-horizontal width-full align-center">
                     <h3>Blog body:</h3>
                     <h5 style="flex-grow:1; text-align:end">Word count: <strong id="word_count">${blog_data.word_count}</strong></h5>
                 </div>
                 
-                <textarea id="blog-body" class="form-control">
+                <textarea id="edit-blog-body" class="form-control">
                 </textarea>
             </div>
-            <div class="flex-horizontal align-center">
             
-                <button class="flex-horizontal align-center btn btn-primary" id="save-blog-edit">
-                    <span class="material-icons">
-                        check_circle
-                    </span>
-                    Save
-                </button>
-            </div>
         </div>
     </div>
     `
     
     $("#edit-blog-container").insertAdjacentHTML('beforeend', edit_blog_dom_string);
-    $("#blog-body").value = blog_data.blog_body.text;
-    $("#blog-body").oninput = render_word_count;
+    $("#edit-blog-body").value = blog_data.blog_body.text;
+    $("#edit-blog-body").oninput = render_word_count;
     $("#save-blog-edit").onclick = () => {on_save_blog_edit_click(blog_id)};
+    $("#view-blog").onclick = () => {change_page_state(`/blog/${blog_id}`)};
 }
-
-//create_blog({blog_body: {text: "Hello"} ,blog_title: "My test", category: "testing", word_count: 1})
-// delete_blog(1)
