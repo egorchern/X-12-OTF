@@ -72,3 +72,11 @@
 #blog-body{
     white-space: pre-wrap;
 }
+#top-blog-info-container{
+    padding: 0.5rem;
+    display: grid;
+    grid-template-columns: 15fr 28fr 28fr 28fr;
+    column-gap: 2rem;
+    border-bottom: 1px solid hsla(0, 0%, 10%, 0.3);
+    margin-bottom: 2rem;
+}

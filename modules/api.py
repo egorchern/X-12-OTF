@@ -60,6 +60,8 @@ class Api:
             else:
                 resp["code"] = 1
                 resp["blog_data"] = result[0]
+                author_info = self.db.get_blog_author_info(blog_id)[0]
+                resp["author_info"] = author_info
             return resp
 
         @self.api.route("/api/blog/create", methods=["POST"])
@@ -158,6 +160,7 @@ class Api:
 
             return resp
         
+
         # For testing only
         @self.api.route("/api/get_all_blog_tiles_data", methods=["GET"])
         def get_all_blog_tiles_data():
