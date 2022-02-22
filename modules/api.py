@@ -154,7 +154,7 @@ class Api:
             request = req
             resp = {}
             is_authenticated = self.auth.is_authenticated(
-                request, required_username=username)
+                request, required_access_level = 2)
             # TODO add some input validation for the edit data
             if is_authenticated:
                 result = self.db.delete_user(username)

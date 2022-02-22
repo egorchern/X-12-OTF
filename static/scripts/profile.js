@@ -136,20 +136,6 @@ function insert_profile_info(profile_info){
             $('#ban-btn').onclick = ban;
         }
     }
-    //this is to be removed later as the ban button should only appear on someone elses profile
-    //exists for testing purposes as you cant currently view someone elses profile
-    if(auth_info.access_level === 2){
-        let ban_button_domstring = `
-        <button class="btn btn-outline-danger profile-control-button flex-horizontal align-center" id="ban-btn" type="button" tabindex="0">
-            <span class="material-icons">
-                delete
-            </span>
-            Ban
-        </button>
-        `;
-        profile_control_container.insertAdjacentHTML("beforeend", ban_button_domstring);
-        $('#ban-btn').onclick = ban;
-    }
     $("#username-text").innerHTML = `Username: ${profile_info.data.username}`
     $("#avatar-img").setAttribute("src", `/images/avatar_${profile_info.data.avatar_image_id}.webp`);
     $("#profile-description-text").innerHTML = profile_info.data.personal_description;
