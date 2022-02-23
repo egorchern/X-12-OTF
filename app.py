@@ -7,6 +7,7 @@ from modules.api import Api
 
 # Get database url
 database_uri = os.environ.get('DATABASE_URL')
+# If working on local database
 if database_uri is None:
     file = open("database_url.txt", 'r')
     database_uri = file.read()
@@ -21,7 +22,7 @@ if database_uri.startswith("postgres://"):
 app = flask.Flask(__name__, static_url_path='',
                   static_folder='static', template_folder='static')
 app.config["SQLALCHEMY_DATABASE_URI"] = database_uri
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 # Initialize component classes
 db = Database(app)
 auth = Auth(db)
@@ -48,6 +49,14 @@ def login_register():
 
 @app.route('/profile/<username>', methods=['GET'])
 def profile_page(username):
+    return flask.render_template('index.html')
+
+@app.route('/edit_blog/<blog_id>', methods=['GET'])
+def edit_blog(blog_id):
+    return flask.render_template('index.html')
+
+@app.route('/blog/<blog_id>', methods=['GET'])
+def view_blog(blog_id):
     return flask.render_template('index.html')
 
 # Just a test route, to test whether access levels and authentication is working

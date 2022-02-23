@@ -19,6 +19,9 @@ body {
   
 
 }
+#create-blog-btn{
+  margin-bottom: 1rem;
+}
 button{
   border: none;
   background: transparent;
@@ -48,7 +51,9 @@ button{
 /* body{
   background-color: var(--body-bg-color);
 } */
-
+.material-icons{
+  margin-right: 0.2rem;
+}
 .flex-horizontal{
   display:flex;
   flex-direction: row;
@@ -59,6 +64,10 @@ button{
 }
 .align-center{
   justify-content: center;
+  align-items: center;
+}
+.align-end{
+  justify-content: flex-end;
   align-items: center;
 }
 .nav-logo-container{
@@ -87,16 +96,19 @@ nav{
 .author-avatar{
   max-width: 50%;
 }
-.blog-tile{
-  background-color: white;
-  padding: 0.65rem;
-  border: 1px solid hsl(0deg 0% 85%);
-  border-radius: 0.8rem;
-  box-shadow: 0 4px 16px 4px rgb(0 0 0 / 14%);
-  display: grid;
-  grid-template-columns: 30fr 70fr;
-  max-width: 500px;
+
+.width-full{
+  width: 100% !important;
 }
+
+.controversy-flag{
+  max-width: 3rem;
+  float: right;
+}
+.margin-children > *{
+  margin: 0.35rem;
+}
+
 .nav-item-container{
   flex-grow: 1;
 
