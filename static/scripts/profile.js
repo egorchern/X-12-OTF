@@ -116,6 +116,7 @@ function insert_profile_info(profile_info){
 
 async function profile_main(username){
     profile_info = await get_public_profile_info(username);
+    console.log(profile_info);
     // This happens when the requested account exists
     if (profile_info.code === 1){
         profile_info.data.username = username;

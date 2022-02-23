@@ -127,7 +127,6 @@ async function render_view_blog(blog_id){
     </div>
     <div class="page-container width-full flex-vertical align-center">
         <div class="blog-container width-full">
-            <h4 style="text-align: center">${blog_data.category}</h4>
             <h2 style="text-align: center">${blog_data.blog_title}</h2>
             
             <div id="blog-body">

@@ -12,6 +12,24 @@ class Database:
         # self.migrate = Migrate(app, self.db)
         self.create_database()
     
+    def get_blog_ids_authored_by(self, author_user_id: int):
+        """Fetches all blog ids that are written by given author_user_id."""
+        query = """
+        SELECT blog_id
+        FROM blogs
+        WHERE author_user_id = :author_user_id
+        """
+        params = {"author_user_id": author_user_id}
+        try: 
+            result = self.db.session.execute(query, params)
+            self.db.session.commit()
+            self.db.session.close()
+            return self.return_formatted(result)
+
+        except SQLAlchemyError as e:
+            error = str(e.__dict__['orig'])
+            return error
+
     def get_all_blog_ids(self):
         """Fetches all existing blog ids"""
         query = """
@@ -164,7 +182,7 @@ class Database:
     def get_public_profile_user_info(self, username: str):
         """Returns public profile information of the user"""
         query = """
-        SELECT avatar_image_id, date_created, date_last_accessed, personal_description
+        SELECT user_id, avatar_image_id, date_created, date_last_accessed, personal_description
         FROM users
         WHERE username=:username
         LIMIT 1

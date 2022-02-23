@@ -21,7 +21,14 @@ class Api:
             # This means that user with that username exists
             if len(result) > 0:
                 resp["code"] = 1
-                resp["data"] = result[0]
+                # Get all blogs ids that are authored by @username
+                temp_authored_blogs = self.db.get_blog_ids_authored_by(result[0]["user_id"])
+                authored_blog_list = []
+                # Now we need to flatten the sql output, because temp will have [{blog_id:...}] but we want just [1, 2, ...]
+                for row in temp_authored_blogs:
+                    authored_blog_list.append(row["blog_id"])
+                result[0]["authored_blogs"] = authored_blog_list
+                resp["data"] = result[0] 
             else:
                 resp["code"] = 2
 
@@ -160,7 +167,6 @@ class Api:
 
             return resp
         
-
         # For testing only
         @self.api.route("/api/get_all_blog_tiles_data", methods=["GET"])
         def get_all_blog_tiles_data():
