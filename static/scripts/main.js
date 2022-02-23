@@ -349,7 +349,7 @@ async function change_page_state(new_state) {
         }
         let blog_id = temp.groups.blog_id;
         let view_blog_dom_string = `
-        <div id="view-blog-container" class="animate__animated animate__fadeIn">
+        <div id="view-blog-container" class="animate__animated animate__fadeIn flex-vertical" style="align-items:center">
         </div>
         `
         history.pushState({ page_state: page_state }, null, `/blog/${blog_id}`);

@@ -16,7 +16,7 @@ function get_top_blog_info(blog_data, author_info){
         <img class="author-avatar" src="/images/avatar_${author_info.avatar_image_id}.webp">
         <div class="flex-vertical align-center">
             <span>Created by:</span>
-            <strong>${author_info.username}</strong>
+            <button style="font-weight: bolder" class="hoverable-text" id="author_hyperlink" role="navigation" tabindex="0">${author_info.username}</button>
         </div>
         <div class="flex-vertical align-center">
             <span>Word count:</span>
@@ -118,14 +118,14 @@ async function render_view_blog(blog_id){
         </button>
     `;
     let view_blog_dom_string = `
-    <div id="blog-buttons-container" class="flex-horizontal align-end">
+    <div id="blog-buttons-container" class="flex-horizontal align-end width-full">
        ${auth_info.user_id === blog_data.author_user_id ? edit_button_domstring : ""}
        ${auth_info.user_id != blog_data.author_user_id ? report_button_domstring : ""}
     </div>
     <div id="top-blog-info-container">
         ${get_top_blog_info(blog_data, author_info)}
     </div>
-    <div class="page-container flex-vertical align-center">
+    <div class="page-container width-full flex-vertical align-center">
         <div class="blog-container width-full">
             <h4 style="text-align: center">${blog_data.category}</h4>
             <h2 style="text-align: center">${blog_data.blog_title}</h2>
@@ -141,4 +141,5 @@ async function render_view_blog(blog_id){
     if (auth_info.user_id === blog_data.author_user_id){
         $("#edit-blog-btn").onclick = () => {change_page_state(`/edit_blog/${blog_id}`)};
     }
+    $("#author_hyperlink").onclick = () => {change_page_state(`/profile/${author_info.username}`)}
 }
