@@ -47,6 +47,24 @@ class Database:
             error = str(e.__dict__['orig'])
             return error
     
+    def get_all_blog_tile_data(self, blog_ids: tuple):
+        """Returns information required for the blog tile for particular blog"""
+        query = """
+        SELECT blog_id, blog_title, blogs.date_created, author_user_id, category, word_count, blogs.date_modified, username, avatar_image_id
+        FROM blogs
+        INNER JOIN users on users.user_id = blogs.author_user_id
+        WHERE blog_id IN :blog_ids
+        """
+        params = {'blog_ids': blog_ids}
+        try: 
+            result = self.db.session.execute(query, params)
+            self.db.session.commit()
+            self.db.session.close()
+            return self.return_formatted(result)
+        except SQLAlchemyError as e:
+            error = str(e.__dict__['orig'])
+            return error
+
     def get_particular_blog_tile_data(self, blog_id:int):
         """Returns information required for the blog tile for particular blog"""
         query = """
@@ -69,10 +87,10 @@ class Database:
     def get_particular_blog_data(self, blog_id: int):
         """Returns full information for particular blog"""
         query = """
-        SELECT *
+        SELECT username, avatar_image_id, blog_id, blog_title, blog_body, blogs.date_created, author_user_id, category, word_count, blogs.date_modified
         FROM blogs
+        INNER JOIN users on users.user_id = blogs.author_user_id
         WHERE blog_id = :blog_id
-        LIMIT 1
         """
         params = {'blog_id': blog_id}
         try: 
@@ -85,6 +103,7 @@ class Database:
             error = str(e.__dict__['orig'])
             return error
 
+    
     def get_blog_author_info(self, blog_id: int):
         """Returns the information about the author of the blog"""
         query = """

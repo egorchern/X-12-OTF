@@ -317,6 +317,9 @@ async function change_page_state(new_state) {
                     <div id="profile-description-text" class="profile-description-box">
                     </div>
                 </div>
+                <div class="profile-authored-blogs">
+                    
+                </div>
             </div>
         `;
         history.pushState(

@@ -67,8 +67,7 @@ class Api:
             else:
                 resp["code"] = 1
                 resp["blog_data"] = result[0]
-                author_info = self.db.get_blog_author_info(blog_id)[0]
-                resp["author_info"] = author_info
+
             return resp
 
         @self.api.route("/api/blog/create", methods=["POST"])
@@ -173,16 +172,12 @@ class Api:
             """
             Returns all of the existing blog tiles data in the array.
             """
-            blog_ids = self.db.get_all_blog_ids()
+            
+            temp = self.db.get_all_blog_ids()
+            # Need to flatten the sql output to just list of blog ids like: [1, 2]
+            blog_ids = [x["blog_id"] for x in temp]
             resp = {}
-            out_list = []
-            for value in blog_ids:
-                blog_id = value["blog_id"]
-                author_info = self.db.get_blog_author_info(blog_id)[0]
-                tile_info = self.db.get_particular_blog_tile_data(blog_id)[0]
-                # This combines blog info and author info into one dict
-                tile_info = tile_info | author_info
-                out_list.append(tile_info)
-            resp["data"] = out_list
+            result = self.db.get_all_blog_tile_data(tuple(blog_ids))
             resp["code"] = 1
+            resp["data"] = result
             return resp

@@ -1,4 +1,4 @@
-function get_top_blog_info(blog_data, author_info){
+function get_top_blog_info(blog_data){
     if(!("controversial_rating" in blog_data)){
         blog_data.controversial_rating = Math.random() * rating_limit
         blog_data.relevancy_rating = Math.random() * rating_limit
@@ -13,10 +13,10 @@ function get_top_blog_info(blog_data, author_info){
     console.log(blog_data)
     let top_blog_info_dom_string = `
     <div class="flex-vertical align-center blog-tile-left">
-        <img class="author-avatar" src="/images/avatar_${author_info.avatar_image_id}.webp">
+        <img class="author-avatar" src="/images/avatar_${blog_data.avatar_image_id}.webp">
         <div class="flex-vertical align-center">
             <span>Created by:</span>
-            <button style="font-weight: bolder" class="hoverable-text" id="author_hyperlink" role="navigation" tabindex="0">${author_info.username}</button>
+            <button style="font-weight: bolder" class="hoverable-text" id="author_hyperlink" role="navigation" tabindex="0">${blog_data.username}</button>
         </div>
         <div class="flex-vertical align-center">
             <span>Word count:</span>
@@ -100,7 +100,6 @@ async function render_view_blog(blog_id){
     }
     console.log(temp)
     let blog_data = temp.blog_data;
-    let author_info = temp.author_info;
     let edit_button_domstring = `
         <button id="edit-blog-btn" class="btn btn-outline-primary profile-control-button flex-horizontal align-center">
             <span class="material-icons">
@@ -123,7 +122,7 @@ async function render_view_blog(blog_id){
        ${auth_info.user_id != blog_data.author_user_id ? report_button_domstring : ""}
     </div>
     <div id="top-blog-info-container">
-        ${get_top_blog_info(blog_data, author_info)}
+        ${get_top_blog_info(blog_data)}
     </div>
     <div class="page-container width-full flex-vertical align-center">
         <div class="blog-container width-full">
@@ -140,5 +139,5 @@ async function render_view_blog(blog_id){
     if (auth_info.user_id === blog_data.author_user_id){
         $("#edit-blog-btn").onclick = () => {change_page_state(`/edit_blog/${blog_id}`)};
     }
-    $("#author_hyperlink").onclick = () => {change_page_state(`/profile/${author_info.username}`)}
+    $("#author_hyperlink").onclick = () => {change_page_state(`/profile/${blog_data.username}`)}
 }
