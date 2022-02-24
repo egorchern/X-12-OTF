@@ -41,3 +41,6 @@
 .blog-bar-container > div{
     margin-left: 0.35rem;
 }
+#authored-blogs-show-more-btn{
+    order: 1;
+}

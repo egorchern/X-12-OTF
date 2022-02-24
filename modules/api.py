@@ -166,6 +166,18 @@ class Api:
 
             return resp
         
+        @self.api.route("/api/get_blog_tiles_from_blog_ids/<blog_ids>", methods=["GET"])
+        def get_blog_tiles_from_blog_ids(blog_ids):
+            """
+            Returns all of the existing blog tiles data in the array.
+            """
+            blog_ids = json.loads(blog_ids)
+            resp = {}
+            result = self.db.get_all_blog_tile_data(tuple(blog_ids))
+            resp["code"] = 1
+            resp["data"] = result
+            return resp
+
         # For testing only
         @self.api.route("/api/get_all_blog_tiles_data", methods=["GET"])
         def get_all_blog_tiles_data():

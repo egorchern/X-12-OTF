@@ -20,6 +20,19 @@ async function get_all_blog_tiles_data(){
     });
 }
 
+async function get_certain_blog_tiles_data(blog_ids){
+    return fetch(`/api/get_blog_tiles_from_blog_ids/${JSON.stringify(blog_ids)}`, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+        }
+    })
+    .then((result) => result.json())
+    .then((result) => {
+        return result
+    });
+}
+
 // Jquery like selection, because I like it
 function $(selector) {
     return document.querySelector(selector);
@@ -102,7 +115,7 @@ function get_blog_tile(
     let relevancy_percentage = `${(relevancy_rating / rating_limit * 100).toFixed(2)}%`;
     let impression_percentage = `${(impression_rating / rating_limit * 100).toFixed(2)}%`;
     let blog_tile_dom_string = `
-    <div class="blog-tile animate__animated animate__fadeIn" id="blog-tile-${blog_id}">
+    <div class="blog-tile animate__animated animate__fadeIn" id="blog-tile-${blog_id}" onclick="change_page_state('/blog/${blog_id}')">
         <div class="blog-tile-top">
             <div class="flex-vertical align-center blog-tile-left">
                 <img class="author-avatar" src="/images/avatar_${avatar_image_id}.webp">
@@ -191,7 +204,6 @@ async function get_all_blog_tiles(){
         return ""
     }
     let all_blog_tiles_data = temp.data
-    console.log(all_blog_tiles_data)
     all_blog_tiles_data.forEach((blog_data, index) => {
         return_dom_string += get_blog_tile(blog_data.username, blog_data.date_created, blog_data.word_count, blog_data.category, blog_data.blog_title, blog_data.blog_id, blog_data.avatar_image_id)
     })
@@ -291,9 +303,7 @@ async function change_page_state(new_state) {
         }
         let blog_tiles = await get_all_blog_tiles();
         $("#blog_tiles").insertAdjacentHTML("beforeend", blog_tiles.dom_string);
-        blog_tiles.data.forEach((blog_data) => {
-            $(`#blog-tile-${blog_data.blog_id}`).onclick = () => {change_page_state(`/blog/${blog_data.blog_id}`);};
-        })
+        
 
 
     } else if (/^\/profile\/.+$/.test(new_state)) {
@@ -317,8 +327,21 @@ async function change_page_state(new_state) {
                     <div id="profile-description-text" class="profile-description-box">
                     </div>
                 </div>
-                <div class="profile-authored-blogs">
+                <div class="flex-vertical align-center" style="grid-column: 1 / 3;">
                     
+                    <h3 style="flex-grow:1; text-align: center">Authored Blogs</h3>
+                    <span class="width-full flex-horizontal" style="justify-content:flex-end">Blogs shown: <strong id="blogs-shown" style="margin-left:2px">?/?</strong></span>
+                    
+                    
+                    <div id="authored-blogs-container" class="flex-horizontal align-center flex-wrap">
+                        <button class="btn btn-outline-primary flex-horizontal align-center" id="authored-blogs-show-more-btn">
+                        <span class="material-icons">
+                            arrow_circle_down
+                        </span>
+
+                        Show more
+                        </button>
+                    </div>
                 </div>
             </div>
         `;
