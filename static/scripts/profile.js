@@ -75,6 +75,21 @@ async function toggle_edit_state(){
     }
 }
 
+
+async function ban(){
+    return fetch(`/api/profile/${profile_info.data.username}`, {
+        method: "DELETE",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(profile_info.data)
+    }).then((result) => result.json())
+    .then((result) => {
+        return result.code
+        
+    });
+}
+
 async function fetch_and_render_next_blog_tiles(){
     if (currently_showing >= profile_info.data.authored_blogs.length){
         return null;
@@ -128,15 +143,28 @@ async function insert_profile_info(){
         $('#edit-btn').onclick = toggle_edit_state;
     }
     else{
-        let report_button_domstring = `
-        <button class="btn btn-outline-danger profile-control-button flex-horizontal align-center">
-            <span class="material-icons">
-                gavel
-            </span>
-            Report
-        </button>
-        `;
-        profile_control_container.insertAdjacentHTML("beforeend", report_button_domstring);
+        if(auth_info.access_level === 1){
+            let report_button_domstring = `
+            <button class="btn btn-outline-danger profile-control-button flex-horizontal align-center">
+                <span class="material-icons">
+                    gavel
+                </span>
+                Report
+            </button>
+            `;
+            profile_control_container.insertAdjacentHTML("beforeend", report_button_domstring);
+        }else if(auth_info.access_level === 2){
+            let ban_button_domstring = `
+            <button class="btn btn-outline-danger profile-control-button flex-horizontal align-center" id="ban-btn" type="button" tabindex="0">
+                <span class="material-icons">
+                    delete
+                </span>
+                Ban
+            </button>
+            `;
+            profile_control_container.insertAdjacentHTML("beforeend", ban_button_domstring);
+            $('#ban-btn').onclick = ban;
+        }
     }
     $("#username-text").innerHTML = `Username: ${profile_info.data.username}`
     $("#avatar-img").setAttribute("src", `/images/avatar_${profile_info.data.avatar_image_id}.webp`);

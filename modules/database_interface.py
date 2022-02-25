@@ -179,6 +179,23 @@ class Database:
         except SQLAlchemyError as e:
             error = str(e.__dict__['orig'])
             return error
+            
+    def delete_user(self, username: str):
+        query = """
+        DELETE FROM users
+        WHERE username = :username
+        """
+        params = {'username': username}
+        try:
+            result = self.db.session.execute(query, params)
+            self.db.session.commit()
+            self.db.session.close()
+            return None
+
+        # For catching errors and outputting them
+        except SQLAlchemyError as e:
+            error = str(e.__dict__['orig'])
+            return error
         
     def get_user_password_hash(self, identifier: str) -> dict:
         """Fetches password hash from the users table by either username or email"""

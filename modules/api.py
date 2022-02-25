@@ -193,3 +193,20 @@ class Api:
             resp["code"] = 1
             resp["data"] = result
             return resp
+
+        @self.api.route("/api/profile/<username>",methods=["DELETE"])
+        def delete_user(username):
+            request = req
+            resp = {}
+            is_authenticated = self.auth.is_authenticated(
+                request, required_access_level = 2)
+            # TODO add some input validation for the edit data
+            if is_authenticated:
+                result = self.db.delete_user(username)
+                if result is None:
+                    resp["code"] = 1
+                else:
+                    resp["code"] = 3
+            else:
+                resp["code"] = 2
+            return resp
