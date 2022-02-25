@@ -43,7 +43,7 @@ button{
   --nav-search-bar-dimension: 50%;
   --footer-bg-color: #212529;
   --footer-font-size: max(min(calc(0.5rem + 1vw), 1.4rem), 1rem);
-
+  --button-font-size: 1.3rem;
   --body-bg-color: hsl(0, 0%, 95%);
   --animate-duration: 0.65s;
   --animate-delay: 0.45s;

@@ -29,8 +29,8 @@
     box-shadow: 0 4px 16px 4px rgb(0 0 0 / 14%);
 }
 .profile-control-button{
-    font-size: 1.4em;
-    padding: 0.5em;
+    font-size: 1.3em;
+    padding: 0.35em;
     margin-left: 0.5em;
     margin-right: 0.5em;
 }
@@ -40,4 +40,7 @@
 }
 .blog-bar-container > div{
     margin-left: 0.35rem;
+}
+#authored-blogs-show-more-btn{
+    order: 1;
 }

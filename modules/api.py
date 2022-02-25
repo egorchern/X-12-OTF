@@ -21,7 +21,14 @@ class Api:
             # This means that user with that username exists
             if len(result) > 0:
                 resp["code"] = 1
-                resp["data"] = result[0]
+                # Get all blogs ids that are authored by @username
+                temp_authored_blogs = self.db.get_blog_ids_authored_by(result[0]["user_id"])
+                authored_blog_list = []
+                # Now we need to flatten the sql output, because temp will have [{blog_id:...}] but we want just [1, 2, ...]
+                for row in temp_authored_blogs:
+                    authored_blog_list.append(row["blog_id"])
+                result[0]["authored_blogs"] = authored_blog_list
+                resp["data"] = result[0] 
             else:
                 resp["code"] = 2
 
@@ -60,8 +67,7 @@ class Api:
             else:
                 resp["code"] = 1
                 resp["blog_data"] = result[0]
-                author_info = self.db.get_blog_author_info(blog_id)[0]
-                resp["author_info"] = author_info
+
             return resp
 
         @self.api.route("/api/blog/create", methods=["POST"])
@@ -160,6 +166,17 @@ class Api:
 
             return resp
         
+        @self.api.route("/api/get_blog_tiles_from_blog_ids/<blog_ids>", methods=["GET"])
+        def get_blog_tiles_from_blog_ids(blog_ids):
+            """
+            Returns all of the existing blog tiles data in the array.
+            """
+            blog_ids = json.loads(blog_ids)
+            resp = {}
+            result = self.db.get_all_blog_tile_data(tuple(blog_ids))
+            resp["code"] = 1
+            resp["data"] = result
+            return resp
 
         # For testing only
         @self.api.route("/api/get_all_blog_tiles_data", methods=["GET"])
@@ -167,16 +184,12 @@ class Api:
             """
             Returns all of the existing blog tiles data in the array.
             """
-            blog_ids = self.db.get_all_blog_ids()
+            
+            temp = self.db.get_all_blog_ids()
+            # Need to flatten the sql output to just list of blog ids like: [1, 2]
+            blog_ids = [x["blog_id"] for x in temp]
             resp = {}
-            out_list = []
-            for value in blog_ids:
-                blog_id = value["blog_id"]
-                author_info = self.db.get_blog_author_info(blog_id)[0]
-                tile_info = self.db.get_particular_blog_tile_data(blog_id)[0]
-                # This combines blog info and author info into one dict
-                tile_info = tile_info | author_info
-                out_list.append(tile_info)
-            resp["data"] = out_list
+            result = self.db.get_all_blog_tile_data(tuple(blog_ids))
             resp["code"] = 1
+            resp["data"] = result
             return resp

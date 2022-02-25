@@ -1,5 +1,7 @@
 let profile_edit_state = false;
 let profile_info = {};
+let blogs_increment = 2;
+let currently_showing = 0;
 async function get_public_profile_info(username){
     return fetch(`/api/profile/${username}`, {
         method: "GET",
@@ -73,7 +75,34 @@ async function toggle_edit_state(){
     }
 }
 
-function insert_profile_info(profile_info){
+async function fetch_and_render_next_blog_tiles(){
+    if (currently_showing >= profile_info.data.authored_blogs.length){
+        return null;
+    }
+    let temp = await get_certain_blog_tiles_data(profile_info.data.authored_blogs.slice(currently_showing, currently_showing + blogs_increment));
+    if (temp.code != 1){
+        return null
+    }
+    let blog_tiles = temp.data;
+    console.log(blog_tiles)
+    let authored_blogs_container = $("#authored-blogs-container");
+    blog_tiles.forEach((blog_tile, index) => {
+        let blog_tile_dom_string = get_blog_tile(
+            blog_tile.username,
+            blog_tile.date_created,
+            blog_tile.word_count,
+            blog_tile.category,
+            blog_tile.blog_title,
+            blog_tile.blog_id,
+            blog_tile.avatar_image_id,
+        )
+        authored_blogs_container.insertAdjacentHTML("beforeend", blog_tile_dom_string);
+    })
+    currently_showing = Math.min(currently_showing + blogs_increment, profile_info.data.authored_blogs.length);
+    $("#blogs-shown").innerHTML = `${currently_showing}/${profile_info.data.authored_blogs.length}`;
+}
+
+async function insert_profile_info(){
     let profile_control_container = $("#profile-control-container");
     // This means that the user is on their own profile, so should add edit button
     if (auth_info.username === profile_info.data.username) {
@@ -112,10 +141,14 @@ function insert_profile_info(profile_info){
     $("#username-text").innerHTML = `Username: ${profile_info.data.username}`
     $("#avatar-img").setAttribute("src", `/images/avatar_${profile_info.data.avatar_image_id}.webp`);
     $("#profile-description-text").innerHTML = profile_info.data.personal_description;
+    fetch_and_render_next_blog_tiles();
+    $("#authored-blogs-show-more-btn").onclick = () => {fetch_and_render_next_blog_tiles()}
 }
+
 
 async function profile_main(username){
     profile_info = await get_public_profile_info(username);
+    currently_showing = 0;
     // This happens when the requested account exists
     if (profile_info.code === 1){
         profile_info.data.username = username;
@@ -126,5 +159,6 @@ async function profile_main(username){
         let main = delete_dom_children("main");
         main.insertAdjacentHTML("beforeend", `<h2 style="text-align: center;">No account with username: ${username}, exists.</h2>`);
     }
+
     
 }

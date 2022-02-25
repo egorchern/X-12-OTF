@@ -9,6 +9,7 @@ class Auth:
     def __init__(self, db):
 
         self.db = db
+        
         self.token_length = 48
         self.client_identifier_length = 48
         # For how long the users will be authenticated for
