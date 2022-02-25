@@ -10,12 +10,25 @@ class Api:
 
         @self.api.route("/api/profile/<username>", methods=["GET"])
         def get_profile_public_info(username):
+            """
+            This returns the public profile information for a user with a given username.
+            Codes: 1 - successful
+            2 - user does not exist
+            """
             request = req
             result = self.db.get_public_profile_user_info(username)
             resp = {}
+            # This means that user with that username exists
             if len(result) > 0:
                 resp["code"] = 1
-                resp["data"] = result[0]
+                # Get all blogs ids that are authored by @username
+                temp_authored_blogs = self.db.get_blog_ids_authored_by(result[0]["user_id"])
+                authored_blog_list = []
+                # Now we need to flatten the sql output, because temp will have [{blog_id:...}] but we want just [1, 2, ...]
+                for row in temp_authored_blogs:
+                    authored_blog_list.append(row["blog_id"])
+                result[0]["authored_blogs"] = authored_blog_list
+                resp["data"] = result[0] 
             else:
                 resp["code"] = 2
 
@@ -23,6 +36,11 @@ class Api:
 
         @self.api.route("/api/edit/profile/<username>", methods=["PUT"])
         def edit_profile(username):
+            """
+            Edits the profile given information in the body of the request. Authenticated to only the owner
+            Codes: 1 - successful
+            2 - Not authenticated
+            """
             request = req
             resp = {}
             is_authenticated = self.auth.is_authenticated(
@@ -37,8 +55,11 @@ class Api:
 
         @self.api.route("/api/blog/<blog_id>", methods=["GET"])
         def get_blog(blog_id: int):
-            # Codes: 1 - successful
-            # 2 - blog with this blog_id does not exist
+            """
+            Returns a blog information given blog_id.
+            Codes: 1 - successful
+            2 - blog with that id does not exist
+            """
             resp = {}
             result = self.db.get_particular_blog_data(blog_id)
             if len(result) == 0:
@@ -46,13 +67,18 @@ class Api:
             else:
                 resp["code"] = 1
                 resp["blog_data"] = result[0]
+
             return resp
 
         @self.api.route("/api/blog/create", methods=["POST"])
         def create_blog():
-            # CODES: 1 - successfully created the blog
-            # 2 - Not logged in
-            # 3 - invalid input
+            """
+            Creates a new blog given blog data in the body of the request
+            CODES: 1 - successfully created the blog
+            2 - Not logged in
+            3 - invalid input
+            """
+            
             request = req
             resp = {}
             blog_data = request.json
@@ -77,9 +103,13 @@ class Api:
 
         @self.api.route("/api/blog/delete/<blog_id>", methods=["DELETE"])
         def delete_blog(blog_id):
-            # CODES: 1 - successfully deleted the blog
-            # 2 - Not authenticated
-            # 3 - invalid blog id
+            """
+            Deletes a blog given blog id. authenticated to the owner only (currently)
+            CODES: 1 - successfully deleted the blog
+            2 - Not authenticated
+            3 - invalid blog id
+            """
+            
             request = req
             resp = {}
             # Fetch required username from db
@@ -103,9 +133,13 @@ class Api:
 
         @self.api.route("/api/blog/edit/<blog_id>", methods=["PUT"])
         def edit_blog(blog_id):
-            # Codes: 1 - successfully edited the blog
-            # 2 - not authenticated
-            # 3 - blog with blog id does not exist
+            """
+            Edits the blog given blog id. authenticated to the owner only (currently)
+            Codes: 1 - successfully edited the blog
+            2 - not authenticated
+            3 - blog with blog id does not exist
+            """
+            
             resp = {}
             request = req
             resp = {}
@@ -132,21 +166,32 @@ class Api:
 
             return resp
         
+        @self.api.route("/api/get_blog_tiles_from_blog_ids/<blog_ids>", methods=["GET"])
+        def get_blog_tiles_from_blog_ids(blog_ids):
+            """
+            Returns all of the existing blog tiles data in the array.
+            """
+            blog_ids = json.loads(blog_ids)
+            resp = {}
+            result = self.db.get_all_blog_tile_data(tuple(blog_ids))
+            resp["code"] = 1
+            resp["data"] = result
+            return resp
+
         # For testing only
         @self.api.route("/api/get_all_blog_tiles_data", methods=["GET"])
         def get_all_blog_tiles_data():
-            blog_ids = self.db.get_all_blog_ids()
+            """
+            Returns all of the existing blog tiles data in the array.
+            """
+            
+            temp = self.db.get_all_blog_ids()
+            # Need to flatten the sql output to just list of blog ids like: [1, 2]
+            blog_ids = [x["blog_id"] for x in temp]
             resp = {}
-            out_list = []
-            for value in blog_ids:
-                blog_id = value["blog_id"]
-                author_info = self.db.get_blog_author_info(blog_id)[0]
-                tile_info = self.db.get_particular_blog_tile_data(blog_id)[0]
-                # This combines blog info and author info into one dict
-                tile_info = tile_info | author_info
-                out_list.append(tile_info)
-            resp["data"] = out_list
+            result = self.db.get_all_blog_tile_data(tuple(blog_ids))
             resp["code"] = 1
+            resp["data"] = result
             return resp
 
         @self.api.route("/api/profile/<username>",methods=["DELETE"])
