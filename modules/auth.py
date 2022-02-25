@@ -118,7 +118,10 @@ class Auth:
             if credentials_matching:
                 # If credentials match, generate token and include in hashmap
                 token = self.generate_token()
+                # Insert the newly generated token into db
                 result = self.db.insert_auth_token(user_id, token, client_identifier)
+                # Updates the attribute last_accessed to current date
+                self.db.update_user_last_accessed(user_id)
                 resp["token"] = token
                 resp["code"] = 1
             else:

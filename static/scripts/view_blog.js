@@ -82,7 +82,7 @@ function get_top_blog_info(blog_data){
             </div>
         </div>
         <div class="flex-horizontal align-center" style="margin-top: 1rem;flex-grow:1">
-            <h5>Views:</h5>
+            <h5>Views: <strong>${blog_data.views}</strong></h5>
         </div>
         <div class="flex-horizontal align-center" style="margin-top: 1rem;flex-grow:1">
             <span style="margin-left: 0.3rem;">Average Retention:</span>

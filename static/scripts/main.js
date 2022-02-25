@@ -103,11 +103,16 @@ function get_blog_tile(
     title,
     blog_id,
     avatar_image_id,
+    views,
     controversial_rating = Math.random() * rating_limit,
     relevancy_rating = Math.random() * rating_limit,
     impression_rating = Math.random() * rating_limit,
     tags = []
 ) {
+    // <div class="flex-vertical align-center">
+    //                 <span>Date created:</span>
+    //                 <strong>${date_created}</strong>
+    //             </div>
     controversial_rating = Number(controversial_rating.toFixed(1))
     relevancy_rating = Number(relevancy_rating.toFixed(1))
     impression_rating = Number(impression_rating.toFixed(1))
@@ -117,23 +122,25 @@ function get_blog_tile(
     let blog_tile_dom_string = `
     <div class="blog-tile animate__animated animate__fadeIn" id="blog-tile-${blog_id}" onclick="change_page_state('/blog/${blog_id}')">
         <div class="blog-tile-top">
-            <div class="flex-vertical align-center blog-tile-left">
+            <div class="flex-vertical align-center blog-tile-left" style="word-break:break-all">
                 <img class="author-avatar" src="/images/avatar_${avatar_image_id}.webp">
                 <div class="flex-vertical align-center">
                     <span>Created by:</span>
                     <strong>${name}</strong>
                 </div>
-                <div class="flex-vertical align-center">
-                    <span>Date created:</span>
-                    <strong>${date_created}</strong>
-                </div>
+                
                 <div class="flex-vertical align-center">
                     <span>Word count:</span>
                     <strong>${word_count}</strong>
                 </div>
+                
+                <div class="flex-vertical align-center">
+                    <span>Views:</span>
+                    <strong>${views}</strong>
+                </div>
             </div>
             <div>
-                <div class="flex-vertical align-center blog-tile-right">
+                <div class="flex-vertical align-center blog-tile-right height-full">
                     <div class="flex-horizontal align-center width-full">
                         <h5 style="flex-grow:1; text-align:center;">
                             ${category}
@@ -201,11 +208,12 @@ async function get_all_blog_tiles(){
     let return_dom_string = ``
     let temp = await get_all_blog_tiles_data();
     if (temp.code != 1){
-        return ""
+        return {dom_string: ""}
     }
+    console.log(temp);
     let all_blog_tiles_data = temp.data
     all_blog_tiles_data.forEach((blog_data, index) => {
-        return_dom_string += get_blog_tile(blog_data.username, blog_data.date_created, blog_data.word_count, blog_data.category, blog_data.blog_title, blog_data.blog_id, blog_data.avatar_image_id)
+        return_dom_string += get_blog_tile(blog_data.username, blog_data.date_created, blog_data.word_count, blog_data.category, blog_data.blog_title, blog_data.blog_id, blog_data.avatar_image_id, blog_data.views)
     })
     return {dom_string: return_dom_string, data: all_blog_tiles_data}
 }
@@ -302,6 +310,7 @@ async function change_page_state(new_state) {
             }
         }
         let blog_tiles = await get_all_blog_tiles();
+        console.log(blog_tiles);
         $("#blog_tiles").insertAdjacentHTML("beforeend", blog_tiles.dom_string);
         
 
@@ -320,6 +329,8 @@ async function change_page_state(new_state) {
                 <div class="profile-header-container flex-vertical align-center">
                     <img id="avatar-img">
                     <h4 id="username-text"></h4>
+                    <h5 id="date-created"></h5>
+                    <h5 id="date-last-accessed"></h5>
                     
                 </div>
                 <div id="personal-description-container" class="flex-vertical">
@@ -334,13 +345,7 @@ async function change_page_state(new_state) {
                     
                     
                     <div id="authored-blogs-container" class="flex-horizontal align-center flex-wrap">
-                        <button class="btn btn-outline-primary flex-horizontal align-center" id="authored-blogs-show-more-btn">
-                        <span class="material-icons">
-                            arrow_circle_down
-                        </span>
-
-                        Show more
-                        </button>
+                        
                     </div>
                 </div>
             </div>
