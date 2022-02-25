@@ -67,6 +67,8 @@ class Api:
             else:
                 resp["code"] = 1
                 resp["blog_data"] = result[0]
+                # Increment blog views, since somebody requested the expanded blog
+                resul1 = self.db.increment_blog_views(blog_id)
 
             return resp
 

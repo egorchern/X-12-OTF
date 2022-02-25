@@ -33,7 +33,7 @@ async function get_blog(blog_id){
         method: "GET",
         headers: {
             "Content-Type": "application/json",
-        }
+        },
     }).then((result) => result.json())
     .then((result) => {
         return result

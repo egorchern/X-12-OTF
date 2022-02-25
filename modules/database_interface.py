@@ -12,6 +12,24 @@ class Database:
         # self.migrate = Migrate(app, self.db)
         self.create_database()
     
+    def increment_blog_views(self, blog_id: int):
+        """Increments the blog views counter for a particular blog."""
+        query = """
+        UPDATE blogs
+        SET views = views + 1
+        WHERE blog_id = :blog_id
+        """
+        params = {"blog_id": blog_id}
+        try: 
+            result = self.db.session.execute(query, params)
+            self.db.session.commit()
+            self.db.session.close()
+            return None
+
+        except SQLAlchemyError as e:
+            error = str(e.__dict__['orig'])
+            return error
+
     def get_blog_ids_authored_by(self, author_user_id: int):
         """Fetches all blog ids that are written by given author_user_id."""
         query = """
@@ -50,7 +68,7 @@ class Database:
     def get_all_blog_tile_data(self, blog_ids: tuple):
         """Returns information required for the blog tile for particular blog"""
         query = """
-        SELECT blog_id, blog_title, blogs.date_created, author_user_id, category, word_count, blogs.date_modified, username, avatar_image_id
+        SELECT blog_id, blog_title, blogs.date_created, author_user_id, category, word_count, blogs.date_modified, username, avatar_image_id, views
         FROM blogs
         INNER JOIN users on users.user_id = blogs.author_user_id
         WHERE blog_id IN :blog_ids
@@ -68,7 +86,7 @@ class Database:
     def get_particular_blog_tile_data(self, blog_id:int):
         """Returns information required for the blog tile for particular blog"""
         query = """
-        SELECT blog_id, blog_title, date_created, author_user_id, category, word_count, date_modified
+        SELECT blog_id, blog_title, date_created, author_user_id, category, word_count, date_modified, views
         FROM blogs
         WHERE blog_id = :blog_id
         LIMIT 1
@@ -87,7 +105,11 @@ class Database:
     def get_particular_blog_data(self, blog_id: int):
         """Returns full information for particular blog"""
         query = """
-        SELECT username, avatar_image_id, blog_id, blog_title, blog_body, blogs.date_created, author_user_id, category, word_count, blogs.date_modified
+        SELECT username, avatar_image_id, 
+        blog_id, blog_title, 
+        blog_body, blogs.date_created, 
+        author_user_id, category, word_count, 
+        blogs.date_modified, blogs.views
         FROM blogs
         INNER JOIN users on users.user_id = blogs.author_user_id
         WHERE blog_id = :blog_id
@@ -346,6 +368,7 @@ class Database:
                 date_modified DATE NOT NULL,
                 category VARCHAR(40) NOT NULL,
                 word_count integer NOT NULL,
+                views integer NOT NULL DEFAULT 0,
                 PRIMARY KEY (blog_id),
                 CONSTRAINT fk_author_user_id
                     FOREIGN KEY(author_user_id)

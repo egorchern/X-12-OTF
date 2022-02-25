@@ -103,11 +103,16 @@ function get_blog_tile(
     title,
     blog_id,
     avatar_image_id,
+    views,
     controversial_rating = Math.random() * rating_limit,
     relevancy_rating = Math.random() * rating_limit,
     impression_rating = Math.random() * rating_limit,
     tags = []
 ) {
+    // <div class="flex-vertical align-center">
+    //                 <span>Word count:</span>
+    //                 <strong>${word_count}</strong>
+    //             </div>
     controversial_rating = Number(controversial_rating.toFixed(1))
     relevancy_rating = Number(relevancy_rating.toFixed(1))
     impression_rating = Number(impression_rating.toFixed(1))
@@ -117,7 +122,7 @@ function get_blog_tile(
     let blog_tile_dom_string = `
     <div class="blog-tile animate__animated animate__fadeIn" id="blog-tile-${blog_id}" onclick="change_page_state('/blog/${blog_id}')">
         <div class="blog-tile-top">
-            <div class="flex-vertical align-center blog-tile-left">
+            <div class="flex-vertical align-center blog-tile-left" style="word-break:break-all">
                 <img class="author-avatar" src="/images/avatar_${avatar_image_id}.webp">
                 <div class="flex-vertical align-center">
                     <span>Created by:</span>
@@ -127,13 +132,14 @@ function get_blog_tile(
                     <span>Date created:</span>
                     <strong>${date_created}</strong>
                 </div>
+                
                 <div class="flex-vertical align-center">
-                    <span>Word count:</span>
-                    <strong>${word_count}</strong>
+                    <span>Views:</span>
+                    <strong>${views}</strong>
                 </div>
             </div>
             <div>
-                <div class="flex-vertical align-center blog-tile-right">
+                <div class="flex-vertical align-center blog-tile-right height-full">
                     <div class="flex-horizontal align-center width-full">
                         <h5 style="flex-grow:1; text-align:center;">
                             ${category}
@@ -205,7 +211,7 @@ async function get_all_blog_tiles(){
     }
     let all_blog_tiles_data = temp.data
     all_blog_tiles_data.forEach((blog_data, index) => {
-        return_dom_string += get_blog_tile(blog_data.username, blog_data.date_created, blog_data.word_count, blog_data.category, blog_data.blog_title, blog_data.blog_id, blog_data.avatar_image_id)
+        return_dom_string += get_blog_tile(blog_data.username, blog_data.date_created, blog_data.word_count, blog_data.category, blog_data.blog_title, blog_data.blog_id, blog_data.avatar_image_id, blog_data.views)
     })
     return {dom_string: return_dom_string, data: all_blog_tiles_data}
 }

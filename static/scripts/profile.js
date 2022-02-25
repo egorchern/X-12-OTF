@@ -110,6 +110,7 @@ async function fetch_and_render_next_blog_tiles(){
             blog_tile.blog_title,
             blog_tile.blog_id,
             blog_tile.avatar_image_id,
+            blog_tile.views
         )
         authored_blogs_container.insertAdjacentHTML("beforeend", blog_tile_dom_string);
     })
