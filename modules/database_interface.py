@@ -125,7 +125,6 @@ class Database:
             error = str(e.__dict__['orig'])
             return error
 
-    
     def get_blog_author_info(self, blog_id: int):
         """Returns the information about the author of the blog"""
         query = """
@@ -256,7 +255,6 @@ class Database:
             error = str(e.__dict__['orig'])
             return error
     
-    
     def get_user_auth_info(self, auth_token: str) -> dict:
         """Returns user auth information given a token"""
         query = """
@@ -295,7 +293,6 @@ class Database:
             error = str(e.__dict__['orig'])
             return error
 
-    
     def get_all_users(self):
         """Returns information about all users. Delete after testing"""
         query = """
@@ -311,7 +308,6 @@ class Database:
         except SQLAlchemyError as e:
             error = str(e.__dict__['orig'])
             return error
-    
     
     def return_formatted(self, result) -> dict:
         """Formats the sql output into a nice array with dictionaries"""
@@ -482,6 +478,23 @@ class Database:
             self.db.session.close()
             return result
         # For catching errors and outputting them
+        except SQLAlchemyError as e:
+            error = str(e.__dict__['orig'])
+            return error
+
+    def update_user_last_accessed(self, user_id: int):
+        query = """
+        UPDATE users
+        SET date_last_accessed = CURRENT_TIMESTAMP
+        WHERE user_id = :user_id
+        """
+        params = {"user_id": user_id}
+        try: 
+            result = self.db.session.execute(query, params)
+            self.db.session.commit()
+            self.db.session.close()
+            return None
+
         except SQLAlchemyError as e:
             error = str(e.__dict__['orig'])
             return error

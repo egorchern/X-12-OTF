@@ -191,9 +191,14 @@ class Api:
             # Need to flatten the sql output to just list of blog ids like: [1, 2]
             blog_ids = [x["blog_id"] for x in temp]
             resp = {}
+            if len(blog_ids) == 0:
+                resp["code"] = 2
+                return resp
             result = self.db.get_all_blog_tile_data(tuple(blog_ids))
+            
             resp["code"] = 1
             resp["data"] = result
+           
             return resp
 
         @self.api.route("/api/profile/<username>",methods=["DELETE"])
