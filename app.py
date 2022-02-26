@@ -1,6 +1,7 @@
 import flask
 import os
 import json
+import flask_mail
 from modules.database_interface import Database
 from modules.auth import Auth
 from modules.api import Api
@@ -21,9 +22,17 @@ app = flask.Flask(__name__, static_url_path='',
                   static_folder='static', template_folder='static')
 app.config["SQLALCHEMY_DATABASE_URI"] = database_uri
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['MAIL_SERVER']='smtp.gmail.com'
+app.config['MAIL_PORT'] = 465
+app.config['MAIL_USERNAME'] = mailing_email
+app.config['MAIL_PASSWORD'] = mailing_password
+app.config['MAIL_USE_TLS'] = False
+app.config['MAIL_USE_SSL'] = True
+mail = flask_mail.Mail(app)
+
 # Initialize component classes
 db = Database(app)
-auth = Auth(db)
+auth = Auth(db, mail)
 api = Api(db, auth)
 
 # This registers routes from external modules
@@ -33,6 +42,9 @@ app.register_blueprint(api.api)
 # Index route, simply send the html doc
 @app.route('/', methods=['GET'])
 def index():
+    # msg = flask_mail.Message("Test mail header", sender=mailing_email, recipients=['egorch.formal@gmail.com'])
+    # msg.body = f"Hi, its me, this is a test email, my database uri is: ${database_uri}"
+    # mail.send(msg)
     return flask.render_template('index.html')
 
 # Routes for internal page states
@@ -55,6 +67,10 @@ def edit_blog(blog_id):
 
 @app.route('/blog/<blog_id>', methods=['GET'])
 def view_blog(blog_id):
+    return flask.render_template('index.html')
+
+@app.route("/recover_password/<user_id>/<recovery_token>", methods=['GET'])
+def recover_password(user_id, recovery_token):
     return flask.render_template('index.html')
 
 # Just a test route, to test whether access levels and authentication is working

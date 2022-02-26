@@ -395,9 +395,28 @@ class Database:
             self.db.session.commit()
             self.db.session.close()
 
+        def create_recovery_tokens():
+            query = """
+            CREATE TABLE IF NOT EXISTS recovery_tokens
+            (
+                user_id integer NOT NULL,
+                recovery_hash text NOT NULL,
+                date_created DATE NOT NULL,
+                PRIMARY KEY(user_id),
+                CONSTRAINT fk_user_id
+                    FOREIGN KEY(user_id)
+                    REFERENCES users(user_id)
+                    ON DELETE CASCADE
+            )
+            """
+            self.db.session.execute(query)
+            self.db.session.commit()
+            self.db.session.close()
+
         create_users_table()
         create_auth_tokens_table()
         create_blog_table()
+        create_recovery_tokens()
 
     def insert_new_user(self, username: str, email: str, password_hash: str, date_of_birth: str):
         """Insert new user into database
@@ -483,9 +502,86 @@ class Database:
             return error
 
     def update_user_last_accessed(self, user_id: int):
+
         query = """
         UPDATE users
         SET date_last_accessed = CURRENT_TIMESTAMP
+        WHERE user_id = :user_id
+        """
+        params = {"user_id": user_id}
+        try: 
+            result = self.db.session.execute(query, params)
+            self.db.session.commit()
+            self.db.session.close()
+            return None
+
+        except SQLAlchemyError as e:
+            error = str(e.__dict__['orig'])
+            return error
+    
+    def insert_new_recover_token(self, email: str, recovery_hash: str):
+        query = """
+        DELETE FROM recovery_tokens
+        WHERE 
+            EXISTS(SELECT user_id FROM users WHERE email = :email) AND
+            user_id = (SELECT user_id FROM users WHERE email = :email);
+        INSERT INTO recovery_tokens
+        VALUES(
+            (SELECT user_id FROM users WHERE email = :email),
+            :recovery_hash,
+            CURRENT_TIMESTAMP
+        )
+        RETURNING user_id;
+        """
+        params = {"email": email, "recovery_hash": recovery_hash}
+        try: 
+            result = self.db.session.execute(query, params)
+            self.db.session.commit()
+            self.db.session.close()
+            return self.return_formatted(result)
+            
+        except SQLAlchemyError as e:
+            error = str(e.__dict__['orig'])
+            return error
+
+    def get_recovery_token(self, user_id: int):
+        query = """
+        SELECT *
+        FROM recovery_tokens
+        WHERE user_id = :user_id
+        LIMIT 1
+        """
+        params = {"user_id" : user_id}
+        try: 
+            result = self.db.session.execute(query, params)
+            self.db.session.commit()
+            self.db.session.close()
+            return self.return_formatted(result)
+            
+        except SQLAlchemyError as e:
+            error = str(e.__dict__['orig'])
+            return error
+
+    def update_password_hash(self, user_id: int, password_hash: str):
+        query = """
+        UPDATE users
+        SET password_hash = :password_hash
+        WHERE user_id = :user_id
+        """
+        params = {"password_hash": password_hash, "user_id": user_id}
+        try: 
+            result = self.db.session.execute(query, params)
+            self.db.session.commit()
+            self.db.session.close()
+            return None
+
+        except SQLAlchemyError as e:
+            error = str(e.__dict__['orig'])
+            return error
+    
+    def delete_recovery_token(self, user_id: int):
+        query = """
+        DELETE FROM recovery_tokens
         WHERE user_id = :user_id
         """
         params = {"user_id": user_id}

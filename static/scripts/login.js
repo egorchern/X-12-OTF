@@ -19,6 +19,40 @@ async function login(identifier, password) {
         });
 }
 
+async function initiate_password_recovery(email){
+    return fetch("/auth/initiate_password_recovery", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            email: email
+        }),
+    }).then((result) => result.json())
+    .then((result) => {
+        return result
+    });
+}
+
+async function change_password(password, recovery_token, user_id){
+    return fetch("/auth/change_password", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            password: password,
+            user_id: user_id,
+            recovery_token: recovery_token
+        }),
+    }).then((result) => result.json())
+    .then((result) => {
+        return result
+    });
+}
+
+//recover_password("egorch.formal@gmail.com")
+//change_password("123$Qweasdzxc", "FyLWnzAbu-WlnfAaoPRaF0B-iqs5oiLGcrs5ZItrAxi7CRj_ZpCaDY4U9XG5ViHg", 1)
 // Registers the client. Sends params to server route "/auth/register" via fetch and returns response code
 async function register(username, email, password, date_of_birth) {
     return fetch("/auth/register", {

@@ -3,13 +3,14 @@ import re
 from secrets import token_urlsafe
 from flask import Blueprint, request as req, make_response
 import json
-from datetime import datetime, timedelta
+from datetime import datetime
+import flask_mail
 # TODO server-side verification for registering
 class Auth:
-    def __init__(self, db):
+    def __init__(self, db, mail):
 
         self.db = db
-        
+        self.mail = mail
         self.token_length = 48
         self.client_identifier_length = 48
         # For how long the users will be authenticated for
@@ -69,8 +70,66 @@ class Auth:
 
             )
 
+        @self.auth_api.route("/auth/initiate_password_recovery", methods=['POST'])
+        def initiate_password_recovery():
+            """
+            Initiates password recovery given an email from request body
+            Codes:
+            1 - Success
+            2 - No email provided
+            3 - Account does not exist
+            4 - something else
+            """
+            request = req
+            resp = {}
+            data = request.json
+            email = data.get("email")
+            # If no email in body, return code 2
+            if email is None:
+                resp["code"] = 2
+                return resp
+            # Check if account with that email exists
+            result = self.db.get_user_password_hash(email)
+            if len(result) == 0:
+                resp["code"] = 3
+                return resp
+            #Generate recovery hash, using the same function we use for password hashing
+            recovery_token = self.generate_token()
+            recovery_hash = self.hash(recovery_token).decode("utf-8")
+            # No need to check if the row with that user exists in the table, insert will replace it if it exists
+            result = self.db.insert_new_recover_token(email, recovery_hash)
+            if len(result) > 0:
+                resp["code"] = 1
+            else:
+                resp["code"] = 4
+            # Send email with recovery link
+            # Generate recovery url, can get host url from request, so will work on localhost and hosted on internet
+            recovery_link = f"{request.url_root}/recover_password/{result[0].get('user_id')}/{recovery_token}"
+            msg = flask_mail.Message("Password Recovery (OTF)", sender="OTF mailing bot", recipients=[email])
+            msg.body = f"""
+            It appears that you have requested a password recovery for your account. 
+            Please click the link below and follow the instructions to complete password recovery.
+            {recovery_link}
+            """
+            self.mail.send(msg)
+            return resp
+        
+        @self.auth_api.route("/auth/change_password", methods=['POST'])
+        def change_password():
+            """Changes password
+            Codes: 1 - Success
+            2 - Invalid inputs
+            3 - Invalid recovery token
+            """
+            request = req
+            data = request.json
+            password = data.get("password")
+            recovery_token = data.get("recovery_token")
+            user_id = data.get("user_id")
+            return self.change_password(user_id, recovery_token, password)
+
     # Hash password
-    def hash(self, text) -> str:
+    def hash(self, text: str) -> str:
         """Returns a hashed text"""
         password = text.encode("utf-8")
         salt = bcrypt.gensalt()
@@ -241,3 +300,35 @@ class Auth:
                 "access_level": 1
             }
 
+    def change_password(self, user_id: int, recovery_token: str, password: str) -> dict:
+        resp = {}
+        # Check that inputs are of valid format
+        if not isinstance(user_id, int) or not isinstance(recovery_token, str) or not isinstance(password, str):
+            resp["code"] = 2
+            return resp
+        # Check that new password is strong enough
+        temp = re.match("(?=\w*\W{1,}\w*)(?=\D*\d{1,}\D*)(?=.{8,})", password)
+        if not temp:
+            resp["code"] = 2
+            return resp
+        # Get information about recovery entry
+        recovery_info = self.db.get_recovery_token(user_id)
+        if len(recovery_info) == 0:
+            resp["code"] = 3
+            return resp
+        # Check that hashes for recovery_token from client and from db match
+        are_recovery_matching = bcrypt.checkpw(recovery_token.encode("utf-8"), recovery_info[0].get("recovery_hash").encode("utf-8"))
+        if not are_recovery_matching:
+            resp["code"] = 3
+            return resp
+        
+        # Now we can finally update the password_hash in users entry
+        password_hash = self.hash(password).decode("utf-8")
+        result = self.db.update_password_hash(user_id, password_hash)
+        if result is None:
+            resp["code"] = 1
+            # If successfully udpated the password hash, need to delete the recovery_token entry
+            result = self.db.delete_recovery_token(user_id)
+        else:
+            resp["code"] = 4
+        return resp
