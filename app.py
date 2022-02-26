@@ -7,16 +7,14 @@ from modules.api import Api
 
 # Get database url
 database_uri = os.environ.get('DATABASE_URL')
-# If working on local database
-if database_uri is None:
-    file = open("database_url.txt", 'r')
-    database_uri = file.read()
-    file.close()
 
-# Heroku database fix
+# Heroku fix, won't work if this is not done
 if database_uri.startswith("postgres://"):
     database_uri = database_uri.replace("postgres://", "postgresql://", 1)
 
+# Get mail credentials
+mailing_email = os.environ.get('MAILING_EMAIL')
+mailing_password = os.environ.get('MAILING_PASSWORD')
 
 # Initialize flask app
 app = flask.Flask(__name__, static_url_path='',

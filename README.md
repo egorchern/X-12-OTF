@@ -16,11 +16,26 @@ Deployment at: https://openthoughtfloor.herokuapp.com/
 - When developing, we will use local database only
 - Download and install latest postgresql here: https://www.postgresql.org/download/
 - This will give you access to the local database
-- Create new txt file in the root directory of project called database_url.txt
-- Write this in the file, and sub in your password (instead of YourPassword) you chose during installation: postgres://postgres:YourPassword@localhost:5432/postgres
 - You can then use pg4 admin to easily inspect data.
-- Running the app.py first time will generate all tables and some dummy data
-- You want to test something not included in dummy data, you have to insert the data yourself 
 # Running locally
 - venv\Scripts\activate (vscode does this automatically every time you start a terminal)
 - python app.py
+
+# Environmental variables for running locally
+- You have to configure the environmental variables before running the app.py
+- Set the following environmental variables:
+- DATABASE_URL: postgres://postgres:YourPassword@localhost:5432/postgres
+- MAILING_EMAIL: mailing email address
+- MAILING_PASSWORD: mailing email password
+To set environmental variables permanently in Windows
+- Launch CMD as administrator
+- Type SETX EnvironmentVariableNameHere ValueHere /m
+- Make sure to restart your machine, otherwise the newly added environmental variable won't be accessible
+To set environmental variables permanently in Linux
+- Launch shell
+- Type sudo -H vi /etc/environment
+- Enter password
+- Add variable in the file opened. NAME=Value
+- Save and close the file
+- Logout and Login again
+
