@@ -30,24 +30,6 @@ async function submit_profile_edit(){
     });
 }
 
-async function submit_report(){
-    let report_data ={
-        //test data
-        blog_id: 5,
-        report_reason: "none",
-        report_body: "none",
-    }
-    return fetch("/api/report/create",{
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify(report_data)
-    }).then((result) => result.json())
-    .then((result) => {
-        return result
-    })
-}
 
 async function toggle_edit_state(){
     profile_edit_state = !profile_edit_state;

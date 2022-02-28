@@ -404,7 +404,7 @@ class Database:
                 reporter_user_id SERIAL NOT NULL,
                 blog_id SERIAL NOT NULL,
                 report_reason VARCHAR(100) NOT NULL,
-                report_body JSONB NOT NULL,
+                report_body VARCHAR(2000) NOT NULL,
                 found_harmful BOOL,
                 report_date DATE NOT NULL,
                 PRIMARY KEY(report_id),
@@ -530,7 +530,7 @@ class Database:
     def insert_report(self, report_data: dict):
         query = """
         INSERT INTO user_blog_reports(reporter_user_id, blog_id, report_reason, report_body, found_harmful, report_date)
-        VALUES(:reporter_user_id, :blog_id, :report_reason, :report_body, False, CURRENT_TIMESTAMP)
+        VALUES(:user_id, :blog_id, :report_reason, :report_body, False, CURRENT_TIMESTAMP)
         """
         try:
             self.db.session.execute(query, report_data)

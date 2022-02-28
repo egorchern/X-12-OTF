@@ -141,3 +141,22 @@ async function render_view_blog(blog_id){
     }
     $("#author_hyperlink").onclick = () => {change_page_state(`/profile/${blog_data.username}`)}
 }
+
+async function submit_report(blog_id, report_reason, report_body){
+    return fetch("/api/blog/report",{
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            blog_id: blog_id,
+            report_reason: report_reason,
+            report_body: report_body,
+        })
+    }).then((result) => result.json())
+    .then((result) => {
+        return result
+    })
+}
+
+// submit_report(6, "Test", "Some reason")
