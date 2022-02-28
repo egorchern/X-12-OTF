@@ -51,8 +51,22 @@ async function change_password(password, recovery_token, user_id){
     });
 }
 
-//recover_password("egorch.formal@gmail.com")
-//change_password("123$Qweasdzxc", "FyLWnzAbu-WlnfAaoPRaF0B-iqs5oiLGcrs5ZItrAxi7CRj_ZpCaDY4U9XG5ViHg", 1)
+async function check_recovery_link_status(user_id, recovery_token){
+    return fetch(`/auth/check_recovery_link_status/${user_id}/${recovery_token}`, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        
+    }).then((result) => result.json())
+    .then((result) => {
+        return result
+    });
+}
+
+//initiate_password_recovery("egorch.formal@gmail.com")
+//change_password("123$Qweasdzxc", "B8cijqoUbewrkCZh1fQZ3zePNnZTCOBPq482yAyv9-RyatYZLzqxYuxaAw98OPX6", 1)
+// check_recovery_link_status(1, "B8cijqoUbewrkCZh1fQZ3zePNnZTCOBPq482yAyv9-RyatYZLzqxYuxaAw98OPX6")
 // Registers the client. Sends params to server route "/auth/register" via fetch and returns response code
 async function register(username, email, password, date_of_birth) {
     return fetch("/auth/register", {

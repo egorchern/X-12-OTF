@@ -16,7 +16,7 @@ class Auth:
         # For how long the users will be authenticated for
         authenticated_expiry_days = 15
         authenticated_expiry_seconds = authenticated_expiry_days * 24 * 60 * 60
-
+        self.MAX_LINK_LIFETIME_IN_DAYS = 1
         self.auth_api = Blueprint("auth_api", __name__)
         # Register endpoint
         @self.auth_api.route("/auth/register", methods=['POST'])
@@ -120,6 +120,7 @@ class Auth:
             Codes: 1 - Success
             2 - Invalid inputs
             3 - Invalid recovery token
+            4 - Expired link
             """
             request = req
             data = request.json
@@ -127,6 +128,10 @@ class Auth:
             recovery_token = data.get("recovery_token")
             user_id = data.get("user_id")
             return self.change_password(user_id, recovery_token, password)
+
+        @self.auth_api.route("/auth/check_recovery_link_status/<user_id>/<recovery_token>", methods=["GET"])
+        def route_check_recovery_link_status(user_id: int, recovery_token: str):
+            return self.get_recovery_link_status(user_id, recovery_token)
 
     # Hash password
     def hash(self, text: str) -> str:
@@ -300,26 +305,67 @@ class Auth:
                 "access_level": 1
             }
 
-    def change_password(self, user_id: int, recovery_token: str, password: str) -> dict:
+    def get_recovery_link_status(self, user_id: int, recovery_token: str):
+        """
+        Returns the status of the recovery link
+        Codes: 1 - Success
+            2 - Invalid inputs
+            3 - Invalid recovery token
+            4 - Expired link
+        """
         resp = {}
         # Check that inputs are of valid format
-        if not isinstance(user_id, int) or not isinstance(recovery_token, str) or not isinstance(password, str):
+        try:
+            user_id = int(user_id)
+        except:
             resp["code"] = 2
             return resp
-        # Check that new password is strong enough
-        temp = re.match("(?=\w*\W{1,}\w*)(?=\D*\d{1,}\D*)(?=.{8,})", password)
-        if not temp:
+        if not isinstance(user_id, int) or not isinstance(recovery_token, str):
             resp["code"] = 2
             return resp
         # Get information about recovery entry
-        recovery_info = self.db.get_recovery_token(user_id)
+        recovery_info = self.db.get_recovery_token(user_id)[0]
         if len(recovery_info) == 0:
             resp["code"] = 3
             return resp
         # Check that hashes for recovery_token from client and from db match
-        are_recovery_matching = bcrypt.checkpw(recovery_token.encode("utf-8"), recovery_info[0].get("recovery_hash").encode("utf-8"))
+        are_recovery_matching = bcrypt.checkpw(recovery_token.encode("utf-8"), recovery_info.get("recovery_hash").encode("utf-8"))
         if not are_recovery_matching:
             resp["code"] = 3
+            return resp
+        # Check that link is not expired
+        now = datetime.now()
+        try:
+            # Calculate difference between the date when link was created and now.
+            # If bigger than max allowed, return code 4
+            date_recovery_created = datetime.strptime(recovery_info.get("date_created"), "%d/%m/%Y")
+            days_diff = abs(now - date_recovery_created).days
+            if days_diff > self.MAX_LINK_LIFETIME_IN_DAYS:
+                resp["code"] = 4
+                return resp
+        except:
+            resp["code"] = 4
+            return resp
+
+        resp["code"] = 1
+        return resp
+        
+
+    def change_password(self, user_id: int, recovery_token: str, password: str) -> dict:
+        """Changes password
+            Codes: 1 - Success
+            2 - Invalid inputs
+            3 - Invalid recovery token
+            4 - Expired link
+         """
+        resp = {}
+        link_status = self.get_recovery_link_status(user_id, recovery_token)
+        if link_status.get("code") != 1:
+            return link_status
+        # Check that new password is strong enough
+        temp = re.match("(?=\w*\W{1,}\w*)(?=\D*\d{1,}\D*)(?=.{8,})", password)
+        if not temp:
+            resp["code"] = 2
             return resp
         
         # Now we can finally update the password_hash in users entry
