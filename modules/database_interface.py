@@ -395,9 +395,37 @@ class Database:
             self.db.session.commit()
             self.db.session.close()
 
+        def create_report_table():
+            """Creates the report table"""
+            self.db.session.execute("""
+            CREATE TABLE IF NOT EXISTS user_blog_reports
+            (
+                report_id SERIAL NOT NULL,
+                reporter_user_id SERIAL NOT NULL,
+                blog_id SERIAL NOT NULL,
+                report_reason VARCHAR(100) NOT NULL,
+                report_body JSONB NOT NULL,
+                found_harmful BOOL,
+                report_date DATE NOT NULL,
+                PRIMARY KEY(report_id),
+                CONSTRAINT fk_reporter_user_id
+                    FOREIGN KEY(reporter_user_id)
+                    REFERENCES users(user_id)
+                    ON DELETE CASCADE
+                ,CONSTRAINT fk_blog_id
+                    FOREIGN KEY(blog_id)
+                    REFERENCES blogs(blog_id)
+                    ON DELETE CASCADE
+            );
+            """
+            )
+            self.db.session.commit()
+            self.db.session.close()
+
         create_users_table()
         create_auth_tokens_table()
         create_blog_table()
+        create_report_table()
 
     def insert_new_user(self, username: str, email: str, password_hash: str, date_of_birth: str):
         """Insert new user into database
@@ -498,3 +526,18 @@ class Database:
         except SQLAlchemyError as e:
             error = str(e.__dict__['orig'])
             return error
+
+    def insert_report(self, report_data: dict):
+        query = """
+        INSERT INTO user_blog_reports(reporter_user_id, blog_id, report_reason, report_body, found_harmful, report_date)
+        VALUES(:reporter_user_id, :blog_id, :report_reason, :report_body, False, CURRENT_TIMESTAMP)
+        """
+        try:
+            self.db.session.execute(query, report_data)
+            self.db.session.commit()
+            self.db.session.close()
+            return True
+        except SQLAlchemyError as e:
+            error = str(e.__dict__['orig'])
+            return error
+    

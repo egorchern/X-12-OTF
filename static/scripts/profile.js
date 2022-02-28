@@ -30,6 +30,25 @@ async function submit_profile_edit(){
     });
 }
 
+async function submit_report(){
+    let report_data ={
+        //test data
+        blog_id: 5,
+        report_reason: "none",
+        report_body: "none",
+    }
+    return fetch("/api/report/create",{
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(report_data)
+    }).then((result) => result.json())
+    .then((result) => {
+        return result
+    })
+}
+
 async function toggle_edit_state(){
     profile_edit_state = !profile_edit_state;
     if (profile_edit_state){
@@ -152,7 +171,7 @@ async function insert_profile_info(){
     else{
         if(auth_info.access_level === 1){
             let report_button_domstring = `
-            <button class="btn btn-outline-danger profile-control-button flex-horizontal align-center">
+            <button class="btn btn-outline-danger profile-control-button flex-horizontal align-center" id="report-btn">
                 <span class="material-icons">
                     gavel
                 </span>
@@ -160,6 +179,7 @@ async function insert_profile_info(){
             </button>
             `;
             profile_control_container.insertAdjacentHTML("beforeend", report_button_domstring);
+            $('report-btn').onclick = submit_report;
         }else if(auth_info.access_level === 2){
             let ban_button_domstring = `
             <button class="btn btn-outline-danger profile-control-button flex-horizontal align-center" id="ban-btn" type="button" tabindex="0">

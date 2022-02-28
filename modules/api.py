@@ -217,3 +217,22 @@ class Api:
             else:
                 resp["code"] = 2
             return resp
+
+        @self.api.route("/api/report/create", methods=['POST'])
+        def insert_report():
+            request = req
+            resp = {}
+            report_data = request.json
+            user_info = self.auth.get_username_and_access_level(request)
+            report_data["user_id"] = user_info.get("user_id")
+            if report_data["user_id"] is None:
+                resp["code"] = 2
+                return resp
+            report_data["report_body"] = json.dumps(report_data.get("report_body"))
+            result = self.db.insert_report(report_data)
+            if result is True:
+                resp["code"] = 1
+            else:
+                resp["code"] = 3
+            return resp
+        
