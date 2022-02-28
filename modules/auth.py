@@ -104,7 +104,7 @@ class Auth:
                 resp["code"] = 4
             # Send email with recovery link
             # Generate recovery url, can get host url from request, so will work on localhost and hosted on internet
-            recovery_link = f"{request.url_root}/recover_password/{result[0].get('user_id')}/{recovery_token}"
+            recovery_link = f"{request.url_root}recover_password/{result[0].get('user_id')}/{recovery_token}"
             try:
                 msg = flask_mail.Message("Password Recovery (OTF)", sender="OTF mailing bot", recipients=[email])
                 msg.body = f"It appears that you have requested a password recovery for your account. \nPlease click the link below and follow the instructions to complete password recovery.\n{recovery_link}"
@@ -326,10 +326,11 @@ class Auth:
             resp["code"] = 2
             return resp
         # Get information about recovery entry
-        recovery_info = self.db.get_recovery_token(user_id)[0]
+        recovery_info = self.db.get_recovery_token(user_id)
         if len(recovery_info) == 0:
             resp["code"] = 3
             return resp
+        recovery_info = recovery_info[0]
         # Check that hashes for recovery_token from client and from db match
         are_recovery_matching = bcrypt.checkpw(recovery_token.encode("utf-8"), recovery_info.get("recovery_hash").encode("utf-8"))
         if not are_recovery_matching:

@@ -241,6 +241,7 @@ function change_login_page_state(new_state) {
     }
 
 }
+
 let reset_validation_classes = (identifiers) => {
     identifiers.forEach((identifier) => {
         $(identifier).classList.remove('is-valid', "is-invalid")
@@ -294,6 +295,18 @@ const validate_email = (str) => {
     return email_regex.test(str)
 }
 
+// Password has to be at least 8 characters, at least one special character, at least one capital letter
+const validate_passwords = (password, repeatPassword) => {
+
+    let password_regex = /(?=\w*\W{1,}\w*)(?=\D*\d{1,}\D*)(?=.{8,})/
+    let password_valid = password_regex.test(password);
+    let passwords_match = password === repeatPassword;
+    return {
+        password_valid: password_valid,
+        passwords_match: passwords_match
+    };
+}
+
 // Event handler for register button click
 async function on_register_click() {
     reset_validation_classes(["#email", "#password", "#username", "#confirm-password", "#date-of-birth", "#terms-agreement"])
@@ -315,17 +328,6 @@ async function on_register_click() {
         return username_valid
     }
 
-    // Password has to be at least 8 characters, at least one special character, at least one capital letter
-    const validate_passwords = (password, repeatPassword) => {
-
-        let password_regex = /(?=\w*\W{1,}\w*)(?=\D*\d{1,}\D*)(?=.{8,})/
-        let password_valid = password_regex.test(password);
-        let passwords_match = password === repeatPassword;
-        return {
-            password_valid: password_valid,
-            passwords_match: passwords_match
-        };
-    }
 
     // We will simply check that there is a date of birth and its not in the future
     const validate_dob = (dob) => {
@@ -435,4 +437,79 @@ async function on_recover_password_click(){
         }
 
     }
+}
+
+async function on_submit_password_change_btn_click(user_id, recovery_token){
+    reset_validation_classes(["#password", "#confirm-password"])
+    let password = $("#password").value;
+    let confirmPassword = $("#confirm-password").value;
+    let temp = validate_passwords(password, confirmPassword);
+    let password_class = temp.password_valid ? "is-valid" : "is-invalid";
+    let confirmPassword_class = temp.passwords_match ? "is-valid" : "is-invalid";
+    validate_element("#password", password_class);
+    validate_element("#confirm-password", confirmPassword_class);
+    if (temp.password_valid === false || temp.passwords_match === false) {
+        return null;
+    }
+    $("#alert-box").insertAdjacentHTML('beforeend', spinner_domstring);
+    let change_password_status_info = await change_password(password, recovery_token, user_id);
+    delete_dom_children("#alert-box");
+    switch(change_password_status_info.code){
+        case 1: {
+            compose_alert("Password has been successfully changed.", true)
+            break;
+        }
+        default: {
+            compose_alert("Unnexpected error occured. Please try again.", false);
+            break;
+        }
+    }
+}
+
+async function render_recover_password(user_id, recovery_token){
+    $("#alert-box").insertAdjacentHTML('beforeend', spinner_domstring);
+    let recovery_link_status = await check_recovery_link_status(user_id, recovery_token);
+    delete_dom_children("#alert-box");
+    switch(recovery_link_status.code){
+        case 3: {
+            compose_alert(`Invalid recovery link, make sure to correctly copy the link`, false)
+            return null;
+        }
+        case 4: {
+            compose_alert(`Your link is correct, but it has expired. Please recover the password via "Forgot password?" button on the login page again`, false)
+            return null;
+        }
+    }
+    console.log(recovery_link_status);
+    let recover_domstring = `
+    <form class='login-form flex-vertical align-center animate__animated animate__fadeIn needs-validation' novalidate>
+        <h2>Password reset</h2>
+        <div >
+            
+            <label for='password' class='form-label'>New Password</label>
+                
+            
+            <input type='password' class="form-control" id='password' required>
+            <div class="invalid-feedback">
+                Password must be at least 8 characters long, contain at least one capital letter and contain at least one number
+            </div>
+        </div>
+        <div >
+            
+            <label for='confirm-password' class='form-label'>Confirm new Password</label>
+                
+            
+            <input type='password' class="form-control" id='confirm-password' required>
+            <div class="invalid-feedback">
+                Passwords must match
+            </div>
+        </div>
+        
+        <button type="button" class="btn btn-outline-primary form-btn" id="submit-password-change-btn">Reset</button>
+        
+    </form>
+    `
+    $(".auth-grid").insertAdjacentHTML("beforeend", recover_domstring);
+    $("#submit-password-change-btn").onclick = () => {on_submit_password_change_btn_click(user_id, recovery_token)};
+
 }

@@ -221,6 +221,7 @@ async function get_all_blog_tiles(){
 // This changes page state depending on the url. So makes possible to go straight to some page
 function initialize_page_state() {
     let path = document.location.pathname;
+    console.log(path);
     if (path === "/") {
         change_page_state("/home");
     } else if (path === "/home") {
@@ -233,6 +234,8 @@ function initialize_page_state() {
         change_page_state(path);
     } else if(/^\/blog\/\d+$/.test(path)){
         change_page_state(path)
+    } else if(/^\/recover_password\/(?<user_id>\d+)\/(?<recovery_token>.+)$/.test(path)){
+        change_page_state(path);
     }
     
 }
@@ -388,6 +391,28 @@ async function change_page_state(new_state) {
         main_html.insertAdjacentHTML("beforeend", view_blog_dom_string);
         render_view_blog(blog_id);
 
+    }
+    else if(/^\/recover_password\/(?<user_id>\d+)\/(?<recovery_token>.+)$/.test(new_state)){
+        let temp = /^\/recover_password\/(?<user_id>\d+)\/(?<recovery_token>.+)$/.exec(new_state);
+        if (temp === null) {
+            return null;
+        }
+        let user_id = temp.groups.user_id;
+        let recovery_token = temp.groups.recovery_token;
+        let recover_password_dom_string = `
+        <div class='login-page-container flex-vertical align-center'>
+            <div class="auth-grid">
+                <div id="alert-box" class="flex-vertical align-center">
+                    
+                </div>
+                
+            </div>
+                
+        </div>
+        `
+        history.pushState({ page_state: page_state }, null, `/recover_password/${user_id}/${recovery_token}`);
+        main_html.insertAdjacentHTML("beforeend", recover_password_dom_string);
+        render_recover_password(user_id, recovery_token);
     }
 }
 
