@@ -105,13 +105,15 @@ class Auth:
             # Send email with recovery link
             # Generate recovery url, can get host url from request, so will work on localhost and hosted on internet
             recovery_link = f"{request.url_root}/recover_password/{result[0].get('user_id')}/{recovery_token}"
-            msg = flask_mail.Message("Password Recovery (OTF)", sender="OTF mailing bot", recipients=[email])
-            msg.body = f"""
-            It appears that you have requested a password recovery for your account. 
-            Please click the link below and follow the instructions to complete password recovery.
-            {recovery_link}
-            """
-            self.mail.send(msg)
+            try:
+                msg = flask_mail.Message("Password Recovery (OTF)", sender="OTF mailing bot", recipients=[email])
+                msg.body = f"It appears that you have requested a password recovery for your account. \nPlease click the link below and follow the instructions to complete password recovery.\n{recovery_link}"
+                
+                self.mail.send(msg)
+            except:
+                resp["code"] = 4
+                return resp
+            
             return resp
         
         @self.auth_api.route("/auth/change_password", methods=['POST'])

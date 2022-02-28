@@ -223,56 +223,17 @@ function change_login_page_state(new_state) {
                     </div>
                     
                 </div>
-                <div >
-                    <label for='username' class='form-label'>Username</label>
-                    <input type='text' class="form-control" id='username' required>
-                    <div class="invalid-feedback" id="username-invalid-feedback">
-                        Placeholder text
-                    </div>
-                </div>
-                <div >
-                    
-                    <label for='password' class='form-label'>Password</label>
-                        
-                    
-                    <input type='password' class="form-control" id='password' required>
-                    <div class="invalid-feedback">
-                        Password must be at least 8 characters long, contain at least one capital letter and contain at least one number
-                    </div>
-                </div>
-                <div >
-                    
-                    <label for='confirm-password' class='form-label'>Confirm Password</label>
-                        
-                    
-                    <input type='password' class="form-control" id='confirm-password' required>
-                    <div class="invalid-feedback">
-                        Passwords must match
-                    </div>
-                </div>
-                <div>
-                    <label for="date-of-birth">Date Of Birth</label>
-                    <input type="date" class="form-control" id='date-of-birth' required>
-                    <div class="invalid-feedback">
-                    Please input a valid date of birth date
-                    </div>
-                </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" value="" id="terms-agreement" required>
-                    <label class="form-check-label" for="terms-agreement">
-                    I agree to the <span class="hoverable-text"> Terms of Service </span>
-                    </label>
-                    <div class="invalid-feedback">
-                    You must agree to the terms and conditions.
-                    </div>
-                </div>
-                <button type="button" class="btn btn-outline-primary form-btn" id="register-btn">Register</button>
+                
+                <button type="button" class="btn btn-outline-primary form-btn" id="recover-btn">Recover</button>
                 <div class="flex-horizontal align-center bottom-switch-sentence">
                     <span>Already registered?</span>
                     <button id='login-switch' class="hoverable-text" role="navigation" tabindex="0">Login</button>
                 </div>
             </form>
             `
+            auth_grid.insertAdjacentHTML("beforeend", forgot_password_domstring);
+            $('#login-switch').onclick = () => {change_login_page_state("login")}
+            $("#recover-btn").onclick = on_recover_password_click
             break;
         }
     }
@@ -318,6 +279,12 @@ async function on_login_click() {
     }
 }
 
+const validate_email = (str) => {
+
+    let email_regex = /(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])/
+    return email_regex.test(str)
+}
+
 // Event handler for register button click
 async function on_register_click() {
     let email = $("#email").value;
@@ -329,11 +296,7 @@ async function on_register_click() {
     // Function to remove previous validation classes and assign the new class
 
     // Validates the email via standard email regex
-    const validate_email = (str) => {
-
-        let email_regex = /(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])/
-        return email_regex.test(str)
-    }
+    
 
     // username can only contain letters, numbers and underscores. Must be fewer than or equal to 30 characters
     const validate_username = (str) => {
@@ -421,5 +384,23 @@ async function on_register_click() {
         `
         let alert_box = delete_dom_children("#alert-box");
         alert_box.insertAdjacentHTML("beforeend", alert);
+    }
+}
+
+async function on_recover_password_click(){
+    let email = $("#email").value;
+    let email_class = (validate_email(email) && email != "") ? "is-valid" : "is-invalid";
+    
+    if (email_class === "is-invalid"){
+        validate_element("#email", email_class);
+        $("#email-invalid-feedback").innerHTML = "Please enter a valid email address";
+        return null;
+    }
+    let recovery_info = await initiate_password_recovery(email)
+    switch (recovery_info.code) {
+        case(1):{
+
+            break;
+        }
     }
 }
