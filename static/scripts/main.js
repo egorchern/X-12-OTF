@@ -270,7 +270,8 @@ async function change_page_state(new_state) {
         `;
         history.pushState({ page_state: page_state }, null, "/login-register");
         main_html.insertAdjacentHTML("beforeend", login_domstring);
-        switch_login_page_state();
+        change_login_page_state("login");
+        
     } else if (new_state === "/home") {
         let create_blog_dom_string = `
         <button class="btn btn-outline-primary profile-control-button flex-horizontal align-center" id="create-blog-btn" type="button" tabindex="0">
