@@ -1,5 +1,7 @@
 let login_page_state = "register";
-
+let spinner_domstring = `
+<div class="lds-roller" style="margin:1rem;"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
+`
 // Logs the client in. Sends params to server route "/auth/login" via fetch and returns response code
 async function login(identifier, password) {
     return fetch("/auth/login", {
@@ -226,7 +228,7 @@ function change_login_page_state(new_state) {
                 
                 <button type="button" class="btn btn-outline-primary form-btn" id="recover-btn">Recover</button>
                 <div class="flex-horizontal align-center bottom-switch-sentence">
-                    <span>Already registered?</span>
+                    <span>Remembered the password?</span>
                     <button id='login-switch' class="hoverable-text" role="navigation" tabindex="0">Login</button>
                 </div>
             </form>
@@ -238,12 +240,15 @@ function change_login_page_state(new_state) {
         }
     }
 
-
-
 }
-
+let reset_validation_classes = (identifiers) => {
+    identifiers.forEach((identifier) => {
+        $(identifier).classList.remove('is-valid', "is-invalid")
+    })
+}
 // Event handler for login button click
 async function on_login_click() {
+    reset_validation_classes(["#identifier", "#password"])
     let identifier = $("#identifier").value;
     let password = $("#password").value;
     // Check that identifier and password fields are not empty
@@ -251,19 +256,22 @@ async function on_login_click() {
     let password_class = password != "" ? "is-valid" : "is-invalid";
     if (identifier_class === "is-invalid") {
         $("#identifier-invalid-feedback").innerHTML = "Please fill in your email/name";
+        validate_element("#identifier", identifier_class);
     }
     if (password_class === "is-invalid") {
-        console.log(password_class);
         $("#login-password-invalid-feedback").innerHTML = "Please fill in your password";
+        validate_element("#password", password_class);
     }
 
-    validate_element("#identifier", identifier_class);
-    validate_element("#password", password_class);
+    
+    
     // If any field is empty, don't call login route
     if (identifier_class === "is-invalid" || password_class === "is-invalid") {
         return null
     }
+    $("#alert-box").insertAdjacentHTML('beforeend', spinner_domstring);
     let code = await login(identifier, password);
+    delete_dom_children("#alert-box");
     // if code is 2, then non-existant account with identifier
     if (code === 2) {
         $("#identifier-invalid-feedback").innerHTML = "No account with this email/username exists. You can register by clicking the Register at the bottom";
@@ -275,6 +283,7 @@ async function on_login_click() {
         validate_element("#password", "is-invalid");
     }
     else if (code === 1) {
+        change_page_state(`/home`)
         location.reload();
     }
 }
@@ -287,6 +296,7 @@ const validate_email = (str) => {
 
 // Event handler for register button click
 async function on_register_click() {
+    reset_validation_classes(["#email", "#password", "#username", "#confirm-password", "#date-of-birth", "#terms-agreement"])
     let email = $("#email").value;
     let username = $("#username").value;
     let password = $("#password").value;
@@ -333,15 +343,17 @@ async function on_register_click() {
     // This is needed because email field can be invalid for two reasons. This is for invalid email
     if (email_valid === false) {
         $("#email-invalid-feedback").innerHTML = "Please enter a valid email address";
+        validate_element("#email", email_class);
     }
-    validate_element("#email", email_class);
+    
     let username_valid = validate_username(username);
     let username_class = username_valid ? "is-valid" : "is-invalid";
     // This is needed because there are two ways username field could be invalid: invalid username or username taken
     if (username_valid === false) {
         $("#username-invalid-feedback").innerHTML = "Please enter a username of length 1-30, using only: letters, numbers and underscores";
+        validate_element("#username", username_class);
     }
-    validate_element("#username", username_class);
+    
     // Validate password
     let temp = validate_passwords(password, confirmPassword);
     let password_class = temp.password_valid ? "is-valid" : "is-invalid";
@@ -359,7 +371,9 @@ async function on_register_click() {
         || temp.passwords_match === false || dob_valid === false || terms_agreement_checked === false) {
         return null;
     }
+    $("#alert-box").insertAdjacentHTML('beforeend', spinner_domstring);
     let code = await register(username, email, password, dob);
+    delete_dom_children("#alert-box");
     // This means that the chosen username is already taken
     if (code === 2) {
         $("#username-invalid-feedback").innerHTML = "Please choose a different username, as this username is already taken";
@@ -372,22 +386,27 @@ async function on_register_click() {
     }
     // This means successfully registered
     else if (code === 1) {
-        // Push alert to alert box with successfull register message
-        let alert = `
-        <div class="alert alert-success alert-dismissible fade show flex-horizontal align-center" role="alert">
-            <span class="material-icons">
-                error
-            </span>
-            <span style="margin-left: 0.8rem">Account with username: ${username} has been successfully registered!</span>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-        `
-        let alert_box = delete_dom_children("#alert-box");
-        alert_box.insertAdjacentHTML("beforeend", alert);
+        compose_alert(`Account with username: <strong>${username}</strong> has been successfully registered!`, true)
+        
     }
 }
 
+let compose_alert = (alert_text, isSuccess) => {
+    let alert_box = delete_dom_children("#alert-box");
+    let alert =  `
+    <div class="alert alert-${isSuccess ? "success" : "danger"} alert-dismissible fade show flex-horizontal align-center" role="alert">
+        <span class="material-icons">
+            error
+        </span>
+        <span style="margin-left: 0.8rem">${alert_text}</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    `
+    alert_box.insertAdjacentHTML("beforeend", alert);
+}
+
 async function on_recover_password_click(){
+    reset_validation_classes(["#email"])
     let email = $("#email").value;
     let email_class = (validate_email(email) && email != "") ? "is-valid" : "is-invalid";
     
@@ -396,11 +415,24 @@ async function on_recover_password_click(){
         $("#email-invalid-feedback").innerHTML = "Please enter a valid email address";
         return null;
     }
+    $("#alert-box").insertAdjacentHTML("beforeend", spinner_domstring);
     let recovery_info = await initiate_password_recovery(email)
+    console.log(recovery_info);
+    delete_dom_children("#alert-box");
     switch (recovery_info.code) {
-        case(1):{
-
+        case 1:{
+            compose_alert(`An email with recovery link has been successfully sent to <strong>${email}</strong>. Please check spam folder, the email should come from <strong>otf.mailer@gmail.com</strong>`, true);
             break;
         }
+        case 3:{
+            validate_element("#email", "is-invalid");
+            $("#email-invalid-feedback").innerHTML = "No account with that email address is found. Please check that the entered email address is correct";
+            break;
+        }
+        default:{
+            compose_alert(`Unnexpected error happened. Please try again`, false);
+            break;
+        }
+
     }
 }
