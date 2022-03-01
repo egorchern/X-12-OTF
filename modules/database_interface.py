@@ -102,7 +102,7 @@ class Database:
             error = str(e.__dict__['orig'])
             return error
 
-    def insert_blog_user_ratings(self,rating_data: dict):
+    def insert_blog_user_rating(self,rating_data: dict):
         """Updates the blog user ratings data, first insert data into blog user taings, and then updating average in blog table"""
         
         query = """
@@ -122,7 +122,6 @@ class Database:
         except SQLAlchemyError as e:
             error = str(e.__dict__['orig'])
             return error
-
 
     def update_blog_user_ratings_count(self, blog_id: int):
         """Increments the number of user ratings for a particular blog"""
@@ -172,8 +171,6 @@ class Database:
         except SQLAlchemyError as e:
             error = str(e.__dict__['orig'])
             return error        
-
-
 
     def get_num_blog_user_ratings(self, rating_data:dict):
         """Gets the number of user ratings for a blog"""
@@ -261,8 +258,8 @@ class Database:
     def insert_new_blog(self, blog_data: dict):
         """Inserts a new blog into the database"""
         query = """
-        INSERT INTO blogs (blog_body,blog_title,author_user_id, date_created,date_modified,category,word_count,avaerage_controversial_rating,average_relevancy_rating,average_impression_rating)
-        VALUES(:blog_body, :blog_title , :author_user_id , CURRENT_TIMESTAMP, CURRENT_TIMESTAMP , :category, :word_count, :average_controversial_rating, :average_relevancy_rating, :average_impression_rating)
+        INSERT INTO blogs (blog_body,blog_title,author_user_id, date_created,date_modified,category,word_count)
+        VALUES(:blog_body, :blog_title , :author_user_id , CURRENT_TIMESTAMP, CURRENT_TIMESTAMP , :category, :word_count)
             RETURNING blog_id
         """
         try: 
@@ -457,10 +454,10 @@ class Database:
                 category VARCHAR(40) NOT NULL,
                 word_count integer NOT NULL,
                 views integer NOT NULL DEFAULT 0,
-                average_controversial_rating real NOT NULL,
-                average_relevancy_rating real NOT NULL,
-                average_impression_rating real NOT NULL,
-                number_ratings INT NOT NULL,
+                average_controversial_rating real NOT NULL DEFAULT 0,
+                average_relevancy_rating real NOT NULL DEFAULT 0,
+                average_impression_rating real NOT NULL DEFAULT 0,
+                number_ratings INT NOT NULL DEFAULT 0, 
                 PRIMARY KEY (blog_id),
                 CONSTRAINT fk_author_user_id
                     FOREIGN KEY(author_user_id)
@@ -477,12 +474,21 @@ class Database:
             self.db.session.execute("""
             CREATE TABLE IF NOT EXISTS blog_user_ratings
             (
-                user_id SERIAL NOT NULL,
-                blog_id SERIAL NOT NULL,
+                user_id integer NOT NULL,
+                blog_id integer NOT NULL,
                 date_created DATE NOT NULL,
                 relevancy_rating INT NOT NULL,
                 controversy_rating INT NOT NULL,
-                impression_rating INT NOT NULL
+                impression_rating INT NOT NULL,
+                PRIMARY KEY(user_id, blog_id),
+                CONSTRAINT fk_user_id
+                    FOREIGN KEY(user_id)
+                    REFERENCES users(user_id)
+                    ON DELETE CASCADE,
+                CONSTRAINT fk_blog_id
+                    FOREIGN KEY(blog_id)
+                    REFERENCES blogs(blog_id)
+                    ON DELETE CASCADE
             );
             """
 
