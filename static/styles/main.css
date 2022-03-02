@@ -89,7 +89,7 @@ nav{
   display: flex;
   flex-direction: row;
   padding: 0.3rem;
-  border-bottom: 1px solid var(--nav-border-color);
+  border-bottom: 1px solid hsla(0, 0%, 10%, 0.3);
   background-color: var(--nav-background-color);
   box-shadow: var(--bs-sm);
 }
