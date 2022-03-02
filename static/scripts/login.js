@@ -159,16 +159,20 @@ function change_login_page_state(new_state) {
                 You must agree to the terms and conditions.
                 </div>
             </div>
-            <button type="button" class="btn btn-outline-primary form-btn" id="register-btn">Register</button>
+            <button type="submit" class="btn btn-outline-primary form-btn" id="register-btn">Register</button>
             <div class="flex-horizontal align-center bottom-switch-sentence">
                 <span>Already registered?</span>
-                <button id='login-switch' class="hoverable-text" role="navigation" tabindex="0">Login</button>
+                <button type="button" id='login-switch' class="hoverable-text" role="navigation" tabindex="0">Login</button>
             </div>
         </form>
         `;
             auth_grid.insertAdjacentHTML("beforeend", reg_domstring);
             $('#login-switch').onclick = () => {change_login_page_state("login")}
-            $('#register-btn').onclick = on_register_click
+            $(".login-form").onsubmit = (ev) => 
+            {
+                ev.preventDefault();
+                on_register_click();
+            };
             
             break;
         }
@@ -188,7 +192,7 @@ function change_login_page_state(new_state) {
             <div >
                 <div >
                     <label for='password' class='form-label'>Password</label>
-                    <button id='forgot-password' class="hoverable-text" role="navigation" tabindex="0">Forgot password?</button>
+                    <button type="button" id='forgot-password' class="hoverable-text" role="navigation" tabindex="0">Forgot password?</button>
                     
                 </div>
                 
@@ -198,17 +202,23 @@ function change_login_page_state(new_state) {
                 </div>
                 
             </div>
-            <button type="button" class="btn btn-outline-primary form-btn" id="login-btn" >Log in</button>
+            <button type="submit" class="btn btn-outline-primary form-btn" id="login-btn" >Log in</button>
             <div class="flex-horizontal align-center bottom-switch-sentence">
                 <span>Not registered yet? </span>
-                <button id='register-switch' class="hoverable-text" role="navigation" tabindex="0">Register</button>
+                <button type="button" id='register-switch' class="hoverable-text" role="navigation" tabindex="0">Register</button>
             </div>
         </form>
         `
             auth_grid.insertAdjacentHTML("beforeend", log_domstring);
-            $('#login-btn').onclick = on_login_click;
+            $(".login-form").onsubmit = (ev) => 
+            {
+                ev.preventDefault();
+                on_login_click();
+            };
             $('#register-switch').onclick = () => {change_login_page_state("register")}
             $("#forgot-password").onclick = () => {change_login_page_state("forgot_password")};
+            // Enable submittion via enter
+            
             break;
         }
         case "forgot_password": {
@@ -226,19 +236,26 @@ function change_login_page_state(new_state) {
                     
                 </div>
                 
-                <button type="button" class="btn btn-outline-primary form-btn" id="recover-btn">Recover</button>
+                <button type="submit" class="btn btn-outline-primary form-btn" id="recover-btn">Recover</button>
                 <div class="flex-horizontal align-center bottom-switch-sentence">
                     <span>Remembered the password?</span>
-                    <button id='login-switch' class="hoverable-text" role="navigation" tabindex="0">Login</button>
+                    <button type="button" id='login-switch' class="hoverable-text" role="navigation" tabindex="0">Login</button>
                 </div>
             </form>
             `
             auth_grid.insertAdjacentHTML("beforeend", forgot_password_domstring);
             $('#login-switch').onclick = () => {change_login_page_state("login")}
-            $("#recover-btn").onclick = on_recover_password_click
+            $(".login-form").onsubmit = (ev) => 
+            {
+                ev.preventDefault();
+                on_recover_password_click();
+            };
+            
             break;
         }
+        
     }
+    
 
 }
 
