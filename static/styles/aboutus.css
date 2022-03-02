@@ -1,0 +1,120 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@200&display=swap');
+/* {
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family: "Poppins",sans-serif
+} */
+
+/* Dashed border */
+hr.dashed {
+  border-top: 3px dashed #bbb;
+}
+
+/* Dotted border */
+hr.dotted {
+  border-top: 3px dotted #bbb;
+}
+
+
+/* Solid border */
+.bottom hr.solid {
+  border-top: 1px solid #6cb3e9;
+}
+
+/* Rounded border */
+hr.rounded {
+  float:center;
+  border-radius: 1px;
+  margin-top:80px;
+  margin-bottom:100px;
+  border:1px solid #6cb3e9;
+}
+
+.a {
+  color: black;
+  text-decoration: none;
+  border-bottom: none;
+}
+
+.section{
+    display:flex;
+    flex-direction:column;
+    width:100%;
+    min-height:100vh;
+    background-color:#fff;
+}
+.section *{
+    font-family: "Poppins",sans-serif
+}
+
+.container{
+    width:90%;
+    display:block;
+    margin:auto;
+    padding-top:50px;
+}
+
+/*
+.content-section{
+    float: left;
+    width: 80%;
+}*/
+
+.header{
+    text-align:center;
+    margin-bottom:60px;
+}
+
+.header img{
+    float:left;
+}
+
+.header i{
+    margin-top:30px;
+    float:right;
+    padding-right:25px;
+
+}
+.about-us{
+    float:left;
+    margin-bottom:30px;
+    width:60%
+}
+
+.about-us h2{
+    font-size:2.1em;
+    float:center;
+    margin-bottom:20px;
+}
+.about-us p{
+    font-size:1em;
+    margin-bottom:30px;
+    line-height: 1.8;
+}
+.about-us p::first-letter{
+    font-size:2em;
+}
+.br {
+    display: block;
+    margin-bottom: 0em;
+}
+
+.team-members{
+    float:right;
+    width:25%
+}
+
+.team-members h2{
+    font-size:2.1em;
+    float:center;
+    margin-bottom:20px;
+}
+
+.team-members h3{
+    float:center;
+    font-size:1em;
+    line-height: 1.8;
+}
+
+
