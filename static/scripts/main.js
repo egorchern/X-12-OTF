@@ -522,6 +522,7 @@ document.addEventListener("DOMContentLoaded", (event) => {
     if (shouldShowPopup()) {
         switchcookie();
     }
+    // If agree to google analytics, then initiate google magic
     if (storage_cookie.getItem("analytics_permission") == "yes") {
         var my_awesome_script = document.createElement('script');
 

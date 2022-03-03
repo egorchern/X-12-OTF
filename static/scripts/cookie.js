@@ -10,10 +10,10 @@ const closeBtnBig = document.querySelector(".close-btn-big");
 const customBtnBig = document.querySelector(".option-small");
 
 
-var initialcookiehtml = `
+
+let initialcookiehtml = `
 <section>
-<div class="popup-screen-small">
-    <div class="popup-box-small">
+    <div class="popup-box-small animate__animated animate__zoomIn">
         <span class="material-icons fas fa-times close-btn-small">
         close
         </span>
@@ -29,12 +29,11 @@ var initialcookiehtml = `
         <button class="accept-btn-small">Accept all cookies</button>
         <button class="option-small" id="expand">Customise</button>
     </div>
-</div>
 </section>
 `
 var cookiehtml = `
 <div class="popup-screen-big">
-<div class="popup-box-big">
+<div class="popup-box-big animate__animated animate__zoomIn">
 <span class="material-icons fas fa-times close-btn-big">
 close
 </span>
@@ -67,40 +66,36 @@ close
 let isinitialdisplayed = true;
 function switchcookie() {
     var body = document.getElementById("main")
-    console.log(isinitialdisplayed)
+    let temp = $(".popup-box-small")
+    if (temp != null){
+        temp.remove();
+    }
 
     if (isinitialdisplayed) {
         body.insertAdjacentHTML("beforeBegin", initialcookiehtml);
         //accept all button
         const acceptallBtn = document.querySelector(".accept-btn-small");
         acceptallBtn.addEventListener("click", () => {
-            popupScreenSmall.classList.remove("active");
-            document.cookie = "Necessary Cookies = OpenThoughtFloor; max-age=" + 30 * 24 * 60 * 60; //1 month
             storage_cookie.setItem(cookie_permission, "Yes");
             storage_cookie.setItem(analytics_permission, "Yes");
+            $(".popup-box-small").remove();
         });
-        const popupScreenSmall = document.querySelector(".popup-screen-small");
-        setTimeout(() => {
-            popupScreenSmall.classList.add("active");
-        }, 2000)
-        //close button
+        
         const closeBtnSmall = document.querySelector(".close-btn-small");
-        closeBtnSmall.addEventListener("click", () => {
-            popupScreenSmall.classList.remove("active");
-        })
+        closeBtnSmall.onclick = () => {
+            $(".popup-box-small").remove();
+        }
         let btn = document.getElementById("expand")
         btn.onclick = switchcookie
     }
     else {
         body.insertAdjacentHTML("beforeend", cookiehtml);
         const popupScreenSmall = document.querySelector(".popup-screen-small");
-        popupScreenSmall.classList.remove("active");
         //save button
         const saveBtn = document.querySelector(".btn-big");
         storage_cookie.setItem(analytics_permission, "No");
         saveBtn.addEventListener("click", () => {
             popupScreenBig.classList.remove("active");
-            document.cookie = "Necessary Cookies = OpenThoughtFloor; max-age=" + 30 * 24 * 60 * 60; //1 month
             storage_cookie.setItem(cookie_permission, "Yes");
             if (document.getElementById("check").checked == true) {
                 //document.cookie = "Analytics Cookies = OpenThoughtFloor; max-age=" + 30 * 24 * 60 * 60; //1 month
