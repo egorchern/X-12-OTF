@@ -10,7 +10,16 @@ a {
   text-decoration: none;
   border-bottom: none;
 }
-
+#bigCookie .modal-dialog {
+    max-width: 1000px !important;
+    
+}
+#bigCookie .modal-content{
+    border-radius: 0.8rem;
+}
+#bigCookie .modal-title{
+    text-align: center;
+}
 .popup-screen-small{
     z-index:999999;
     position:fixed;

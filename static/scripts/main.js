@@ -523,7 +523,7 @@ document.addEventListener("DOMContentLoaded", (event) => {
         switchcookie();
     }
     // If agree to google analytics, then initiate google magic
-    if (storage_cookie.getItem("analytics_permission") == "yes") {
+    if (storage_cookie.getItem("analytics_accepted_value") === "Yes") {
         var my_awesome_script = document.createElement('script');
 
         my_awesome_script.setAttribute('src', 'https://www.googletagmanager.com/gtag/js?id=G-GSB3D915WS%27');
