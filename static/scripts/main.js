@@ -437,14 +437,21 @@ async function change_page_state(new_state) {
                         experience. Our team aims to provide the most functional blogging platform in the world, typically
                         with
                         <span class="br"></span>
-                        1)User Ratings
-                        <span class="br"></span>
-                        2)Extensive blog content customization
-                        <span class="br"></span>
-                        3)Accurate recommendations
-                        <span class="br"></span>
-                        4)Comments, etc.
-                        <span class="br"></span> Users have options to choose the right blog for them based on the author’s
+                        <ul>
+                            <li>
+                                User Ratings
+                            </li>
+                            <li>
+                                Extensive blog content customization
+                            </li>
+                            <li>
+                                Accurate recommendations
+                            </li>
+                            <li>
+                                Comments, etc.
+                            </li>
+                        </ul>
+                        Users have options to choose the right blog for them based on the author’s
                         profile and other users’ ratings. OTF will be officially launched soon.</p>
                 </div>
                 <div class="team-members">
