@@ -409,19 +409,29 @@ async function on_register_click() {
         
     }
 }
-
+const remove_alert = () => {
+    let temp = $(".fixed-alert")
+    if (temp != null){
+        temp.remove();
+    }
+}
 let compose_alert = (alert_text, isSuccess) => {
-    let alert_box = delete_dom_children("#alert-box");
+    remove_alert();
     let alert =  `
-    <div class="alert alert-${isSuccess ? "success" : "danger"} alert-dismissible fade show flex-horizontal align-center" role="alert">
+    <div class="flex-horizontal align-center fixed-alert" role="alert">
         <span class="material-icons">
-            error
+            ${isSuccess ? "check_circle" : "error"}
         </span>
         <span style="margin-left: 0.8rem">${alert_text}</span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        <button class="flex-horizontal align-center close-btn" style="margin-left: 0.8rem; color:inherit !important;">
+            <span class="material-icons close"  style="color:inherit !important; font-size:inherit !important;">
+                close
+            </span>
+        <button>
     </div>
     `
-    alert_box.insertAdjacentHTML("beforeend", alert);
+    $("#main").insertAdjacentHTML("beforeend", alert);
+    $(".close-btn").onclick = remove_alert;
 }
 
 async function on_recover_password_click(){
