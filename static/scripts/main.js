@@ -7,30 +7,30 @@ window.onpopstate = (ev) => {
     change_page_state(state.page_state);
 };
 
-async function get_all_blog_tiles_data(){
+async function get_all_blog_tiles_data() {
     return fetch("/api/get_all_blog_tiles_data", {
         method: "GET",
         headers: {
             "Content-Type": "application/json",
         }
     })
-    .then((result) => result.json())
-    .then((result) => {
-        return result
-    });
+        .then((result) => result.json())
+        .then((result) => {
+            return result
+        });
 }
 
-async function get_certain_blog_tiles_data(blog_ids){
+async function get_certain_blog_tiles_data(blog_ids) {
     return fetch(`/api/get_blog_tiles_from_blog_ids/${JSON.stringify(blog_ids)}`, {
         method: "GET",
         headers: {
             "Content-Type": "application/json",
         }
     })
-    .then((result) => result.json())
-    .then((result) => {
-        return result
-    });
+        .then((result) => result.json())
+        .then((result) => {
+            return result
+        });
 }
 
 // Jquery like selection, because I like it
@@ -204,18 +204,18 @@ function get_blog_tile(
     return blog_tile_dom_string;
 }
 
-async function get_all_blog_tiles(){
+async function get_all_blog_tiles() {
     let return_dom_string = ``
     let temp = await get_all_blog_tiles_data();
-    if (temp.code != 1){
-        return {dom_string: ""}
+    if (temp.code != 1) {
+        return { dom_string: "" }
     }
     console.log(temp);
     let all_blog_tiles_data = temp.data
     all_blog_tiles_data.forEach((blog_data, index) => {
         return_dom_string += get_blog_tile(blog_data.username, blog_data.date_created, blog_data.word_count, blog_data.category, blog_data.blog_title, blog_data.blog_id, blog_data.avatar_image_id, blog_data.views)
     })
-    return {dom_string: return_dom_string, data: all_blog_tiles_data}
+    return { dom_string: return_dom_string, data: all_blog_tiles_data }
 }
 
 // This changes page state depending on the url. So makes possible to go straight to some page
@@ -232,12 +232,13 @@ function initialize_page_state() {
         change_page_state(path);
     } else if (/^\/edit_blog\/\d+$/.test(path)) {
         change_page_state(path);
-    } else if(/^\/blog\/\d+$/.test(path)){
+    } else if (/^\/blog\/\d+$/.test(path)) {
         change_page_state(path)
-    } else if(/^\/recover_password\/(?<user_id>\d+)\/(?<recovery_token>.+)$/.test(path)){
+    } else if (/^\/recover_password\/(?<user_id>\d+)\/(?<recovery_token>.+)$/.test(path)) {
         change_page_state(path);
+    } else if (path === "/aboutus") {
+        change_page_state("/aboutus");
     }
-    
 }
 
 /*
@@ -274,7 +275,7 @@ async function change_page_state(new_state) {
         history.pushState({ page_state: page_state }, null, "/login-register");
         main_html.insertAdjacentHTML("beforeend", login_domstring);
         change_login_page_state("login");
-        
+
     } else if (new_state === "/home") {
         let create_blog_dom_string = `
         <button class="btn btn-outline-primary profile-control-button flex-horizontal align-center" id="create-blog-btn" type="button" tabindex="0">
@@ -297,7 +298,7 @@ async function change_page_state(new_state) {
         history.pushState({ page_state: page_state }, null, "/home");
         main_html.insertAdjacentHTML("beforeend", home_domstring);
         if (auth_info.username != null) {
-            $("#create-blog-btn").onclick = async function() {
+            $("#create-blog-btn").onclick = async function () {
                 let result = await create_blog(
                     {
                         blog_body: { text: "Default" },
@@ -306,17 +307,17 @@ async function change_page_state(new_state) {
                         word_count: 1
                     }
                 )
-                if (result.code === 1){
+                if (result.code === 1) {
                     change_page_state(`/edit_blog/${result.blog_id}`);
                 }
-                
-                
+
+
             }
         }
         let blog_tiles = await get_all_blog_tiles();
         console.log(blog_tiles);
         $("#blog_tiles").insertAdjacentHTML("beforeend", blog_tiles.dom_string);
-        
+
 
 
     } else if (/^\/profile\/.+$/.test(new_state)) {
@@ -377,7 +378,7 @@ async function change_page_state(new_state) {
         main_html.insertAdjacentHTML("beforeend", edit_blog_dom_string);
         render_edit_blog(blog_id);
     }
-    else if(/^\/blog\/\d+$/.test(new_state)){
+    else if (/^\/blog\/\d+$/.test(new_state)) {
         let temp = /^\/blog\/(?<blog_id>\d+)$/.exec(new_state);
         if (temp === null) {
             return null;
@@ -392,7 +393,7 @@ async function change_page_state(new_state) {
         render_view_blog(blog_id);
 
     }
-    else if(/^\/recover_password\/(?<user_id>\d+)\/(?<recovery_token>.+)$/.test(new_state)){
+    else if (/^\/recover_password\/(?<user_id>\d+)\/(?<recovery_token>.+)$/.test(new_state)) {
         let temp = /^\/recover_password\/(?<user_id>\d+)\/(?<recovery_token>.+)$/.exec(new_state);
         if (temp === null) {
             return null;
@@ -413,6 +414,62 @@ async function change_page_state(new_state) {
         history.pushState({ page_state: page_state }, null, `/recover_password/${user_id}/${recovery_token}`);
         main_html.insertAdjacentHTML("beforeend", recover_password_dom_string);
         render_recover_password(user_id, recovery_token);
+    }
+    else if (new_state === "/aboutus") {
+        let aboutus = `
+        <div class="section">
+        <div class="container">
+            <div class="content-section">
+                <div class="header">
+                    <a href="/">
+                    <div class="nav-logo-container flex-horizontal">
+                    <img src="/images/logo.webp" alt="OpenThoughtFloor logo">
+                    </div>
+                    <h1>Open Thought Floor</h1>
+                    </a>
+                    <i class="fa-regular fa-user fa-lg"></i>
+                    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+                </div>
+                <div class="about-us">
+                    <h2>About Us</h2>
+                    <p>OTF is a user-curated, metadata-rich, freedom of speech oriented blogging platform.
+                        OTF offers a light, clean, elegant interface for you to have the most incredible reading
+                        experience. Our team aims to provide the most functional blogging platform in the world, typically
+                        with
+                        <span class="br"></span>
+                        <ul>
+                            <li>
+                                User Ratings
+                            </li>
+                            <li>
+                                Extensive blog content customization
+                            </li>
+                            <li>
+                                Accurate recommendations
+                            </li>
+                            <li>
+                                Comments, etc.
+                            </li>
+                        </ul>
+                        Users have options to choose the right blog for them based on the author’s
+                        profile and other users’ ratings. OTF will be officially launched soon.</p>
+                </div>
+                <div class="team-members">
+                    <h2>Our Team</h2>
+                    <h3>Egor Chernyshev</h3>
+                    <h3>Henry Bowman</h3>
+                    <h3>Archawudh Eamsureya</h3>
+                    <h3>Bryn Dowton</h3>
+                    <h3>Daniel Gobel</h3>
+                    <h3>Junle Yu</h3>
+                    <h3>Arun John</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+        `
+        history.pushState({ page_state: page_state }, null, "/aboutus");
+        main_html.insertAdjacentHTML("beforeend", aboutus);
     }
 }
 
@@ -457,6 +514,9 @@ async function main() {
     $("#home-btn").onclick = () => {
         change_page_state("/home");
     };
+    $("#about-us-btn").onclick = () => {
+        change_page_state("/aboutus");
+    };
     initialize_page_state();
 }
 
@@ -466,6 +526,21 @@ let details_promise = get_user_info();
 // When all static content is loaded
 document.addEventListener("DOMContentLoaded", (event) => {
     // need to have details ready before executing main
+    if (shouldShowPopup()) {
+        switchcookie();
+    }
+    // If agree to google analytics, then initiate google magic
+    if (storage_cookie.getItem("analytics_accepted_value") === "Yes") {
+        var my_awesome_script = document.createElement('script');
+
+        my_awesome_script.setAttribute('src', 'https://www.googletagmanager.com/gtag/js?id=G-GSB3D915WS%27');
+
+        document.head.appendChild(my_awesome_script);
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'G-GSB3D915WS');
+    }
     details_promise.then((user_details) => {
         auth_info = user_details;
         main();
