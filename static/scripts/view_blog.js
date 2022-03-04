@@ -109,7 +109,7 @@ async function render_view_blog(blog_id){
         </button>
     `;
     let report_button_domstring = `
-        <button class="btn btn-outline-danger profile-control-button flex-horizontal align-center">
+        <button id="report-blog-btn" class="btn btn-outline-danger profile-control-button flex-horizontal align-center">
             <span class="material-icons">
                 gavel
             </span>
@@ -138,25 +138,12 @@ async function render_view_blog(blog_id){
     $("#view-blog-container").insertAdjacentHTML("beforeend", view_blog_dom_string);
     if (auth_info.user_id === blog_data.author_user_id){
         $("#edit-blog-btn").onclick = () => {change_page_state(`/edit_blog/${blog_id}`)};
+    }else{
+        //applies the change page state function to the report button which makes the page change to the report page
+        $('#report-blog-btn').onclick = () => {change_page_state(`/report_blog/${blog_id}`)};
     }
     $("#author_hyperlink").onclick = () => {change_page_state(`/profile/${blog_data.username}`)}
 }
 
-async function submit_report(blog_id, report_reason, report_body){
-    return fetch("/api/blog/report",{
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-            blog_id: blog_id,
-            report_reason: report_reason,
-            report_body: report_body,
-        })
-    }).then((result) => result.json())
-    .then((result) => {
-        return result
-    })
-}
 
-// submit_report(6, "Test", "Some reason")
+//submit_report(6, "Test", "Some reason")
