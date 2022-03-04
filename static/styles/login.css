@@ -50,3 +50,24 @@
     border-top: 1px solid hsla(0, 0%, 10%, 0.3);
     padding-top: 0.65rem;
 }
+.fixed-alert{
+    z-index: 99999;
+    top: 6rem;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 1rem;
+    max-width: 40rem;
+    position: fixed;
+    border-radius: 20px;
+    color: white !important;
+    background-color: hsl(0, 0%, 10%, 0.9);
+    box-shadow:0 5px 25px rgb(0 0 0 / 20%);
+}
+.close-btn{
+    font-size: 1.25em;
+    opacity: 0.8;
+    transition: opacity 0.25s;
+}
+.close-btn:hover{
+    opacity: 1;
+}

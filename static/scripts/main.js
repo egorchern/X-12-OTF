@@ -252,7 +252,6 @@ Page States:
 "/blog/<blog_id>": View blog
 */
 async function change_page_state(new_state) {
-    console.log(page_state, new_state);
     // If trying to switch to the same state, no need to do anything
     if (new_state === page_state) {
         return null;
@@ -260,6 +259,7 @@ async function change_page_state(new_state) {
     page_state = new_state;
     // Remove all elements from main
     let main_html = delete_dom_children("main");
+    remove_alert();
     if (new_state === "/login") {
         let login_domstring = `
             <div class='login-page-container flex-vertical align-center'>
