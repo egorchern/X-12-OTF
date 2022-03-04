@@ -1,15 +1,10 @@
 function get_top_blog_info(blog_data){
-    if(!("controversial_rating" in blog_data)){
-        blog_data.controversial_rating = Math.random() * rating_limit
-        blog_data.relevancy_rating = Math.random() * rating_limit
-        blog_data.impression_rating = Math.random() * rating_limit
-    }
-    blog_data.controversial_rating = Number(blog_data.controversial_rating.toFixed(1))
-    blog_data.relevancy_rating = Number(blog_data.relevancy_rating.toFixed(1))
-    blog_data.impression_rating = Number(blog_data.impression_rating.toFixed(1))
-    let controversial_percentage = `${(blog_data.controversial_rating / rating_limit * 100).toFixed(2)}%`;
-    let relevancy_percentage = `${(blog_data.relevancy_rating / rating_limit * 100).toFixed(2)}%`;
-    let impression_percentage = `${(blog_data.impression_rating / rating_limit * 100).toFixed(2)}%`;
+    blog_data.average_controversial_rating = Number(blog_data.average_controversial_rating.toFixed(1))
+    blog_data.average_relevancy_rating = Number(blog_data.average_relevancy_rating.toFixed(1))
+    blog_data.average_impression_rating = Number(blog_data.average_impression_rating.toFixed(1))
+    let controversial_percentage = `${(blog_data.average_controversial_rating / rating_limit * 100).toFixed(2)}%`;
+    let relevancy_percentage = `${(blog_data.average_relevancy_rating / rating_limit * 100).toFixed(2)}%`;
+    let impression_percentage = `${(blog_data.average_impression_rating / rating_limit * 100).toFixed(2)}%`;
     console.log(blog_data)
     let top_blog_info_dom_string = `
     <div class="flex-vertical align-center blog-tile-left">
@@ -34,7 +29,7 @@ function get_top_blog_info(blog_data){
                 </div>
             </div>
             <div class="flex-vertical align-center">
-                <strong>${blog_data.controversial_rating}/${rating_limit}</strong>
+                <strong>${blog_data.average_controversial_rating}/${rating_limit}</strong>
             </div>
         </div>
         <div class="flex-horizontal align-center" style="margin-top: 1rem;flex-grow:1">
@@ -56,7 +51,7 @@ function get_top_blog_info(blog_data){
                 </div>
             </div>
             <div class="flex-vertical align-center">
-                <strong>${blog_data.relevancy_rating}/${rating_limit}</strong>
+                <strong>${blog_data.average_relevancy_rating}/${rating_limit}</strong>
             </div>
         </div>
         <div class="flex-horizontal align-center" style="margin-top: 1rem;flex-grow:1">
@@ -78,14 +73,14 @@ function get_top_blog_info(blog_data){
                 </div>
             </div>
             <div class="flex-vertical align-center">
-                <strong>${blog_data.impression_rating}/${rating_limit}</strong>
+                <strong>${blog_data.average_impression_rating}/${rating_limit}</strong>
             </div>
         </div>
         <div class="flex-horizontal align-center" style="margin-top: 1rem;flex-grow:1">
             <h5>Views: <strong>${blog_data.views}</strong></h5>
         </div>
         <div class="flex-horizontal align-center" style="margin-top: 1rem;flex-grow:1">
-            <span style="margin-left: 0.3rem;">Average Retention:</span>
+            <span style="margin-left: 0.3rem;">№ ratings: <strong>${blog_data.number_ratings}</strong></span>
             
         </div>
     </div>
@@ -93,6 +88,27 @@ function get_top_blog_info(blog_data){
     return top_blog_info_dom_string
 }
 
+async function submit_blog_rating(rating_data){
+    return fetch("/api/blog/submit-rating", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            rating_data: rating_data,
+        }),
+    })
+        .then((result) => result.json())
+        .then((result) => {
+            return result
+        });
+}
+// submit_blog_rating({
+//     controversy_rating: Math.floor(Math.random() * 10),
+//     relevancy_rating: Math.floor(Math.random() * 10),
+//     impression_rating: Math.floor(Math.random() * 10),
+//     blog_id: 2
+// })
 async function render_view_blog(blog_id){
     let temp = await get_blog(blog_id)
     if (temp.code != 1){

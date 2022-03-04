@@ -68,7 +68,8 @@ class Database:
     def get_all_blog_tile_data(self, blog_ids: tuple):
         """Returns information required for the blog tile for particular blog"""
         query = """
-        SELECT blog_id, blog_title, blogs.date_created, author_user_id, category, word_count, blogs.date_modified, username, avatar_image_id, views
+        SELECT blog_id, blog_title, blogs.date_created, author_user_id, category, word_count, blogs.date_modified, username, avatar_image_id, views,
+        average_controversial_rating, average_relevancy_rating, average_impression_rating, number_ratings
         FROM blogs
         INNER JOIN users on users.user_id = blogs.author_user_id
         WHERE blog_id IN :blog_ids
@@ -86,12 +87,32 @@ class Database:
     def get_particular_blog_tile_data(self, blog_id:int):
         """Returns information required for the blog tile for particular blog"""
         query = """
-        SELECT blog_id, blog_title, date_created, author_user_id, category, word_count, date_modified, views
+        SELECT blog_id, blog_title, blogs.date_created, author_user_id, category, word_count, blogs.date_modified, username, avatar_image_id, views,
+        average_controversial_rating, average_relevancy_rating, average_impression_rating, number_rating
         FROM blogs
         WHERE blog_id = :blog_id
         LIMIT 1
         """
         params = {'blog_id': blog_id}
+        try: 
+            result = self.db.session.execute(query, params)
+            self.db.session.commit()
+            self.db.session.close()
+            return self.return_formatted(result)
+
+        except SQLAlchemyError as e:
+            error = str(e.__dict__['orig'])
+            return error
+    
+    def get_blog_user_rating(self, user_id: int, blog_id: int):
+        """Returns the information about the author of the blog"""
+        query = """
+        SELECT *
+        FROM blog_user_ratings
+        WHERE blog_id = :blog_id AND user_id = :user_id
+        LIMIT 1
+        """
+        params = {'blog_id': blog_id, "user_id": user_id}
         try: 
             result = self.db.session.execute(query, params)
             self.db.session.commit()
@@ -197,7 +218,7 @@ class Database:
         blog_body, blogs.date_created, 
         author_user_id, category, word_count, 
         blogs.date_modified, blogs.views,
-        average_controversial_rating, average_relevancy_rating, average_impression_rating,
+        average_controversial_rating, average_relevancy_rating, average_impression_rating, number_ratings
         number_ratings
         FROM blogs
         INNER JOIN users on users.user_id = blogs.author_user_id

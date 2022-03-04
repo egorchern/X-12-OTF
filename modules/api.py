@@ -168,7 +168,7 @@ class Api:
 
             return resp
         
-        @self.api.route("/api/get_blog_tiles_from_blog_ids/<blog_ids>", methods=["GET"])
+        @self.api.route("/api/blog/get_blog_tiles_from_blog_ids/<blog_ids>", methods=["GET"])
         def get_blog_tiles_from_blog_ids(blog_ids):
             """
             Returns all of the existing blog tiles data in the array.
@@ -181,7 +181,7 @@ class Api:
             return resp
 
         # For testing only
-        @self.api.route("/api/get_all_blog_tiles_data", methods=["GET"])
+        @self.api.route("/api/blog/get_all_blog_tiles_data", methods=["GET"])
         def get_all_blog_tiles_data():
             """
             Returns all of the existing blog tiles data in the array.
@@ -216,4 +216,35 @@ class Api:
                     resp["code"] = 3
             else:
                 resp["code"] = 2
+            return resp
+
+        @self.api.route("/api/blog/submit-rating", methods=["POST"])
+        def submit_rating():
+            """Submit a rating for a certain blog, only registered users allowed
+            CODES: 1 - success
+            2 - Blog does not exist
+            3 - Not logged in
+            4 - Already rated that blog
+            """
+            request = req
+            resp = {}
+            # We only want logged in users to be able to submit blog rating
+            auth_info = self.auth.get_username_and_access_level(request)
+            if auth_info.get("username") is None:
+                resp["code"] = 3
+                return resp
+            temp = request.json
+            rating_data = temp.get("rating_data")
+            rating_data["user_id"] = auth_info.get("user_id")
+            blog_user_rating_from_db = self.db.get_blog_user_rating(
+                rating_data.get("user_id"),
+                rating_data.get("blog_id")
+            )
+            # This means user has not rated that blog yet
+            if len(blog_user_rating_from_db) == 0:
+                
+                result = self.db.insert_blog_user_rating(rating_data)
+            else:
+                #TODO need to delete old user rating, recalc
+                pass
             return resp
