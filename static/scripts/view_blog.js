@@ -89,7 +89,7 @@ function get_top_blog_info(blog_data){
 }
 
 async function submit_blog_rating(rating_data){
-    return fetch("/api/blog/submit-rating", {
+    return fetch("/api/blog/submit_rating", {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -103,12 +103,31 @@ async function submit_blog_rating(rating_data){
             return result
         });
 }
+
+async function delete_blog_rating(blog_id){
+    return fetch("/api/blog/delete_rating", {
+        method: "DELETE",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            blog_id: blog_id
+        })
+        
+    })
+    .then((result) => result.json())
+    .then((result) => {
+        return result
+    })
+}
+
 // submit_blog_rating({
 //     controversy_rating: Math.floor(Math.random() * 10),
 //     relevancy_rating: Math.floor(Math.random() * 10),
 //     impression_rating: Math.floor(Math.random() * 10),
-//     blog_id: 2
+//     blog_id: 1
 // })
+// delete_blog_rating(1)
 async function render_view_blog(blog_id){
     let temp = await get_blog(blog_id)
     if (temp.code != 1){

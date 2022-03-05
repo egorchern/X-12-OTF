@@ -207,7 +207,7 @@ class Auth:
 
         return resp
    
-    def is_authenticated(self, request, required_username: str = None, required_access_level: int = 1) -> bool:
+    def is_authenticated(self, request, required_username: str = None, required_access_level: int = 1, required_user_id: int = None) -> bool:
         """
         Returns bool indicating whether the user is authenticated to do something given the requirements:
         required_username, default is None
@@ -221,6 +221,11 @@ class Auth:
                 return False
         elif required_access_level is not None:
             if auth_info.get("access_level") >= required_access_level:
+                return True
+            else:
+                return False
+        elif required_user_id is not None:
+            if auth_info.get("user_id") == required_user_id:
                 return True
             else:
                 return False

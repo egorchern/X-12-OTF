@@ -218,12 +218,12 @@ class Api:
                 resp["code"] = 2
             return resp
 
-        @self.api.route("/api/blog/submit-rating", methods=["POST"])
+        @self.api.route("/api/blog/submit_rating", methods=["POST"])
         def submit_rating():
             """Submit a rating for a certain blog, only registered users allowed
             CODES: 1 - success
             2 - Blog does not exist
-            3 - Not logged in
+            3 - Not logged in or author
             4 - Already rated that blog
             """
             request = req
@@ -240,11 +240,35 @@ class Api:
                 rating_data.get("user_id"),
                 rating_data.get("blog_id")
             )
-            # This means user has not rated that blog yet
-            if len(blog_user_rating_from_db) == 0:
-                
-                result = self.db.insert_blog_user_rating(rating_data)
+            # This means user has rated that blog already
+            if len(blog_user_rating_from_db) > 0:
+                resp["code"] = 4
+                return resp
+
+            result = self.db.insert_blog_user_rating(rating_data)
+            if len(result) > 0:
+                resp["code"] = 1
             else:
-                #TODO need to delete old user rating, recalc
-                pass
+                resp["code"] = 2
             return resp
+        
+        @self.api.route("/api/blog/delete_rating", methods=["DELETE"])
+        def delete_rating():
+            """Deletes rating for a certain blog from certain user
+            CODES: 1 - success
+            2 - not authenticated or rating does not exist
+            """
+            request = req
+            resp = {}
+            auth_info = self.auth.get_username_and_access_level(request)
+            inpt = request.json
+            result = self.db.delete_blog_user_rating(auth_info.get("user_id"), inpt.get("blog_id"))
+            if result is None:
+                resp["code"] = 1
+            else:
+                resp["code"] = 2
+            return resp
+            
+
+            
+        

@@ -88,8 +88,9 @@ class Database:
         """Returns information required for the blog tile for particular blog"""
         query = """
         SELECT blog_id, blog_title, blogs.date_created, author_user_id, category, word_count, blogs.date_modified, username, avatar_image_id, views,
-        average_controversial_rating, average_relevancy_rating, average_impression_rating, number_rating
+        average_controversial_rating, average_relevancy_rating, average_impression_rating, number_ratings
         FROM blogs
+        INNER JOIN users on users.user_id = blogs.author_user_id
         WHERE blog_id = :blog_id
         LIMIT 1
         """
@@ -172,9 +173,9 @@ class Database:
         new_controversy_value = rating_data.get("controversy_rating")
         new_relevancy_value = rating_data.get("relevancy_rating")
         new_impression_value = rating_data.get("impression_rating")
-        new_average_controversial_rating = old_average_controversial_rating + ((new_controversy_value - old_average_controversial_rating) / number_of_blog_ratings)
-        new_average_relevancy_rating = old_average_relevancy_rating + ((new_relevancy_value - old_average_relevancy_rating) / number_of_blog_ratings)
-        new_average_impression_rating = old_average_impression_rating + ((new_impression_value - old_average_impression_rating) / number_of_blog_ratings)
+        new_average_controversial_rating = round(old_average_controversial_rating + ((new_controversy_value - old_average_controversial_rating) / number_of_blog_ratings), 2)
+        new_average_relevancy_rating = round(old_average_relevancy_rating + ((new_relevancy_value - old_average_relevancy_rating) / number_of_blog_ratings), 2)
+        new_average_impression_rating = round(old_average_impression_rating + ((new_impression_value - old_average_impression_rating) / number_of_blog_ratings), 2)
 
         blog_id = blog_data.get("blog_id")        
         query = """
@@ -637,6 +638,69 @@ class Database:
             self.db.session.close()
             return None
 
+        except SQLAlchemyError as e:
+            error = str(e.__dict__['orig'])
+            return error
+
+    def recalculate_new_blog_averages(self, user_id, blog_id):
+        # First need to recalc blog rating averages
+        user_rating = self.get_blog_user_rating(user_id, blog_id)
+        if len(user_rating) == 0:
+            return "error"
+        user_rating = user_rating[0]
+        blog_info = self.get_particular_blog_tile_data(blog_id)[0]
+        number_ratings = blog_info.get('number_ratings')
+        new_average_relevancy_rating = 0
+        new_average_controversial_rating = 0
+        new_average_impression_rating = 0
+        if number_ratings > 1:
+            new_average_relevancy_rating = round(
+                ((number_ratings * blog_info.get('average_relevancy_rating') - user_rating.get("relevancy_rating"))
+                / (number_ratings - 1)), 2
+            )
+            new_average_controversial_rating = round(
+                ((number_ratings * blog_info.get('average_controversial_rating') - user_rating.get("controversy_rating"))
+                / (number_ratings - 1)), 2
+            )
+            new_average_impression_rating = round(
+                ((number_ratings * blog_info.get('average_impression_rating') - user_rating.get("impression_rating"))
+                / (number_ratings - 1)), 2
+            )
+        query = """
+        UPDATE blogs
+        SET average_controversial_rating = :average_controversial_rating,
+        average_relevancy_rating = :average_relevancy_rating,
+        average_impression_rating = :average_impression_rating,
+        number_ratings = number_ratings - 1;
+        """
+        params = {
+            "average_relevancy_rating": new_average_relevancy_rating,
+            "average_impression_rating": new_average_impression_rating,
+            "average_controversial_rating": new_average_controversial_rating
+        }
+        result = self.db.session.execute(query, params)
+        self.db.session.commit()
+        self.db.session.close()
+        return None
+
+    def delete_blog_user_rating(self, user_id: int, blog_id: int):
+
+        result = self.recalculate_new_blog_averages(user_id, blog_id)
+        if result == "error":
+            return "error"
+
+        query = """
+        DELETE FROM blog_user_ratings
+        WHERE user_id = :user_id AND blog_id = :blog_id
+        """
+        params = {"blog_id": blog_id, "user_id": user_id}
+        try:
+            result = self.db.session.execute(query, params)
+            self.db.session.commit()
+            self.db.session.close()
+            return None
+
+        # For catching errors and outputting them
         except SQLAlchemyError as e:
             error = str(e.__dict__['orig'])
             return error
