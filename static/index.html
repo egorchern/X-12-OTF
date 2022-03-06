@@ -52,16 +52,18 @@
       <span class="nav-heading">Home</span>
     </button>
     <div class="nav-item-container flex-vertical search-bar-container">
-      <div class="nav-search-bar flex-horizontal">
+      <form class="nav-search-bar flex-horizontal" id="search-bar">
         <button type="button" class="advanced-search-button flex-vertical align-center btn btn-primary"
           role="navigation" tabindex="0">
           Advanced search
         </button>
         <input type="text" class="form-control" id="quick-search-input">
-        <span class="material-icons" id="search-icon" role="button" tabindex="0">
-          search
-        </span>
-      </div>
+        <button type="submit" class="flex-vertical align-center">
+          <span class="material-icons" id="search-icon" role="button" tabindex="0">
+            search
+          </span>
+        </button>
+      </form>
     </div>
     <button class="nav-item-container nav-button flex-horizontal" role="navigation" tabindex="0">
 

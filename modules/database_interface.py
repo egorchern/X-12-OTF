@@ -597,7 +597,7 @@ class Database:
     
     def get_blog_ids_by_search(self, search_query: dict):
         """Returns blog ids of blogs searched by search query dictionary, supports arbitrary length"""
-        query = "SELECT blog_id FROM blogs WHERE"
+        query = "SELECT blog_id FROM blogs"
         # Basically list all posible search query parameters, if they are set
         # Then need to include them in WHERE
         params = {}
@@ -609,6 +609,8 @@ class Database:
             # Use lower to not care about letter case
             if param_found:
                 query += " AND "
+            else:
+                query += "  WHERE "
             param_found = True
             query += " LOWER(blog_title) LIKE LOWER(:blog_title)"
         if "category" in search_query:
@@ -616,6 +618,8 @@ class Database:
             # If we added someting into WHERE, we need to add AND between params
             if param_found:
                 query += " AND "
+            else:
+                query += "  WHERE "
             param_found = True
             query += " category = :category"
         try: 

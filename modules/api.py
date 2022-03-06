@@ -224,4 +224,7 @@ class Api:
             args = request.args
             resp = {}
             search_result = self.db.get_blog_ids_by_search(args)
+            # Need to flatten the sql output to just list of blog ids like: [1, 2]
+            blog_ids = [x["blog_id"] for x in search_result]
+            resp["data"] = blog_ids
             return resp

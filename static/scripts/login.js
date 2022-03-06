@@ -409,12 +409,14 @@ async function on_register_click() {
         
     }
 }
+
 const remove_alert = () => {
     let temp = $(".fixed-alert")
     if (temp != null){
         temp.remove();
     }
 }
+
 let compose_alert = (alert_text, isSuccess) => {
     remove_alert();
     let alert =  `

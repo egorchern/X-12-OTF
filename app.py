@@ -88,6 +88,10 @@ def view_blog(blog_id):
 def recover_password(user_id, recovery_token):
     return flask.render_template('index.html')
 
+@app.route("/search", methods=['GET'])
+def search():
+    return flask.render_template('index.html')
+
 # Just a test route, to test whether access levels and authentication is working
 
 

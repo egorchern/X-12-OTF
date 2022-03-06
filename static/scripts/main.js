@@ -210,7 +210,7 @@ async function get_all_blog_tiles() {
     if (temp.code != 1) {
         return { dom_string: "" }
     }
-    console.log(temp);
+    
     let all_blog_tiles_data = temp.data
     all_blog_tiles_data.forEach((blog_data, index) => {
         return_dom_string += get_blog_tile(blog_data.username, blog_data.date_created, blog_data.word_count, blog_data.category, blog_data.blog_title, blog_data.blog_id, blog_data.avatar_image_id, blog_data.views)
@@ -221,7 +221,7 @@ async function get_all_blog_tiles() {
 // This changes page state depending on the url. So makes possible to go straight to some page
 function initialize_page_state() {
     let path = document.location.pathname;
-    console.log(path);
+    
     if (path === "/") {
         change_page_state("/home");
     } else if (path === "/home") {
@@ -238,6 +238,8 @@ function initialize_page_state() {
         change_page_state(path);
     } else if (path === "/aboutus") {
         change_page_state("/aboutus");
+    } else if(/^\/search$/.test(path)){
+        change_page_state(path + location.search);
     }
 }
 
@@ -256,7 +258,9 @@ async function change_page_state(new_state) {
     if (new_state === page_state) {
         return null;
     }
+    console.log(page_state + " -> " + new_state);
     page_state = new_state;
+
     // Remove all elements from main
     let main_html = delete_dom_children("main");
     remove_alert();
@@ -315,7 +319,7 @@ async function change_page_state(new_state) {
             }
         }
         let blog_tiles = await get_all_blog_tiles();
-        console.log(blog_tiles);
+        
         $("#blog_tiles").insertAdjacentHTML("beforeend", blog_tiles.dom_string);
 
 
@@ -345,7 +349,7 @@ async function change_page_state(new_state) {
                 </div>
                 <div class="flex-vertical align-center" style="grid-column: 1 / 3;">
                     
-                    <h3 style="flex-grow:1; text-align: center">Authored Blogs</h3>
+                    <h3 style="text-align: center">Authored Blogs</h3>
                     <span class="width-full flex-horizontal" style="justify-content:flex-end">Blogs shown: <strong id="blogs-shown" style="margin-left:2px">?/?</strong></span>
                     
                     
@@ -471,6 +475,26 @@ async function change_page_state(new_state) {
         history.pushState({ page_state: page_state }, null, "/aboutus");
         main_html.insertAdjacentHTML("beforeend", aboutus);
     }
+    else if(/^\/search\?(?<search_query>.*)$/.test(new_state)){
+        let temp = /^\/search\?(?<search_query>.*)$/.exec(new_state)
+        if (temp === null) {
+            return null;
+        }
+        let search_domstring = `
+        <div id="search-page" class="flex-vertical align-center">
+            <h3 style="text-align: center">Search results</h3>
+            <span class="width-full flex-horizontal" style="justify-content:flex-end">Blogs shown: <strong id="blogs-shown" style="margin-left:2px">?/?</strong></span>
+            <div id="authored-blogs-container" class="flex-horizontal align-center flex-wrap">
+                        
+            </div>
+        </div>
+        
+        `
+        let search_query = temp.groups.search_query
+        history.pushState({ page_state: page_state }, null, new_state);
+        main_html.insertAdjacentHTML("beforeend", search_domstring);
+        render_search_page(search_query);
+    }
 }
 
 // Called after userinfo is loaded. Initializes the page
@@ -516,6 +540,11 @@ async function main() {
     };
     $("#about-us-btn").onclick = () => {
         change_page_state("/aboutus");
+    };
+    $("#search-bar").onsubmit = (ev) => 
+    {
+        ev.preventDefault();
+        on_simple_search_click()
     };
     initialize_page_state();
 }

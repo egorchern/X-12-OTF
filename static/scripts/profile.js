@@ -90,12 +90,12 @@ async function ban(){
     });
 }
 
-async function fetch_and_render_next_blog_tiles(){
-    if (currently_showing >= profile_info.authored_blogs.length){
-        $("#blogs-shown").innerHTML = `${currently_showing}/${profile_info.authored_blogs.length}`;
+async function fetch_and_render_next_blog_tiles(blog_ids){
+    if (currently_showing >= blog_ids.length){
+        $("#blogs-shown").innerHTML = `${currently_showing}/${blog_ids.length}`;
         return null;
     }
-    let temp = await get_certain_blog_tiles_data(profile_info.authored_blogs.slice(currently_showing, currently_showing + blogs_increment));
+    let temp = await get_certain_blog_tiles_data(blog_ids.slice(currently_showing, currently_showing + blogs_increment));
     if (temp.code != 1){
         return null
     }
@@ -115,12 +115,29 @@ async function fetch_and_render_next_blog_tiles(){
         )
         authored_blogs_container.insertAdjacentHTML("beforeend", blog_tile_dom_string);
     })
-    currently_showing = Math.min(currently_showing + blogs_increment, profile_info.authored_blogs.length);
-    $("#blogs-shown").innerHTML = `${currently_showing}/${profile_info.authored_blogs.length}`;
+    currently_showing = Math.min(currently_showing + blogs_increment, blog_ids.length);
+    $("#blogs-shown").innerHTML = `${currently_showing}/${blog_ids.length}`;
     // If all of the authored blogs are shown, then we should remove the "show more" blogs button.
     temp = $("#authored-blogs-show-more-btn")
-    if (temp != null && currently_showing == profile_info.authored_blogs.length){
+    if (temp != null && currently_showing == blog_ids.length){
         temp.remove();
+    }
+}
+
+function initialize_show_more_blogs_btn(blog_ids){
+    if (currently_showing < blog_ids.length){
+        let show_more_domstring = `
+        <button class="btn btn-outline-primary flex-horizontal align-center" id="authored-blogs-show-more-btn">
+            <span class="material-icons">
+                arrow_circle_down
+            </span>
+
+            Show more
+        </button>
+        `;
+        $("#authored-blogs-container").insertAdjacentHTML("beforeend", show_more_domstring);
+        
+        $("#authored-blogs-show-more-btn").onclick = () => {fetch_and_render_next_blog_tiles(blog_ids);}
     }
 }
 
@@ -179,21 +196,8 @@ async function insert_profile_info(){
     $("#date-last-accessed").innerHTML = `Date last accessed: ${profile_info.date_last_accessed}`
     $("#avatar-img").setAttribute("src", `/images/avatar_${profile_info.avatar_image_id}.webp`);
     $("#profile-description-text").innerHTML = profile_info.personal_description;
-    fetch_and_render_next_blog_tiles();
-    if (currently_showing < profile_info.authored_blogs.length){
-        let show_more_domstring = `
-        <button class="btn btn-outline-primary flex-horizontal align-center" id="authored-blogs-show-more-btn">
-            <span class="material-icons">
-                arrow_circle_down
-            </span>
-
-            Show more
-        </button>
-        `;
-        $("#authored-blogs-container").insertAdjacentHTML("beforeend", show_more_domstring);
-        
-        $("#authored-blogs-show-more-btn").onclick = () => {fetch_and_render_next_blog_tiles()}
-    }
+    fetch_and_render_next_blog_tiles(profile_info.authored_blogs);
+    initialize_show_more_blogs_btn(profile_info.authored_blogs)
     
 }
 
