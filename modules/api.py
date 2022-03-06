@@ -217,3 +217,11 @@ class Api:
             else:
                 resp["code"] = 2
             return resp
+        
+        @self.api.route("/api/search_blogs", methods=["GET"])
+        def search_blogs():
+            request = req
+            args = request.args
+            resp = {}
+            search_result = self.db.get_blog_ids_by_search(args)
+            return resp

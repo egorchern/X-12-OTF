@@ -594,3 +594,36 @@ class Database:
         except SQLAlchemyError as e:
             error = str(e.__dict__['orig'])
             return error
+    
+    def get_blog_ids_by_search(self, search_query: dict):
+        """Returns blog ids of blogs searched by search query dictionary, supports arbitrary length"""
+        query = "SELECT blog_id FROM blogs WHERE"
+        # Basically list all posible search query parameters, if they are set
+        # Then need to include them in WHERE
+        params = {}
+        param_found = False
+        if "blog_title" in search_query:
+            # Need to add percents around query and parameterize to avoid sql inject
+            temp = f"%{search_query['blog_title']}%"
+            params["blog_title"] = temp
+            # Use lower to not care about letter case
+            if param_found:
+                query += " AND "
+            param_found = True
+            query += " LOWER(blog_title) LIKE LOWER(:blog_title)"
+        if "category" in search_query:
+            params["category"] = search_query["category"]
+            # If we added someting into WHERE, we need to add AND between params
+            if param_found:
+                query += " AND "
+            param_found = True
+            query += " category = :category"
+        try: 
+            result = self.db.session.execute(query, params)
+            self.db.session.commit()
+            self.db.session.close()
+            return self.return_formatted(result)
+
+        except SQLAlchemyError as e:
+            error = str(e.__dict__['orig'])
+            return error
