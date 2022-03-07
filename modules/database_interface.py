@@ -68,7 +68,8 @@ class Database:
     def get_all_blog_tile_data(self, blog_ids: tuple):
         """Returns information required for the blog tile for particular blog"""
         query = """
-        SELECT blog_id, blog_title, blogs.date_created, author_user_id, category, word_count, blogs.date_modified, username, avatar_image_id, views
+        SELECT blog_id, blog_title, blogs.date_created, author_user_id, category, word_count, blogs.date_modified, username, avatar_image_id, views,
+        average_controversial_rating, average_relevancy_rating, average_impression_rating, number_ratings
         FROM blogs
         INNER JOIN users on users.user_id = blogs.author_user_id
         WHERE blog_id IN :blog_ids
@@ -86,14 +87,122 @@ class Database:
     def get_particular_blog_tile_data(self, blog_id:int):
         """Returns information required for the blog tile for particular blog"""
         query = """
-        SELECT blog_id, blog_title, date_created, author_user_id, category, word_count, date_modified, views
+        SELECT blog_id, blog_title, blogs.date_created, author_user_id, category, word_count, blogs.date_modified, username, avatar_image_id, views,
+        average_controversial_rating, average_relevancy_rating, average_impression_rating, number_ratings
         FROM blogs
+        INNER JOIN users on users.user_id = blogs.author_user_id
         WHERE blog_id = :blog_id
         LIMIT 1
         """
         params = {'blog_id': blog_id}
         try: 
             result = self.db.session.execute(query, params)
+            self.db.session.commit()
+            self.db.session.close()
+            return self.return_formatted(result)
+
+        except SQLAlchemyError as e:
+            error = str(e.__dict__['orig'])
+            return error
+    
+    def get_blog_user_rating(self, user_id: int, blog_id: int):
+        """Returns the information about the author of the blog"""
+        query = """
+        SELECT *
+        FROM blog_user_ratings
+        WHERE blog_id = :blog_id AND user_id = :user_id
+        LIMIT 1
+        """
+        params = {'blog_id': blog_id, "user_id": user_id}
+        try: 
+            result = self.db.session.execute(query, params)
+            self.db.session.commit()
+            self.db.session.close()
+            return self.return_formatted(result)
+
+        except SQLAlchemyError as e:
+            error = str(e.__dict__['orig'])
+            return error
+
+    def insert_blog_user_rating(self,rating_data: dict):
+        """Updates the blog user ratings data, first insert data into blog user taings, and then updating average in blog table"""
+        
+        query = """
+        INSERT INTO blog_user_ratings (user_id, blog_id, date_created, relevancy_rating, controversy_rating, impression_rating)
+        VALUES (:user_id, :blog_id, CURRENT_TIMESTAMP, :relevancy_rating, :controversy_rating, :impression_rating)
+            RETURNING blog_id 
+        """
+        try: 
+            result = self.db.session.execute(query, rating_data)
+            self.db.session.commit()
+            self.db.session.close()
+            self.update_blog_user_ratings_count(rating_data.get("blog_id"))
+            blog_data = self.get_particular_blog_data(rating_data.get("blog_id"))[0]
+            temp = self.update_blog_user_ratings(rating_data,blog_data)
+            return self.return_formatted(result)
+            
+        except SQLAlchemyError as e:
+            error = str(e.__dict__['orig'])
+            return error
+
+    def update_blog_user_ratings_count(self, blog_id: int):
+        """Increments the number of user ratings for a particular blog"""
+        query = """
+        UPDATE blogs
+        SET number_ratings = number_ratings + 1
+        WHERE blog_id = :blog_id      
+        
+        """
+        params = {"blog_id": blog_id}
+        try: 
+            result = self.db.session.execute(query, params)
+            self.db.session.commit()
+            self.db.session.close()
+            return None
+
+        except SQLAlchemyError as e:
+            error = str(e.__dict__['orig'])
+            return error
+
+    def update_blog_user_ratings(self, rating_data:dict, blog_data: dict):
+        """Updates the average user ratings for a blog"""
+        number_of_blog_ratings = blog_data.get("number_ratings")
+        old_average_controversial_rating = blog_data.get("average_controversial_rating")
+        old_average_relevancy_rating = blog_data.get("average_relevancy_rating")
+        old_average_impression_rating = blog_data.get("average_impression_rating")
+        new_controversy_value = rating_data.get("controversy_rating")
+        new_relevancy_value = rating_data.get("relevancy_rating")
+        new_impression_value = rating_data.get("impression_rating")
+        new_average_controversial_rating = round(old_average_controversial_rating + ((new_controversy_value - old_average_controversial_rating) / number_of_blog_ratings), 2)
+        new_average_relevancy_rating = round(old_average_relevancy_rating + ((new_relevancy_value - old_average_relevancy_rating) / number_of_blog_ratings), 2)
+        new_average_impression_rating = round(old_average_impression_rating + ((new_impression_value - old_average_impression_rating) / number_of_blog_ratings), 2)
+
+        blog_id = blog_data.get("blog_id")        
+        query = """
+        UPDATE blogs
+        SET average_controversial_rating = :average_controversial_rating, average_relevancy_rating = :average_relevancy_rating, average_impression_rating = :average_impression_rating 
+        WHERE blog_id = :blog_id
+        """
+        params = {'average_controversial_rating': new_average_controversial_rating, 'average_relevancy_rating': new_average_relevancy_rating, 'average_impression_rating': new_average_impression_rating, 'blog_id' : blog_id}
+        try:
+            result = self.db.session.execute(query, params)
+            self.db.session.commit()
+            self.db.session.close()
+            return None
+        # For catching errors and outputting them
+        except SQLAlchemyError as e:
+            error = str(e.__dict__['orig'])
+            return error        
+
+    def get_num_blog_user_ratings(self, rating_data:dict):
+        """Gets the number of user ratings for a blog"""
+        query = """
+        SELECT COUNT(*)
+        FROM blogs_user_ratings
+        WHERE blogid = :blog_id
+        """
+        try: 
+            result = self.db.session.execute(query, rating_data)
             self.db.session.commit()
             self.db.session.close()
             return self.return_formatted(result)
@@ -109,7 +218,9 @@ class Database:
         blog_id, blog_title, 
         blog_body, blogs.date_created, 
         author_user_id, category, word_count, 
-        blogs.date_modified, blogs.views
+        blogs.date_modified, blogs.views,
+        average_controversial_rating, average_relevancy_rating, average_impression_rating, number_ratings
+        number_ratings
         FROM blogs
         INNER JOIN users on users.user_id = blogs.author_user_id
         WHERE blog_id = :blog_id
@@ -365,6 +476,10 @@ class Database:
                 category VARCHAR(40) NOT NULL,
                 word_count integer NOT NULL,
                 views integer NOT NULL DEFAULT 0,
+                average_controversial_rating real NOT NULL DEFAULT 0,
+                average_relevancy_rating real NOT NULL DEFAULT 0,
+                average_impression_rating real NOT NULL DEFAULT 0,
+                number_ratings INT NOT NULL DEFAULT 0, 
                 PRIMARY KEY (blog_id),
                 CONSTRAINT fk_author_user_id
                     FOREIGN KEY(author_user_id)
@@ -372,6 +487,33 @@ class Database:
                     ON DELETE CASCADE
             );
             """
+            )
+            self.db.session.commit()
+            self.db.session.close()
+
+        def create_blog_user_ratings_table():
+            """Creates the user ratings table"""
+            self.db.session.execute("""
+            CREATE TABLE IF NOT EXISTS blog_user_ratings
+            (
+                user_id integer NOT NULL,
+                blog_id integer NOT NULL,
+                date_created DATE NOT NULL,
+                relevancy_rating INT NOT NULL,
+                controversy_rating INT NOT NULL,
+                impression_rating INT NOT NULL,
+                PRIMARY KEY(user_id, blog_id),
+                CONSTRAINT fk_user_id
+                    FOREIGN KEY(user_id)
+                    REFERENCES users(user_id)
+                    ON DELETE CASCADE,
+                CONSTRAINT fk_blog_id
+                    FOREIGN KEY(blog_id)
+                    REFERENCES blogs(blog_id)
+                    ON DELETE CASCADE
+            );
+            """
+
             )
             self.db.session.commit()
             self.db.session.close()
@@ -417,6 +559,7 @@ class Database:
         create_auth_tokens_table()
         create_blog_table()
         create_recovery_tokens()
+        create_blog_user_ratings_table()
 
     def insert_new_user(self, username: str, email: str, password_hash: str, date_of_birth: str):
         """Insert new user into database
@@ -569,7 +712,68 @@ class Database:
         WHERE user_id = :user_id
         """
         params = {"password_hash": password_hash, "user_id": user_id}
-        try: 
+        try:
+            result = self.db.session.execute(query, params)
+            self.db.session.commit()
+            self.db.session.close()
+            return None
+        except SQLAlchemyError as e:
+            error = str(e.__dict__['orig'])
+            return error
+
+    def recalculate_new_blog_averages(self, user_id, blog_id):
+        # First need to recalc blog rating averages
+        user_rating = self.get_blog_user_rating(user_id, blog_id)
+        if len(user_rating) == 0:
+            return "error"
+        user_rating = user_rating[0]
+        blog_info = self.get_particular_blog_tile_data(blog_id)[0]
+        number_ratings = blog_info.get('number_ratings')
+        new_average_relevancy_rating = 0
+        new_average_controversial_rating = 0
+        new_average_impression_rating = 0
+        if number_ratings > 1:
+            new_average_relevancy_rating = round(
+                ((number_ratings * blog_info.get('average_relevancy_rating') - user_rating.get("relevancy_rating"))
+                / (number_ratings - 1)), 2
+            )
+            new_average_controversial_rating = round(
+                ((number_ratings * blog_info.get('average_controversial_rating') - user_rating.get("controversy_rating"))
+                / (number_ratings - 1)), 2
+            )
+            new_average_impression_rating = round(
+                ((number_ratings * blog_info.get('average_impression_rating') - user_rating.get("impression_rating"))
+                / (number_ratings - 1)), 2
+            )
+        query = """
+        UPDATE blogs
+        SET average_controversial_rating = :average_controversial_rating,
+        average_relevancy_rating = :average_relevancy_rating,
+        average_impression_rating = :average_impression_rating,
+        number_ratings = number_ratings - 1;
+        """
+        params = {
+            "average_relevancy_rating": new_average_relevancy_rating,
+            "average_impression_rating": new_average_impression_rating,
+            "average_controversial_rating": new_average_controversial_rating
+        }
+        result = self.db.session.execute(query, params)
+        self.db.session.commit()
+        self.db.session.close()
+        return None
+
+    def delete_blog_user_rating(self, user_id: int, blog_id: int):
+
+        result = self.recalculate_new_blog_averages(user_id, blog_id)
+        if result == "error":
+            return "error"
+
+        query = """
+        DELETE FROM blog_user_ratings
+        WHERE user_id = :user_id AND blog_id = :blog_id
+        """
+        params = {"blog_id": blog_id, "user_id": user_id}
+        try:
             result = self.db.session.execute(query, params)
             self.db.session.commit()
             self.db.session.close()
@@ -591,6 +795,54 @@ class Database:
             self.db.session.close()
             return None
 
+        except SQLAlchemyError as e:
+            error = str(e.__dict__['orig'])
+            return error
+    
+    def get_blog_ids_by_search(self, search_query: dict):
+        """Returns blog ids of blogs searched by search query dictionary, supports arbitrary length"""
+        query = "SELECT blog_id FROM blogs"
+        # Basically list all posible search query parameters, if they are set
+        # Then need to include them in WHERE
+        params = {}
+        param_found = False
+        if "blog_title" in search_query:
+            # Need to add percents around query and parameterize to avoid sql inject
+            temp = f"%{search_query['blog_title']}%"
+            params["blog_title"] = temp
+            # Use lower to not care about letter case
+            if param_found:
+                query += " AND "
+            else:
+                query += "  WHERE "
+            param_found = True
+            query += " LOWER(blog_title) LIKE LOWER(:blog_title)"
+        if "body_contains_optional" in search_query:
+            # TODO change to iterate through key words
+            if param_found:
+                query += " OR "
+            else:
+                query += "  WHERE "
+            param_found = True
+            temp = f"%{search_query['body_contains_optional']}%"
+            params["body_contains_optional"] = temp
+            query += " LOWER(blog_body ->> 'text') LIKE LOWER(:body_contains_optional)"
+        if "category" in search_query:
+            params["category"] = search_query["category"]
+            # If we added someting into WHERE, we need to add AND between params
+            if param_found:
+                query += " AND "
+            else:
+                query += "  WHERE "
+            param_found = True
+            query += " category = :category"
+        try: 
+            result = self.db.session.execute(query, params)
+            self.db.session.commit()
+            self.db.session.close()
+            return self.return_formatted(result)
+
+        # For catching errors and outputting them
         except SQLAlchemyError as e:
             error = str(e.__dict__['orig'])
             return error

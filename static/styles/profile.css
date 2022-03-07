@@ -44,3 +44,6 @@
 #authored-blogs-show-more-btn{
     order: 1;
 }
+#authored-blogs-container{
+    max-width: 1200px;
+}

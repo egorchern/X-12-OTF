@@ -168,7 +168,7 @@ class Api:
 
             return resp
         
-        @self.api.route("/api/get_blog_tiles_from_blog_ids/<blog_ids>", methods=["GET"])
+        @self.api.route("/api/blog/get_blog_tiles_from_blog_ids/<blog_ids>", methods=["GET"])
         def get_blog_tiles_from_blog_ids(blog_ids):
             """
             Returns all of the existing blog tiles data in the array.
@@ -181,7 +181,7 @@ class Api:
             return resp
 
         # For testing only
-        @self.api.route("/api/get_all_blog_tiles_data", methods=["GET"])
+        @self.api.route("/api/blog/get_all_blog_tiles_data", methods=["GET"])
         def get_all_blog_tiles_data():
             """
             Returns all of the existing blog tiles data in the array.
@@ -217,3 +217,69 @@ class Api:
             else:
                 resp["code"] = 2
             return resp
+        
+        @self.api.route("/api/search_blogs", methods=["GET"])
+        def search_blogs():
+            request = req
+            args = request.args
+            resp = {}
+            search_result = self.db.get_blog_ids_by_search(args)
+            # Need to flatten the sql output to just list of blog ids like: [1, 2]
+            blog_ids = [x["blog_id"] for x in search_result]
+            resp["data"] = blog_ids
+            return resp
+
+        @self.api.route("/api/blog/submit_rating", methods=["POST"])
+        def submit_rating():
+            """Submit a rating for a certain blog, only registered users allowed
+            CODES: 1 - success
+            2 - Blog does not exist
+            3 - Not logged in or author
+            4 - Already rated that blog
+            """
+            request = req
+            resp = {}
+            # We only want logged in users to be able to submit blog rating
+            auth_info = self.auth.get_username_and_access_level(request)
+            if auth_info.get("username") is None:
+                resp["code"] = 3
+                return resp
+            temp = request.json
+            rating_data = temp.get("rating_data")
+            rating_data["user_id"] = auth_info.get("user_id")
+            blog_user_rating_from_db = self.db.get_blog_user_rating(
+                rating_data.get("user_id"),
+                rating_data.get("blog_id")
+            )
+            # This means user has rated that blog already
+            if len(blog_user_rating_from_db) > 0:
+                resp["code"] = 4
+                return resp
+
+            result = self.db.insert_blog_user_rating(rating_data)
+            if len(result) > 0:
+                resp["code"] = 1
+            else:
+                resp["code"] = 2
+            return resp
+        
+        @self.api.route("/api/blog/delete_rating", methods=["DELETE"])
+        def delete_rating():
+            """Deletes rating for a certain blog from certain user
+            CODES: 1 - success
+            2 - not authenticated or rating does not exist
+            """
+            request = req
+            resp = {}
+            auth_info = self.auth.get_username_and_access_level(request)
+            inpt = request.json
+            result = self.db.delete_blog_user_rating(auth_info.get("user_id"), inpt.get("blog_id"))
+            if result is None:
+                resp["code"] = 1
+            else:
+                resp["code"] = 2
+            return resp
+            
+
+            
+        
