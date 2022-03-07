@@ -104,14 +104,7 @@ async function fetch_and_render_next_blog_tiles(blog_ids){
     let authored_blogs_container = $("#authored-blogs-container");
     blog_tiles.forEach((blog_tile, index) => {
         let blog_tile_dom_string = get_blog_tile(
-            blog_tile.username,
-            blog_tile.date_created,
-            blog_tile.word_count,
-            blog_tile.category,
-            blog_tile.blog_title,
-            blog_tile.blog_id,
-            blog_tile.avatar_image_id,
-            blog_tile.views
+            blog_tile
         )
         authored_blogs_container.insertAdjacentHTML("beforeend", blog_tile_dom_string);
     })
