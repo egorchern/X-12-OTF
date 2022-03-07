@@ -613,6 +613,16 @@ class Database:
                 query += "  WHERE "
             param_found = True
             query += " LOWER(blog_title) LIKE LOWER(:blog_title)"
+        if "body_contains_optional" in search_query:
+            # TODO change to iterate through key words
+            if param_found:
+                query += " OR "
+            else:
+                query += "  WHERE "
+            param_found = True
+            temp = f"%{search_query['body_contains_optional']}%"
+            params["body_contains_optional"] = temp
+            query += " LOWER(blog_body ->> 'text') LIKE LOWER(:body_contains_optional)"
         if "category" in search_query:
             params["category"] = search_query["category"]
             # If we added someting into WHERE, we need to add AND between params

@@ -9,7 +9,7 @@ const urlencode = (query_dict) => {
 
 async function on_simple_search_click(){
     let blog_title = $("#quick-search-input").value
-    let url_encoded = `/search?${urlencode({blog_title: blog_title})}`
+    let url_encoded = `/search?${urlencode({blog_title: blog_title, body_contains_optional: blog_title})}`
     change_page_state(url_encoded)
     
 }
@@ -41,4 +41,4 @@ async function render_search_page(search_query) {
     fetch_and_render_next_blog_tiles(search_result_blog_ids)
 }
 
-//search_blogs({blog_title: "Pancakes", category: "Cooking"})
+//search_blogs({})
