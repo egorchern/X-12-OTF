@@ -387,14 +387,6 @@ async function change_page_state(new_state) {
         main_html.insertAdjacentHTML("beforeend", view_blog_dom_string);
         render_view_blog(blog_id);
 
-    }else if(/^\/report_blog\/\d+$/.test(new_state)){
-        let temp = /^\/blog\/(?<blog_id>\d+)$/.exec(new_state);
-        if (temp === null) {
-            return null;
-        }
-        let blog_id = temp.groups.blog_id;
-        history.pushState({ page_state: page_state }, null, `/report_blog/${blog_id}`);
-        show_report_page(blog_data.blog_id);
     }
 }
 

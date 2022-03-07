@@ -1,4 +1,4 @@
-let catergories = ['Promoting violence','Hateful speech']
+let reporting_catergories = ["Promoting violence","Hateful speech"]
 
 //puts all the html elements onto the page
 async function show_report_page(blog_id){
@@ -9,37 +9,53 @@ async function show_report_page(blog_id){
     }
     let blog_data=temp.blog_data
     //html stuff for displaying the catergories for the drop down menu
-    let category_options_dom_string = ``
-    categories.forEach((category, index) => {
-        category_options_dom_string += `
+    let report_category_options_dom_string = ``
+    reporting_catergories.forEach((category, index) => {
+        report_category_options_dom_string += `
         <option value=${index}>${category}</option>
         `
     })
     //html stuff here
     let report_domstring = `
-        <div class = "flex-horizontal align-center" style = "margin-top: 1rem;flex-grow:1">
-            <h1>Report Form</h1>
+    <div class="modal fade" id="bigReport" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Report Form</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <h6 style = "text-align: left">Blog id: ${blog_id}</h6>
+                <h6 style = "text-align: left">Author username: ${blog_data.username}</h6>
+                <div class="modal-body">
+                    <p>We take harmful content reports very seriously. 
+                    Your report will be manually reviewed by an administrator.
+                    Please provide as much information as possible to make it easier to make our judgement. 
+                        <br>
+                    
+                        
+                        
+                    </p>
+                
+                    <h3>Please select why do you think this blog is harmful:</h3>
+                    <select class="form-select" id="report-category">
+                        ${report_category_options_dom_string}
+                    </select>
+                    <h3>Please provide more details (such as a specific sentence that you find harmful):</h3>
+                    <textarea id="edit-report-body" class="form-control"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Submit report</button>
+                </div>
+            </div>
         </div>
-        <div class = "flex-horizontal align-center" style="margin-top: 1rem;flex-grow:1">
-            <h5>Blog id: ${blog_data.blog_id}</h5>
-        </div>
-        <div class = "flex-horizontal align-center" style="margin-top: 1rem;flex-grow:1">
-            <h5>Author username: ${blog_data.author_user_id}</h5>
-        </div>
-        <select class="form-select" id="report-category">
-            ${category_options_dom_string}
-        </select>
-        <textarea id="edit-report-body" class="form-control">
-
-        </textarea>
-        <button class = "btn btn-outline-primary profile-control-button flex-horizontal align-center", id = "submit-report-btn">
-            <span>
-                Submit
-            </span>
-        </button>
+    </div>
     `
-    //applies the submit report function to the submit button
-    $('#submit-report-btn').onclick = () => {submit_report(blog_data.blog_id)};
+    let body = $("body");
+    body.insertAdjacentHTML("beforeend",report_domstring);
+    var myModal = new bootstrap.Modal($("#bigReport"), {})
+    myModal.show();
+    const submitBtn = document.querySelector(".modal-footer button");
+    submitBtn.addEventListener("click", () => {submit_report(blog_id)});
 }
 
 async function submit_report(blog_id){

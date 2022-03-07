@@ -229,6 +229,7 @@ class Api:
                 resp["code"] = 2
                 return resp
             result = self.db.insert_report(report_data)
+            print(type(result), result)
             if result is True:
                 resp["code"] = 1
             else:

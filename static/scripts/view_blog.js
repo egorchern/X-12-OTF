@@ -140,7 +140,7 @@ async function render_view_blog(blog_id){
         $("#edit-blog-btn").onclick = () => {change_page_state(`/edit_blog/${blog_id}`)};
     }else{
         //applies the change page state function to the report button which makes the page change to the report page
-        $('#report-blog-btn').onclick = () => {change_page_state(`/report_blog/${blog_id}`)};
+        $('#report-blog-btn').onclick = () => {show_report_page(blog_id)};
     }
     $("#author_hyperlink").onclick = () => {change_page_state(`/profile/${blog_data.username}`)}
 }
