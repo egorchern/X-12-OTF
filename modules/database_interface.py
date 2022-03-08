@@ -390,8 +390,8 @@ class Database:
         """Updates the users information with parameters. Only personal descr for now"""
         query = """
         UPDATE users
-        SET personal_description = :personal_description
-        WHERE username = :username
+        SET personal_description = :personal_description, avatar_image_id = :avatar_image_id
+        WHERE user_id = :user_id
         """
         params = user_info
         try:
@@ -554,7 +554,7 @@ class Database:
             self.db.session.execute(query)
             self.db.session.commit()
             self.db.session.close()
-
+        
         create_users_table()
         create_auth_tokens_table()
         create_blog_table()

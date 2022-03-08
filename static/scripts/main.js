@@ -331,7 +331,10 @@ async function change_page_state(new_state) {
                 <div id="profile-control-container" >
                 </div>
                 <div class="profile-header-container flex-vertical align-center">
-                    <img id="avatar-img">
+                    <div id="profile-avatar-container" class="flex-vertical align-center">  
+                        <img id="avatar-img">
+                    </div>
+                    
                     <h4 id="username-text"></h4>
                     <h5 id="date-created"></h5>
                     <h5 id="date-last-accessed"></h5>

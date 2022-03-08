@@ -2,6 +2,9 @@ let profile_edit_state = false;
 let profile_info = {};
 let blogs_increment = 2;
 let currently_showing = 0;
+// This indicates what is the biggest avatar num. This is until we manage to make image uploads
+let max_avatar_number = 10;
+let currently_selected_avatar = 0;
 async function get_public_profile_info(username){
     return fetch(`/api/profile/${username}`, {
         method: "GET",
@@ -14,9 +17,27 @@ async function get_public_profile_info(username){
     });
 }
 
+function on_edit_avatar_click(avatar_id){
+    if(avatar_id === currently_selected_avatar || avatar_id > max_avatar_number){
+        return null;
+    }
+    currently_selected_avatar = avatar_id;
+    document.querySelectorAll(".profile_edit_avatar").forEach((node, index) => {
+        console.log(node, index);
+        node.classList.remove("selected", "not_selected")
+        if(index + 1 === currently_selected_avatar) {
+            node.classList.add("selected")
+        }
+        else{
+            node.classList.add("not_selected")
+        }
+    })
+}
+
 async function submit_profile_edit(){
     let personal_description = $("#profile-description-text").value;
     profile_info.personal_description = personal_description;
+    profile_info.avatar_image_id = currently_selected_avatar;
     return fetch(`/api/edit/profile/${profile_info.username}`, {
         method: "PUT",
         headers: {
@@ -28,6 +49,27 @@ async function submit_profile_edit(){
         return result.code
         
     });
+}
+
+function get_edit_avatar_domstring(){
+    let images = `
+
+    `
+    for (let i = 1; i <= max_avatar_number; i++) {
+        images += `
+       
+        <img class="profile_edit_avatar ${profile_info.avatar_image_id === i ? "selected": "not_selected"}" src="/images/avatar_${i}.webp" alt="avatar number ${i}" onclick="on_edit_avatar_click(${i})"/>
+        
+        
+        `
+    }
+    let domstring = `
+    <div class="flex-horizontal flex-wrap align-center">
+        
+        ${images}
+    </div>
+    `
+    return domstring
 }
 
 async function toggle_edit_state(){
@@ -47,7 +89,8 @@ async function toggle_edit_state(){
         <textarea class="profile-description-box form-control" id="profile-description-text">
         </textarea>
         `;
-
+        let profile_avatar_container = delete_dom_children("#profile-avatar-container");
+        profile_avatar_container.insertAdjacentHTML("beforeend", get_edit_avatar_domstring());
         $("#personal-description-container").insertAdjacentHTML("beforeend", description_domstring);
         $("#profile-description-text").value = profile_info.personal_description;
     }
@@ -158,6 +201,15 @@ async function insert_profile_info(){
         `;
         profile_control_container.insertAdjacentHTML("beforeend", edit_button_domstring);
         $('#edit-btn').onclick = toggle_edit_state;
+        let preferences_button_domstring = `
+        <button id="preferences-btn" class="btn btn-outline-primary profile-control-button flex-horizontal align-center">
+            <span class="material-icons">
+            online_prediction
+            </span>
+            Preferences
+        </button>
+        `
+        profile_control_container.insertAdjacentHTML("beforeend", preferences_button_domstring);
     }
     else{
         if(auth_info.access_level === 1){
@@ -200,6 +252,7 @@ async function profile_main(username){
     profile_info = profile_temp.data;
     console.log(profile_info);
     currently_showing = 0;
+    
     // This happens when the requested account exists
     if (profile_temp.code === 1){
         profile_info.username = username;
@@ -210,6 +263,6 @@ async function profile_main(username){
         let main = delete_dom_children("main");
         main.insertAdjacentHTML("beforeend", `<h2 style="text-align: center;">No account with username: ${username}, exists.</h2>`);
     }
-
+    currently_selected_avatar = profile_info.avatar_image_id;
     
 }

@@ -25,6 +25,7 @@
     background-color: white;
     padding: 0.65rem;
     border: 1px solid hsl(0deg 0% 85%);
+    min-width: 260px;
     border-radius: 0.8rem;
     box-shadow: 0 4px 16px 4px rgb(0 0 0 / 14%);
 }
@@ -46,4 +47,19 @@
 }
 #authored-blogs-container{
     max-width: 1200px;
+}
+.profile_edit_avatar{
+    max-width: 75px;
+    padding: 0.15rem;
+    margin: 0.45rem;
+    /* border-radius: 20px; */
+    transition: all 0.3s;
+    
+}
+.profile_edit_avatar.not_selected:hover{
+    cursor:pointer;
+    transform: scale(1.3);
+}
+.profile_edit_avatar.selected{
+    box-shadow: var(--nav-button-hover-shadow);
 }
