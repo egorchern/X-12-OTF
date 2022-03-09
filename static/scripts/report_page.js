@@ -24,8 +24,8 @@ async function show_report_page(blog_id){
                     <h5 class="modal-title" id="exampleModalLabel">Report Form</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <h6 style = "text-align: left">Blog id: ${blog_id}</h6>
-                <h6 style = "text-align: left">Author username: ${blog_data.username}</h6>
+                <h6 style="margin-left:1.5rem; padding-bottom: 0.5rem; padding-top: 0.5rem">Blog id: ${blog_id}</h6>
+                <h6 style="margin-left: 1.5rem; padding-top: 0.5rem">Author username: ${blog_data.username}</h6>
                 <div class="modal-body">
                     <p>We take harmful content reports very seriously. 
                     Your report will be manually reviewed by an administrator.
@@ -36,11 +36,11 @@ async function show_report_page(blog_id){
                         
                     </p>
                 
-                    <h3>Please select why do you think this blog is harmful:</h3>
+                    <h4>Please select why do you think this blog is harmful:</h4>
                     <select class="form-select" id="report-category">
                         ${report_category_options_dom_string}
                     </select>
-                    <h3>Please provide more details (such as a specific sentence that you find harmful):</h3>
+                    <h4>Please provide more details (such as a specific sentence that you find harmful):</h4>
                     <textarea id="edit-report-body" class="form-control"></textarea>
                 </div>
                 <div class="modal-footer">
@@ -66,10 +66,8 @@ async function submit_report(blog_id){
         },
         body: JSON.stringify({
             blog_id: blog_id,
-            report_reason: categories[$("#report-category").selectedIndex],
-            report_body:{
-                text: $("#edit-report-body").value
-            },
+            report_reason: reporting_catergories[$("#report-category").selectedIndex],
+            report_body: $("#edit-report-body").value
         })
     }).then((result) => result.json())
     .then((result) => {
