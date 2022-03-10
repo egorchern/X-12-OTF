@@ -109,40 +109,40 @@ function get_blog_tile(
     let relevancy_percentage = `${(blog_data.average_relevancy_rating / rating_limit * 100).toFixed(2)}%`;
     let impression_percentage = `${(blog_data.average_impression_rating / rating_limit * 100).toFixed(2)}%`;
     let blog_tile_dom_string = `
-    <div class="blog-tile animate__animated animate__fadeIn" id="blog-tile-${blog_data.blog_id}" onclick="change_page_state('/blog/${blog_data.blog_id}')">
+    <div class="blog-tile animate__animated animate__fadeIn" id="blog-tile-${DOMPurify.sanitize(blog_data.blog_id)}" onclick="change_page_state('/blog/${DOMPurify.sanitize(blog_data.blog_id)}')">
         <div class="blog-tile-top">
             <div class="flex-vertical align-center blog-tile-left" style="word-break:break-all">
-                <img class="author-avatar" src="/images/avatar_${blog_data.avatar_image_id}.webp">
+                <img class="author-avatar" src="/images/avatar_${DOMPurify.sanitize(blog_data.avatar_image_id)}.webp">
                 <div class="flex-vertical align-center">
                     <span>Created by:</span>
-                    <strong>${blog_data.username}</strong>
+                    <strong>${DOMPurify.sanitize(blog_data.username)}</strong>
                 </div>
                 
                 <div class="flex-vertical align-center">
                     <span>Word count:</span>
-                    <strong>${blog_data.word_count}</strong>
+                    <strong>${DOMPurify.sanitize(blog_data.word_count)}</strong>
                 </div>
                 
                 <div class="flex-vertical align-center">
                     <span>Views:</span>
-                    <strong>${blog_data.views}</strong>
+                    <strong>${DOMPurify.sanitize(blog_data.views)}</strong>
                 </div>
             </div>
             <div>
                 <div class="flex-vertical align-center blog-tile-right height-full">
                     <div class="flex-horizontal align-center width-full">
                         <h5 style="flex-grow:1; text-align:center;">
-                            ${blog_data.category}
+                            ${DOMPurify.sanitize(blog_data.category)}
                         </h5>
                         
                         <img src="/images/flag.png" class="controversy-flag" style="opacity: ${controversial_percentage}">
                     </div>
                     <div class="flex-horizontal align-center width-full">
                         <h4 style="text-align: center; flex-grow: 1">
-                            ${blog_data.blog_title}
+                            ${DOMPurify.sanitize(blog_data.blog_title)}
                         </h4>
                         <span style="font-size: 0.9em; text-align: center">
-                            (№ ratings: <strong>${blog_data.number_ratings}</strong>)
+                            (№ ratings: <strong>${DOMPurify.sanitize(String(blog_data.number_ratings))}</strong>)
                         </span>
                     </div>
                     
@@ -158,7 +158,7 @@ function get_blog_tile(
                             </div>
                         </div>
                         <div class="flex-vertical align-center">
-                            <strong>${blog_data.average_controversial_rating}/${rating_limit}</strong>
+                            <strong>${DOMPurify.sanitize(blog_data.average_controversial_rating)}/${rating_limit}</strong>
                         </div>
                         
 
@@ -172,7 +172,7 @@ function get_blog_tile(
                             </div>
                         </div>
                         <div class="flex-vertical align-center">
-                            <strong>${blog_data.average_relevancy_rating}/${rating_limit}</strong>
+                            <strong>${DOMPurify.sanitize(blog_data.average_relevancy_rating)}/${rating_limit}</strong>
                         </div>
 
                     
@@ -185,7 +185,7 @@ function get_blog_tile(
                             </div>
                         </div>
                         <div class="flex-vertical align-center">
-                            <strong>${blog_data.average_impression_rating}/${rating_limit}</strong>
+                            <strong>${DOMPurify.sanitize(blog_data.average_impression_rating)}/${rating_limit}</strong>
                         </div>
 
                     </div>

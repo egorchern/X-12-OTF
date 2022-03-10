@@ -110,7 +110,7 @@ async function render_edit_blog(blog_id){
     })
     
     // ${get_blog_tile(blog_data.username, blog_data.date_created, blog_data.word_count, blog_data.category, blog_data.blog_title, 5, 7.8, 4.3, "" )}
-    let edit_blog_dom_string = `
+    let edit_blog_dom_string = DOMPurify.sanitize(`
     <div id="blog-buttons-container" class="flex-horizontal align-end">
         <button class="btn btn-outline-primary profile-control-button flex-horizontal align-center" id="view-blog" type="button" tabindex="0">
             <span class="material-icons">
@@ -157,7 +157,7 @@ async function render_edit_blog(blog_id){
             
         </div>
     </div>
-    `
+    `)
     
     $("#edit-blog-container").insertAdjacentHTML('beforeend', edit_blog_dom_string);
     $("#edit-blog-body").value = blog_data.blog_body.text;

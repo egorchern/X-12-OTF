@@ -23,7 +23,7 @@ function on_edit_avatar_click(avatar_id){
     }
     currently_selected_avatar = avatar_id;
     document.querySelectorAll(".profile_edit_avatar").forEach((node, index) => {
-        console.log(node, index);
+        
         node.classList.remove("selected", "not_selected")
         if(index + 1 === currently_selected_avatar) {
             node.classList.add("selected")
@@ -109,11 +109,11 @@ async function toggle_edit_state(){
         edit_btn.insertAdjacentHTML("beforeend", edit_btn_domstring);
         let description_element = $("#profile-description-text");
         description_element.remove();
-        let description_domstring = `
+        let description_domstring = DOMPurify.sanitize(`
         <div id="profile-description-text" class="profile-description-box">
             ${profile_info.personal_description}
         </div>
-        `
+        `)
         $("#personal-description-container").insertAdjacentHTML("beforeend", description_domstring);
     }
 }

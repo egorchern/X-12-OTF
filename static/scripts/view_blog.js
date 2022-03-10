@@ -133,7 +133,7 @@ async function render_view_blog(blog_id){
     if (temp.code != 1){
         return null;
     }
-    console.log(temp)
+    
     let blog_data = temp.blog_data;
     let edit_button_domstring = `
         <button id="edit-blog-btn" class="btn btn-outline-primary profile-control-button flex-horizontal align-center">
@@ -151,7 +151,7 @@ async function render_view_blog(blog_id){
             Report
         </button>
     `;
-    let view_blog_dom_string = `
+    let view_blog_dom_string = DOMPurify.sanitize(`
     <div id="blog-buttons-container" class="flex-horizontal align-end width-full">
        ${auth_info.user_id === blog_data.author_user_id ? edit_button_domstring : ""}
        ${auth_info.user_id != blog_data.author_user_id ? report_button_domstring : ""}
@@ -169,7 +169,7 @@ async function render_view_blog(blog_id){
         </div>
     </div>
     
-    `
+    `)
     $("#view-blog-container").insertAdjacentHTML("beforeend", view_blog_dom_string);
     if (auth_info.user_id === blog_data.author_user_id){
         $("#edit-blog-btn").onclick = () => {change_page_state(`/edit_blog/${blog_id}`)};
