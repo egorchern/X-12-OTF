@@ -151,7 +151,7 @@ async function render_view_blog(blog_id){
             Report
         </button>
     `;
-    let view_blog_dom_string = DOMPurify.sanitize(`
+    let view_blog_dom_string = `
     <div id="blog-buttons-container" class="flex-horizontal align-end width-full">
        ${auth_info.user_id === blog_data.author_user_id ? edit_button_domstring : ""}
        ${auth_info.user_id != blog_data.author_user_id ? report_button_domstring : ""}
@@ -161,16 +161,19 @@ async function render_view_blog(blog_id){
     </div>
     <div class="page-container width-full flex-vertical align-center">
         <div class="blog-container width-full">
-            <h2 style="text-align: center">${blog_data.blog_title}</h2>
+            <h2 style="text-align: center" id="blog-title"></h2>
             
-            <div id="blog-body">
-                <p>${blog_data.blog_body.text}</p>
+            <div>
+                <p id="blog-body"></p>
             </div>
         </div>
     </div>
     
-    `)
+    `
+    
     $("#view-blog-container").insertAdjacentHTML("beforeend", view_blog_dom_string);
+    $("#blog-title").insertAdjacentText("beforeend", blog_data.blog_title)
+    $("#blog-body").insertAdjacentText('beforeend', blog_data.blog_body.text)
     if (auth_info.user_id === blog_data.author_user_id){
         $("#edit-blog-btn").onclick = () => {change_page_state(`/edit_blog/${blog_id}`)};
     }
