@@ -34,7 +34,7 @@ class Auth:
             # If successfully authenticated, set auth_token cookie
             if result.get("code") == 1:
                 resp.set_cookie("auth_token", result.get("token"),
-                                max_age=authenticated_expiry_seconds, httponly=True)
+                                max_age=authenticated_expiry_seconds, httponly=True, samesite="Lax")
             
             resp.set_data(json.dumps({"code": result.get("code")}))
             return resp
