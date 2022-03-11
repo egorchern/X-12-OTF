@@ -95,6 +95,8 @@ function get_user_info() {
         });
 }
 
+
+
 function insert_blog_tile(
     blog_data, identifier
 ) {
@@ -198,7 +200,7 @@ function insert_blog_tile(
     `;
     $(identifier).insertAdjacentHTML("beforeend", blog_tile_dom_string);
     $(`#blog-tile-${blog_data.blog_id} .username`).insertAdjacentText("beforeend", blog_data.username)
-    $(`#blog-tile-${blog_data.blog_id} .category`).insertAdjacentText("beforeend", blog_data.category)
+    $(`#blog-tile-${blog_data.blog_id} .category`).insertAdjacentText("beforeend", categories_hashmap[blog_data.category_id])
     $(`#blog-tile-${blog_data.blog_id} .blog-title`).insertAdjacentText("beforeend", blog_data.blog_title)
 }
 
@@ -305,7 +307,7 @@ async function change_page_state(new_state) {
                     {
                         blog_body: { text: "Default" },
                         blog_title: "Default",
-                        category: "testing",
+                        category_id: categories_object[0].category_id,
                         word_count: 1
                     }
                 )

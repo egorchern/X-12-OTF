@@ -68,7 +68,7 @@ class Database:
     def get_all_blog_tile_data(self, blog_ids: tuple):
         """Returns information required for the blog tile for particular blog"""
         query = """
-        SELECT blog_id, blog_title, blogs.date_created, author_user_id, category, word_count, blogs.date_modified, username, avatar_image_id, views,
+        SELECT blog_id, blog_title, blogs.date_created, author_user_id, category_id, word_count, blogs.date_modified, username, avatar_image_id, views,
         average_controversial_rating, average_relevancy_rating, average_impression_rating, number_ratings
         FROM blogs
         INNER JOIN users on users.user_id = blogs.author_user_id
@@ -87,7 +87,7 @@ class Database:
     def get_particular_blog_tile_data(self, blog_id:int):
         """Returns information required for the blog tile for particular blog"""
         query = """
-        SELECT blog_id, blog_title, blogs.date_created, author_user_id, category, word_count, blogs.date_modified, username, avatar_image_id, views,
+        SELECT blog_id, blog_title, blogs.date_created, author_user_id, category_id, word_count, blogs.date_modified, username, avatar_image_id, views,
         average_controversial_rating, average_relevancy_rating, average_impression_rating, number_ratings
         FROM blogs
         INNER JOIN users on users.user_id = blogs.author_user_id
@@ -217,7 +217,7 @@ class Database:
         SELECT username, avatar_image_id, 
         blog_id, blog_title, 
         blog_body, blogs.date_created, 
-        author_user_id, category, word_count, 
+        author_user_id, category_id, word_count, 
         blogs.date_modified, blogs.views,
         average_controversial_rating, average_relevancy_rating, average_impression_rating, number_ratings
         number_ratings
@@ -264,7 +264,7 @@ class Database:
         """Updates the blog with given data"""
         query = """
         UPDATE blogs
-        SET blog_body = :blog_body, blog_title = :blog_title, date_modified = CURRENT_TIMESTAMP, category = :category, word_count = :word_count
+        SET blog_body = :blog_body, blog_title = :blog_title, date_modified = CURRENT_TIMESTAMP, category_id = :category_id, word_count = :word_count
         WHERE blog_id = :blog_id
         """
         try: 
@@ -280,8 +280,8 @@ class Database:
     def insert_new_blog(self, blog_data: dict):
         """Inserts a new blog into the database"""
         query = """
-        INSERT INTO blogs (blog_body,blog_title,author_user_id, date_created,date_modified,category,word_count)
-        VALUES(:blog_body, :blog_title , :author_user_id , CURRENT_TIMESTAMP, CURRENT_TIMESTAMP , :category, :word_count)
+        INSERT INTO blogs (blog_body,blog_title,author_user_id, date_created,date_modified,category_id,word_count)
+        VALUES(:blog_body, :blog_title , :author_user_id , CURRENT_TIMESTAMP, CURRENT_TIMESTAMP , :category_id, :word_count)
             RETURNING blog_id
         """
         try: 
@@ -462,7 +462,7 @@ class Database:
             self.db.session.commit()
             self.db.session.close()
 
-        def create_blog_table():
+        def create_blogs_table():
             """Creates the blog table"""
             self.db.session.execute("""
             CREATE TABLE IF NOT EXISTS blogs
@@ -473,7 +473,7 @@ class Database:
                 author_user_id SERIAL NOT NULL,
                 date_created DATE NOT NULL,
                 date_modified DATE NOT NULL,
-                category VARCHAR(40) NOT NULL,
+                category_id INTEGER NOT NULL,
                 word_count integer NOT NULL,
                 views integer NOT NULL DEFAULT 0,
                 average_controversial_rating real NOT NULL DEFAULT 0,
@@ -484,7 +484,10 @@ class Database:
                 CONSTRAINT fk_author_user_id
                     FOREIGN KEY(author_user_id)
                     REFERENCES users(user_id)
-                    ON DELETE CASCADE
+                    ON DELETE CASCADE,
+                CONSTRAINT fk_category_id
+                    FOREIGN KEY(category_id)
+                    REFERENCES categories(category_id)
             );
             """
             )
@@ -537,7 +540,7 @@ class Database:
             self.db.session.commit()
             self.db.session.close()
 
-        def create_recovery_tokens():
+        def create_recovery_tokens_table():
             query = """
             CREATE TABLE IF NOT EXISTS recovery_tokens
             (
@@ -555,11 +558,69 @@ class Database:
             self.db.session.commit()
             self.db.session.close()
         
+        def create_user_preferences_table(): 
+            query = """
+            CREATE TABLE IF NOT EXISTS user_preferences
+            (
+                user_id integer NOT NULL,
+                ideal_word_count integer,
+                controversial_cutoff real,
+                impression_cutoff real,
+                relevancy_cutoff real,
+                CONSTRAINT user_preferences_pkey PRIMARY KEY (user_id),
+                CONSTRAINT fk_user_id 
+                    FOREIGN KEY (user_id)
+                    REFERENCES users(user_id)
+                    ON DELETE CASCADE
+                    
+            )
+            """
+            self.db.session.execute(query)
+            self.db.session.commit()
+            self.db.session.close()
+
+        def create_categories_table():
+            query = """
+            CREATE TABLE IF NOT EXISTS categories
+            (
+                category_id SERIAL NOT NULL,
+                category_text VARCHAR(200) NOT NULL, 
+                PRIMARY KEY(category_id)
+            )
+            """
+            self.db.session.execute(query)
+            self.db.session.commit()
+            self.db.session.close()
+
+        def create_user_preference_category_linker_table():
+            query = """
+            CREATE TABLE IF NOT EXISTS user_preference_category_linker
+            (
+                user_id integer NOT NULL,
+                rank integer NOT NULL,
+                category_id integer NOT NULL,
+                CONSTRAINT user_preference_category_linker_pkey PRIMARY KEY (user_id, rank),
+                CONSTRAINT fk_category_id FOREIGN KEY (category_id)
+                    REFERENCES categories (category_id)
+                    ON UPDATE NO ACTION
+                    ON DELETE CASCADE,
+                CONSTRAINT fk_user_id FOREIGN KEY (user_id)
+                    REFERENCES users (user_id)
+                    ON DELETE CASCADE
+            )
+            """
+            self.db.session.execute(query)
+            self.db.session.commit()
+            self.db.session.close()
+
         create_users_table()
         create_auth_tokens_table()
-        create_blog_table()
-        create_recovery_tokens()
+        create_blogs_table()
+        create_recovery_tokens_table()
         create_blog_user_ratings_table()
+        create_user_preferences_table()
+        create_categories_table()
+        create_user_preference_category_linker_table()
 
     def insert_new_user(self, username: str, email: str, password_hash: str, date_of_birth: str):
         """Insert new user into database
@@ -827,6 +888,7 @@ class Database:
             temp = f"%{search_query['body_contains_optional']}%"
             params["body_contains_optional"] = temp
             query += " LOWER(blog_body ->> 'text') LIKE LOWER(:body_contains_optional)"
+        # TODO change this to work with category_id
         if "category" in search_query:
             params["category"] = search_query["category"]
             # If we added someting into WHERE, we need to add AND between params
@@ -846,3 +908,21 @@ class Database:
         except SQLAlchemyError as e:
             error = str(e.__dict__['orig'])
             return error
+    
+    def get_all_categories(self):
+        query = """
+        SELECT *
+        FROM categories
+        """
+        try:
+            result = self.db.session.execute(query)
+            self.db.session.commit()
+            self.db.session.close()
+            return self.return_formatted(result)
+        # For catching errors and outputting them
+        except SQLAlchemyError as e:
+            error = str(e.__dict__['orig'])
+            return error
+
+    #Discover/recommend functions
+    
