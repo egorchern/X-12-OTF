@@ -90,7 +90,7 @@ class Auth:
                 return resp
             # Check if account with that email exists
             result = self.db.get_user_password_hash(email)
-            if len(result) == 0:
+            if result is None:
                 resp["code"] = 3
                 return resp
             #Generate recovery hash, using the same function we use for password hashing
@@ -98,7 +98,7 @@ class Auth:
             recovery_hash = self.hash(recovery_token).decode("utf-8")
             # No need to check if the row with that user exists in the table, insert will replace it if it exists
             result = self.db.insert_new_recover_token(email, recovery_hash)
-            if len(result) > 0:
+            if result is not None and len(result) > 0:
                 resp["code"] = 1
             else:
                 resp["code"] = 4
@@ -150,7 +150,7 @@ class Auth:
     def credentials_matching(self, identifier: str, password: str) -> bool:
         """Returns bool indicating whether the user with identifier exists and has matching password"""
         temp = self.db.get_user_password_hash(identifier)
-        if len(temp) == 0:
+        if temp is None:
             return [None, False]
         temp = temp[0]
         password_hash = temp.get("password_hash").encode("utf-8")
@@ -253,7 +253,7 @@ class Auth:
         )
         
         # if just successfully registered then retun 1
-        if result is True:
+        if result is None:
             print(f"User registered: {username}, {email}")
             resp["code"] = 1
             return resp
@@ -309,7 +309,8 @@ class Auth:
         except:
             return {
                 "username": None,
-                "access_level": 1
+                "access_level": 1,
+                "user_id": -1
             }
 
     def get_recovery_link_status(self, user_id: int, recovery_token: str):
@@ -332,7 +333,7 @@ class Auth:
             return resp
         # Get information about recovery entry
         recovery_info = self.db.get_recovery_token(user_id)
-        if len(recovery_info) == 0:
+        if recovery_info is None:
             resp["code"] = 3
             return resp
         recovery_info = recovery_info[0]

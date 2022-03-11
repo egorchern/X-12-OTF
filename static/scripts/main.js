@@ -111,7 +111,7 @@ function insert_blog_tile(
     let relevancy_percentage = `${(blog_data.average_relevancy_rating / rating_limit * 100).toFixed(2)}%`;
     let impression_percentage = `${(blog_data.average_impression_rating / rating_limit * 100).toFixed(2)}%`;
     let blog_tile_dom_string = `
-    <div class="blog-tile animate__animated animate__fadeIn" id="blog-tile-${blog_data.blog_id}" onclick="change_page_state('/blog/${DOMPurify.sanitize(blog_data.blog_id)}')">
+    <div class="blog-tile animate__animated animate__fadeIn" id="blog-tile-${blog_data.blog_id}" onclick="change_page_state('/blog/${blog_data.blog_id}')">
         <div class="blog-tile-top">
             <div class="flex-vertical align-center blog-tile-left" style="word-break:break-all">
                 <img class="author-avatar" src="/images/avatar_${blog_data.avatar_image_id}.webp">

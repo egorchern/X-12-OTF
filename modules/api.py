@@ -199,14 +199,17 @@ class Api:
             """
             Returns all of the existing blog tiles data in the array.
             """
-            
+            resp = {}
             temp = self.db.get_all_blog_ids()
+            if temp is None:
+                resp["code"] = 1
+                resp["data"] = []
+                return resp
+                
             # Need to flatten the sql output to just list of blog ids like: [1, 2]
             blog_ids = [x["blog_id"] for x in temp]
-            resp = {}
-            if len(blog_ids) == 0:
-                resp["code"] = 2
-                return resp
+            
+
             result = self.db.get_all_blog_tile_data(tuple(blog_ids))
             
             resp["code"] = 1
@@ -292,7 +295,21 @@ class Api:
             else:
                 resp["code"] = 2
             return resp
-            
-
+        
+        @self.api.route("/api/recommendations/edit_preferences", methods=["PUT"])
+        def edit_preferences():
+            """Edits the preferences of a user, identified by auth token cookie. 
+            Codes: 1 - succes
+            2 - not logged in
+            """
+            resp = {}
+            request = req
+            referer_info = self.auth.get_username_and_access_level(request)
+            # This means that user is not logged in
+            if referer_info.get("username") is None: 
+                resp["code"] = 2
+                return resp, 401
+            data = request.json
+            return resp, 200
             
         

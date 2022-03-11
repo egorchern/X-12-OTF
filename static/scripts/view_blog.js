@@ -86,10 +86,10 @@ function insert_top_blog_info(blog_data){
     </div>
     `
     $("#top-blog-info-container").insertAdjacentHTML("beforeend", top_blog_info_dom_string)
-    $("#category").insertAdjacentText("beforeend", blog_data.category)
+    $("#category").insertAdjacentText("beforeend", categories_hashmap[blog_data.category_id])
     $("#author_hyperlink").onclick = () => {change_page_state(`/profile/${blog_data.username}`)}
     if (auth_info.user_id === blog_data.author_user_id){
-        $("#edit-blog-btn").onclick = () => {change_page_state(`/edit_blog/${blog_id}`)};
+        $("#edit-blog-btn").onclick = () => {change_page_state(`/edit_blog/${blog_data.blog_id}`)};
     }
 }
 
