@@ -145,11 +145,8 @@ async function fetch_and_render_next_blog_tiles(blog_ids){
     let blog_tiles = temp.data;
     console.log(blog_tiles)
     let authored_blogs_container = $("#authored-blogs-container");
-    blog_tiles.forEach((blog_tile, index) => {
-        let blog_tile_dom_string = get_blog_tile(
-            blog_tile
-        )
-        authored_blogs_container.insertAdjacentHTML("beforeend", blog_tile_dom_string);
+    blog_tiles.forEach((blog_tile_data, index) => {
+        insert_blog_tile(blog_tile_data, "#authored-blogs-container")
     })
     currently_showing = Math.min(currently_showing + blogs_increment, blog_ids.length);
     $("#blogs-shown").innerHTML = `${currently_showing}/${blog_ids.length}`;
@@ -236,11 +233,11 @@ async function insert_profile_info(){
         }
     }
     // Profile text field initialization
-    $("#username-text").innerHTML = `Username: ${profile_info.username}`
-    $("#date-created").innerHTML = `Date created: ${profile_info.date_created}`
-    $("#date-last-accessed").innerHTML = `Date last accessed: ${profile_info.date_last_accessed}`
+    $("#username-text").textContent = `Username: ${profile_info.username}`
+    $("#date-created").textContent = `Date created: ${profile_info.date_created}`
+    $("#date-last-accessed").textContent = `Date last accessed: ${profile_info.date_last_accessed}`
     $("#avatar-img").setAttribute("src", `/images/avatar_${profile_info.avatar_image_id}.webp`);
-    $("#profile-description-text").innerHTML = profile_info.personal_description;
+    $("#profile-description-text").textContent = profile_info.personal_description;
     fetch_and_render_next_blog_tiles(profile_info.authored_blogs);
     initialize_show_more_blogs_btn(profile_info.authored_blogs)
     

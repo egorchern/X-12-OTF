@@ -216,7 +216,7 @@ class Auth:
             temp = re.match("^\w{1,30}$", username)
             if not temp:
                 return False
-            temp = re.match("(?=\w*\W{1,}\w*)(?=\D*\d{1,}\D*)(?=.{8,})", password)
+            temp = re.match("(?=.*[A-Z]{1,}.*)(?=.*\W{1,}.*)(?=.*\d{1,}.*)(?=.{8,})", password)
             if not temp:
                 return False
             temp = datetime.now()
