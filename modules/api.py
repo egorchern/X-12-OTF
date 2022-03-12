@@ -296,20 +296,6 @@ class Api:
                 resp["code"] = 2
             return resp
         
-        @self.api.route("/api/recommendations/edit_preferences", methods=["PUT"])
-        def edit_preferences():
-            """Edits the preferences of a user, identified by auth token cookie. 
-            Codes: 1 - succes
-            2 - not logged in
-            """
-            resp = {}
-            request = req
-            referer_info = self.auth.get_username_and_access_level(request)
-            # This means that user is not logged in
-            if referer_info.get("username") is None: 
-                resp["code"] = 2
-                return resp, 401
-            data = request.json
-            return resp, 200
+        
             
         

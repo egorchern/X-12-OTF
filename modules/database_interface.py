@@ -183,9 +183,9 @@ class Database:
                     ON UPDATE NO ACTION
                     ON DELETE CASCADE,
                 CONSTRAINT fk_user_id FOREIGN KEY (user_id)
-                    REFERENCES users (user_id)
+                    REFERENCES user_preferences (user_id)
                     ON DELETE CASCADE
-            )
+            );
             """
             self.execute_query(query, read_result = False)
 
@@ -218,7 +218,12 @@ class Database:
         create_blog_user_ratings_table()
         create_user_preference_category_linker_table()
         create_user_blog_algorithm_score_table()
-        self.insert_new_category("General")
+        # This ensures that at least one category exists
+        temp = self.get_all_categories()
+        if len(temp) == 0:
+            self.insert_new_category("General")
+            self.insert_new_category("Programming")
+            self.insert_new_category("Hardware")
 
     def execute_query(self, query: str, params: dict = {}, read_result: bool = True) -> list:
         """Executes query in query param using params in parms argument. if no need to read result, must specify read_result=False"""
@@ -713,6 +718,36 @@ class Database:
 
 
     # Discover/recommend functions
+    def get_user_preferences(self, user_id: int):
+        query = """
+        SELECT *
+        FROM user_preferences
+        RIGHT JOIN user_preference_category_linker on user_preferences.user_id = user_preference_category_linker.user_id
+        WHERE user_preferences.user_id = 1
+        ORDER BY rank
+        """
+        params = {'user_id': user_id}
+        return self.execute_query(query, params)
+
+    def delete_user_preferences(self, user_id: int): 
+        query = """
+        DELETE FROM user_preferences
+        WHERE user_id = :user_id
+        """
+        params = {'user_id': user_id}
+        return self.execute_query(query, params, False)
+
+    def insert_user_preferences(self, user_id: int, preferences: dict):
+        self.delete_user_preferences(user_id)
+        
+        query = """
+        INSERT INTO user_preferences(user_id, ideal_word_count, controversial_cutoff, impression_cutoff, relevancy_cutoff)
+        VALUES(:user_id, :ideal_word_count, :controversial_cutoff, :impression_cutoff, :relevancy_cutoff)
+        """
+        params = {'user_id': user_id} | preferences
+        result = self.execute_query(query, params, False)
+        # if result is None:
+        return self.insert_category_rankings(user_id, preferences.get("category_ids"))
 
     def delete_user_category_rankings(self, user_id: int):
         query = """
@@ -721,7 +756,7 @@ class Database:
         """
         params = {'user_id': user_id}
         return self.execute_query(query, params, False)
-
+        
     def insert_category_rankings(self, user_id: int, category_ids: list):
         # First need to delete old category rankings, since don't know how user modified them
         tmp = self.delete_user_category_rankings(user_id)
@@ -741,6 +776,21 @@ class Database:
 
         return None
     
+    def insert_algorithm_score(self, user_id: int, blog_id: int, score: float):
+        query = """
+        INSERT INTO user_blog_algorithm_score (user_id, blog_id, is_read, score)
+        VALUES(:user_id, :blog_id, False, :score)
+        """
+        params = {"user_id" : user_id, "blog_id": blog_id, "score": score}
+        return self.execute_query(query, params, False)
     
+    def delete_algorithm_scores_user(self, user_id):
+        query = """
+        DELETE FROM user_blog_algorithm_score
+        WHERE user_id = :user_id
+        """
+        params = {"user_id": user_id}
+        return self.execute_query(query, params, False)
+
     # Discover/recommend functions
     
