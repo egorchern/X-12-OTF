@@ -332,9 +332,12 @@ async function change_page_state(new_state) {
         }
         let username = temp.groups.username;
         let profile_domstring = `
-            <div id="profile-container" class="animate__animated animate__fadeIn">
-                <div id="profile-control-container" >
-                </div>
+        <div class="flex-vertical">
+        
+            <div id="profile-control-container" >
+            </div>
+            <div id="profile-container" class="animate__animated animate__fadeIn width-full">
+                
                 <div class="profile-header-container flex-vertical align-center">
                     <div id="profile-avatar-container" class="flex-vertical align-center">  
                         <img id="avatar-img">
@@ -361,6 +364,7 @@ async function change_page_state(new_state) {
                     </div>
                 </div>
             </div>
+        </div>
         `;
         history.pushState(
             { page_state: page_state },

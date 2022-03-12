@@ -31,7 +31,7 @@ class Database:
 
         def create_users_table():
             """Creates the users table"""
-            self.db.session.execute("""
+            query = """
             CREATE TABLE IF NOT EXISTS users 
             (
                 user_id serial NOT NULL,
@@ -48,13 +48,12 @@ class Database:
                 UNIQUE(username),
                 UNIQUE(email)
             );
-            """)
-            self.db.session.commit()
-            self.db.session.close()
+            """
+            self.execute_query(query, read_result = False)
 
         def create_blogs_table():
             """Creates the blog table"""
-            self.db.session.execute("""
+            query = """
             CREATE TABLE IF NOT EXISTS blogs
             (
                 blog_id serial NOT NULL,
@@ -80,13 +79,11 @@ class Database:
                     REFERENCES categories(category_id)
             );
             """
-            )
-            self.db.session.commit()
-            self.db.session.close()
+            self.execute_query(query, read_result = False)
 
         def create_blog_user_ratings_table():
             """Creates the user ratings table"""
-            self.db.session.execute("""
+            query = """
             CREATE TABLE IF NOT EXISTS blog_user_ratings
             (
                 user_id integer NOT NULL,
@@ -106,10 +103,7 @@ class Database:
                     ON DELETE CASCADE
             );
             """
-
-            )
-            self.db.session.commit()
-            self.db.session.close()
+            self.execute_query(query, read_result = False)
 
         def create_auth_tokens_table():
             """Creates the auth tokens table"""
@@ -126,9 +120,7 @@ class Database:
                     ON DELETE CASCADE
             )
             """
-            self.db.session.execute(query)
-            self.db.session.commit()
-            self.db.session.close()
+            self.execute_query(query, read_result = False)
 
         def create_recovery_tokens_table():
             query = """
@@ -144,9 +136,7 @@ class Database:
                     ON DELETE CASCADE
             )
             """
-            self.db.session.execute(query)
-            self.db.session.commit()
-            self.db.session.close()
+            self.execute_query(query, read_result = False)
         
         def create_user_preferences_table(): 
             query = """
@@ -165,9 +155,7 @@ class Database:
                     
             )
             """
-            self.db.session.execute(query)
-            self.db.session.commit()
-            self.db.session.close()
+            self.execute_query(query, read_result = False)
 
         def create_categories_table():
             query = """
@@ -180,9 +168,7 @@ class Database:
             );
             
             """
-            self.db.session.execute(query)
-            self.db.session.commit()
-            self.db.session.close()
+            self.execute_query(query, read_result = False)
 
         def create_user_preference_category_linker_table():
             query = """
@@ -201,9 +187,27 @@ class Database:
                     ON DELETE CASCADE
             )
             """
-            self.db.session.execute(query)
-            self.db.session.commit()
-            self.db.session.close()
+            self.execute_query(query, read_result = False)
+
+        def create_user_blog_algorithm_score_table():
+            query = """
+            CREATE TABLE IF NOT EXISTS user_blog_algorithm_score
+            (
+                user_id integer NOT NULL,
+                blog_id integer NOT NULL,
+                is_read boolean NOT NULL,
+                score real NOT NULL,
+                CONSTRAINT user_blog_algorithm_score_pkey PRIMARY KEY (user_id, blog_id),
+                CONSTRAINT fk_blog_id FOREIGN KEY (blog_id)
+                    REFERENCES blogs (blog_id) MATCH SIMPLE
+                    ON DELETE CASCADE,
+                CONSTRAINT fk_user_id FOREIGN KEY (user_id)
+                    REFERENCES users (user_id) MATCH SIMPLE
+                    ON DELETE CASCADE
+                    
+            );
+            """
+            self.execute_query(query, read_result = False)
 
         create_users_table()
         create_categories_table()
@@ -213,9 +217,11 @@ class Database:
         create_blogs_table()
         create_blog_user_ratings_table()
         create_user_preference_category_linker_table()
+        create_user_blog_algorithm_score_table()
         self.insert_new_category("General")
 
     def execute_query(self, query: str, params: dict = {}, read_result: bool = True) -> list:
+        """Executes query in query param using params in parms argument. if no need to read result, must specify read_result=False"""
         try:
             result = self.db.session.execute(query, params)
             self.db.session.commit()
@@ -645,7 +651,6 @@ class Database:
         return self.execute_query(query, params, False)
     
     # Recovery function
-
     
     def get_blog_ids_by_search(self, search_query: dict):
         """Returns blog ids of blogs searched by search query dictionary, supports arbitrary length"""
@@ -735,7 +740,7 @@ class Database:
             tmp = self.execute_query(query, params, False)
 
         return None
-        
-
+    
+    
     # Discover/recommend functions
     

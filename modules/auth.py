@@ -150,7 +150,7 @@ class Auth:
     def credentials_matching(self, identifier: str, password: str) -> bool:
         """Returns bool indicating whether the user with identifier exists and has matching password"""
         temp = self.db.get_user_password_hash(identifier)
-        if temp is None:
+        if len(temp) == 0:
             return [None, False]
         temp = temp[0]
         password_hash = temp.get("password_hash").encode("utf-8")
