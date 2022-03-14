@@ -2,21 +2,43 @@ let profile_edit_state = false;
 let profile_info = {};
 let blogs_increment = 2;
 let currently_showing = 0;
-async function get_public_profile_info(username){
+// This indicates what is the biggest avatar num. This is until we manage to make image uploads
+let max_avatar_number = 10;
+let currently_selected_avatar = 0;
+async function get_public_profile_info(username) {
     return fetch(`/api/profile/${username}`, {
         method: "GET",
         headers: {
             "Content-Type": "application/json",
         }
     }).then((result) => result.json())
-    .then((result) => {
-        return result
-    });
+        .then((result) => {
+            return result
+        });
 }
 
-async function submit_profile_edit(){
+
+function on_edit_avatar_click(avatar_id) {
+    if (avatar_id === currently_selected_avatar || avatar_id > max_avatar_number) {
+        return null;
+    }
+    currently_selected_avatar = avatar_id;
+    document.querySelectorAll(".profile_edit_avatar").forEach((node, index) => {
+
+        node.classList.remove("selected", "not_selected")
+        if (index + 1 === currently_selected_avatar) {
+            node.classList.add("selected")
+        }
+        else {
+            node.classList.add("not_selected")
+        }
+    })
+}
+
+async function submit_profile_edit() {
     let personal_description = $("#profile-description-text").value;
     profile_info.personal_description = personal_description;
+    profile_info.avatar_image_id = currently_selected_avatar;
     return fetch(`/api/edit/profile/${profile_info.username}`, {
         method: "PUT",
         headers: {
@@ -24,15 +46,36 @@ async function submit_profile_edit(){
         },
         body: JSON.stringify(profile_info)
     }).then((result) => result.json())
-    .then((result) => {
-        return result.code
-        
-    });
+        .then((result) => {
+            return result.code
+
+        });
 }
 
-async function toggle_edit_state(){
+function get_edit_avatar_domstring() {
+    let images = `
+
+    `
+    for (let i = 1; i <= max_avatar_number; i++) {
+        images += `
+       
+        <img class="profile_edit_avatar ${profile_info.avatar_image_id === i ? "selected" : "not_selected"}" src="/images/avatar_${i}.webp" alt="avatar number ${i}" onclick="on_edit_avatar_click(${i})"/>
+        
+        
+        `
+    }
+    let domstring = `
+    <div class="flex-horizontal flex-wrap align-center">
+        
+        ${images}
+    </div>
+    `
+    return domstring
+}
+
+async function toggle_edit_state() {
     profile_edit_state = !profile_edit_state;
-    if (profile_edit_state){
+    if (profile_edit_state) {
         let edit_btn = delete_dom_children("#edit-btn")
         let edit_btn_domstring = `
             <span class="material-icons">
@@ -47,13 +90,14 @@ async function toggle_edit_state(){
         <textarea class="profile-description-box form-control" id="profile-description-text">
         </textarea>
         `;
-
+        let profile_avatar_container = delete_dom_children("#profile-avatar-container");
+        profile_avatar_container.insertAdjacentHTML("beforeend", get_edit_avatar_domstring());
         $("#personal-description-container").insertAdjacentHTML("beforeend", description_domstring);
         $("#profile-description-text").value = profile_info.personal_description;
     }
-    else{
+    else {
         let code = await submit_profile_edit();
-        if (code === 1){
+        if (code === 1) {
             location.reload();
         }
         let edit_btn = delete_dom_children("#edit-btn")
@@ -66,17 +110,17 @@ async function toggle_edit_state(){
         edit_btn.insertAdjacentHTML("beforeend", edit_btn_domstring);
         let description_element = $("#profile-description-text");
         description_element.remove();
-        let description_domstring = `
+        let description_domstring = DOMPurify.sanitize(`
         <div id="profile-description-text" class="profile-description-box">
             ${profile_info.personal_description}
         </div>
-        `
+        `)
         $("#personal-description-container").insertAdjacentHTML("beforeend", description_domstring);
     }
 }
 
 
-async function ban(){
+async function ban() {
     return fetch(`/api/profile/${profile_info.username}`, {
         method: "DELETE",
         headers: {
@@ -84,41 +128,38 @@ async function ban(){
         },
         body: JSON.stringify(profile_info)
     }).then((result) => result.json())
-    .then((result) => {
-        return result.code
-        
-    });
+        .then((result) => {
+            return result.code
+
+        });
 }
 
-async function fetch_and_render_next_blog_tiles(blog_ids){
-    if (currently_showing >= blog_ids.length){
+async function fetch_and_render_next_blog_tiles(blog_ids) {
+    if (currently_showing >= blog_ids.length) {
         $("#blogs-shown").innerHTML = `${currently_showing}/${blog_ids.length}`;
         return null;
     }
     let temp = await get_certain_blog_tiles_data(blog_ids.slice(currently_showing, currently_showing + blogs_increment));
-    if (temp.code != 1){
+    if (temp.code != 1) {
         return null
     }
     let blog_tiles = temp.data;
     console.log(blog_tiles)
     let authored_blogs_container = $("#authored-blogs-container");
-    blog_tiles.forEach((blog_tile, index) => {
-        let blog_tile_dom_string = get_blog_tile(
-            blog_tile
-        )
-        authored_blogs_container.insertAdjacentHTML("beforeend", blog_tile_dom_string);
+    blog_tiles.forEach((blog_tile_data, index) => {
+        insert_blog_tile(blog_tile_data, "#authored-blogs-container")
     })
     currently_showing = Math.min(currently_showing + blogs_increment, blog_ids.length);
     $("#blogs-shown").innerHTML = `${currently_showing}/${blog_ids.length}`;
     // If all of the authored blogs are shown, then we should remove the "show more" blogs button.
     temp = $("#authored-blogs-show-more-btn")
-    if (temp != null && currently_showing == blog_ids.length){
+    if (temp != null && currently_showing == blog_ids.length) {
         temp.remove();
     }
 }
 
-function initialize_show_more_blogs_btn(blog_ids){
-    if (currently_showing < blog_ids.length){
+function initialize_show_more_blogs_btn(blog_ids) {
+    if (currently_showing < blog_ids.length) {
         let show_more_domstring = `
         <button class="btn btn-outline-primary flex-horizontal align-center" id="authored-blogs-show-more-btn">
             <span class="material-icons">
@@ -129,12 +170,13 @@ function initialize_show_more_blogs_btn(blog_ids){
         </button>
         `;
         $("#authored-blogs-container").insertAdjacentHTML("beforeend", show_more_domstring);
-        
-        $("#authored-blogs-show-more-btn").onclick = () => {fetch_and_render_next_blog_tiles(blog_ids);}
+
+        $("#authored-blogs-show-more-btn").onclick = () => { fetch_and_render_next_blog_tiles(blog_ids); }
     }
 }
 
-async function insert_profile_info(){
+async function insert_profile_info() {
+    
     let profile_control_container = $("#profile-control-container");
     // This means that the user is on their own profile, so should add edit button
     if (auth_info.username === profile_info.username) {
@@ -158,9 +200,19 @@ async function insert_profile_info(){
         `;
         profile_control_container.insertAdjacentHTML("beforeend", edit_button_domstring);
         $('#edit-btn').onclick = toggle_edit_state;
+        let preferences_button_domstring = `
+        <button id="preferences-btn" class="btn btn-outline-primary profile-control-button flex-horizontal align-center">
+            <span class="material-icons">
+            online_prediction
+            </span>
+            Preferences
+        </button>
+        `
+        profile_control_container.insertAdjacentHTML("beforeend", preferences_button_domstring);
+        $('#preferences-btn').onclick = toggle_preferences_modal
     }
-    else{
-        if(auth_info.access_level === 1){
+    else {
+        if (auth_info.access_level === 1) {
             let report_button_domstring = `
             <button class="btn btn-outline-danger profile-control-button flex-horizontal align-center">
                 <span class="material-icons">
@@ -170,7 +222,7 @@ async function insert_profile_info(){
             </button>
             `;
             profile_control_container.insertAdjacentHTML("beforeend", report_button_domstring);
-        }else if(auth_info.access_level === 2){
+        } else if (auth_info.access_level === 2) {
             let ban_button_domstring = `
             <button class="btn btn-outline-danger profile-control-button flex-horizontal align-center" id="ban-btn" type="button" tabindex="0">
                 <span class="material-icons">
@@ -184,32 +236,33 @@ async function insert_profile_info(){
         }
     }
     // Profile text field initialization
-    $("#username-text").innerHTML = `Username: ${profile_info.username}`
-    $("#date-created").innerHTML = `Date created: ${profile_info.date_created}`
-    $("#date-last-accessed").innerHTML = `Date last accessed: ${profile_info.date_last_accessed}`
+    $("#username-text").textContent = `Username: ${profile_info.username}`
+    $("#date-created").textContent = `Date created: ${profile_info.date_created}`
+    $("#date-last-accessed").textContent = `Date last accessed: ${profile_info.date_last_accessed}`
     $("#avatar-img").setAttribute("src", `/images/avatar_${profile_info.avatar_image_id}.webp`);
-    $("#profile-description-text").innerHTML = profile_info.personal_description;
+    $("#profile-description-text").textContent = profile_info.personal_description;
     fetch_and_render_next_blog_tiles(profile_info.authored_blogs);
     initialize_show_more_blogs_btn(profile_info.authored_blogs)
-    
+
 }
 
 
-async function profile_main(username){
+async function profile_main(username) {
     let profile_temp = await get_public_profile_info(username);
     profile_info = profile_temp.data;
     console.log(profile_info);
     currently_showing = 0;
+
     // This happens when the requested account exists
-    if (profile_temp.code === 1){
+    if (profile_temp.code === 1) {
         profile_info.username = username;
         insert_profile_info(profile_info);
     }
     // This happens when the requested account does not exist
-    else{
+    else {
         let main = delete_dom_children("main");
         main.insertAdjacentHTML("beforeend", `<h2 style="text-align: center;">No account with username: ${username}, exists.</h2>`);
     }
+    currently_selected_avatar = profile_info.avatar_image_id;
 
-    
 }

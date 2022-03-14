@@ -77,7 +77,7 @@ var cookiehtml = `
 
 let isinitialdisplayed = true;
 function switchcookie() {
-    var body = document.getElementById("main")
+    var body = $("main");
     let temp = $(".popup-box-small")
     if (temp != null){
         temp.remove();
@@ -87,11 +87,11 @@ function switchcookie() {
         body.insertAdjacentHTML("beforeBegin", initialcookiehtml);
         //accept all button
         const acceptallBtn = document.querySelector(".accept-btn-small");
-        acceptallBtn.addEventListener("click", () => {
+        acceptallBtn.onclick = () => {
             storage_cookie.setItem(cookie_permission, "Yes");
             storage_cookie.setItem(analytics_permission, "Yes");
             $(".popup-box-small").remove();
-        });
+        };
         
         const closeBtnSmall = document.querySelector(".close-btn-small");
         closeBtnSmall.onclick = () => {
@@ -106,14 +106,14 @@ function switchcookie() {
         myModal.show();
         const saveBtn = document.querySelector(".modal-footer button");
         storage_cookie.setItem(analytics_permission, "No");
-        saveBtn.addEventListener("click", () => {
+        saveBtn.onclick =  () => {
             
             storage_cookie.setItem(cookie_permission, "Yes");
             if (document.getElementById("check").checked == true) {
                 //document.cookie = "Analytics Cookies = OpenThoughtFloor; max-age=" + 30 * 24 * 60 * 60; //1 month
                 storage_cookie.setItem(analytics_permission, "Yes");
             }
-        });
+        }
     }
     isinitialdisplayed = !isinitialdisplayed;
 }

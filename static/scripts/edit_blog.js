@@ -1,6 +1,33 @@
+let categories_hashmap = {}
+let categories = [];
 
-// Static categories for now.
-let categories = ["Programming", "Cooking", "Some other thing"]
+async function get_all_categories(){
+    return fetch(`/api/get_all_categories`, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+        },
+    }).then((result) => result.json())
+    .then((result) => {
+        return result
+    })
+}
+
+async function parse_categories(){
+    // Gets all categories from the server
+    let temp = await get_all_categories();
+    if (temp.code != 1){
+        return null;
+    }
+    categories_object = temp.data
+    // Need to flatten the categories output into simple form ["programming", "other"]
+    categories_object.forEach((category_dict) => {
+        categories_hashmap[category_dict.category_id] = category_dict.category_text
+        categories.push(category_dict.category_text)
+    })
+}
+
+parse_categories();
 
 async function delete_blog(blog_id){
     return fetch(`/api/blog/delete/${blog_id}`, {
@@ -61,7 +88,7 @@ async function on_save_blog_edit_click(blog_id){
             text: $("#edit-blog-body").value
         },
         word_count: render_word_count(),
-        category: categories[$("#blog-category").selectedIndex],
+        category_id: categories_object[$("#blog-category").selectedIndex].category_id,
         blog_id: blog_id
     }
     let result = await submit_edit_blog(blog_data)

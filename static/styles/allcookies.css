@@ -10,12 +10,12 @@ a {
   text-decoration: none;
   border-bottom: none;
 }
-#bigCookie .modal-dialog {
+.modal-dialog{
     max-width: 1000px !important;
-    
 }
-#bigCookie .modal-content{
-    border-radius: 0.8rem;
+.modal-content {
+    max-width: 1000px !important;
+    border-radius: 0.8rem !important;
 }
 #bigCookie .modal-title{
     text-align: center;

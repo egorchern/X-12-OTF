@@ -95,8 +95,10 @@ function get_user_info() {
         });
 }
 
-function get_blog_tile(
-    blog_data
+
+
+function insert_blog_tile(
+    blog_data, identifier
 ) {
     // <div class="flex-vertical align-center">
     //                 <span>Date created:</span>
@@ -115,7 +117,7 @@ function get_blog_tile(
                 <img class="author-avatar" src="/images/avatar_${blog_data.avatar_image_id}.webp">
                 <div class="flex-vertical align-center">
                     <span>Created by:</span>
-                    <strong>${blog_data.username}</strong>
+                    <strong class="username"></strong>
                 </div>
                 
                 <div class="flex-vertical align-center">
@@ -131,15 +133,15 @@ function get_blog_tile(
             <div>
                 <div class="flex-vertical align-center blog-tile-right height-full">
                     <div class="flex-horizontal align-center width-full">
-                        <h5 style="flex-grow:1; text-align:center;">
-                            ${blog_data.category}
+                        <h5 style="flex-grow:1; text-align:center;" class="category">
+                            
                         </h5>
                         
                         <img src="/images/flag.png" class="controversy-flag" style="opacity: ${controversial_percentage}">
                     </div>
                     <div class="flex-horizontal align-center width-full">
-                        <h4 style="text-align: center; flex-grow: 1">
-                            ${blog_data.blog_title}
+                        <h4 style="text-align: center; flex-grow: 1" class="blog-title">
+                            
                         </h4>
                         <span style="font-size: 0.9em; text-align: center">
                             (№ ratings: <strong>${blog_data.number_ratings}</strong>)
@@ -196,19 +198,23 @@ function get_blog_tile(
         </div>
     </div>
     `;
-    return blog_tile_dom_string;
+    $(identifier).insertAdjacentHTML("beforeend", blog_tile_dom_string);
+    $(`#blog-tile-${blog_data.blog_id} .username`).insertAdjacentText("beforeend", blog_data.username)
+    $(`#blog-tile-${blog_data.blog_id} .category`).insertAdjacentText("beforeend", categories_hashmap[blog_data.category_id])
+    $(`#blog-tile-${blog_data.blog_id} .blog-title`).insertAdjacentText("beforeend", blog_data.blog_title)
 }
 
 async function get_all_blog_tiles() {
     let return_dom_string = ``
     let temp = await get_all_blog_tiles_data();
+    console.log(temp);
     if (temp.code != 1) {
         return { dom_string: "" }
     }
     
     let all_blog_tiles_data = temp.data
     all_blog_tiles_data.forEach((blog_data, index) => {
-        return_dom_string += get_blog_tile(blog_data)
+        insert_blog_tile(blog_data, "#blog_tiles")
     })
     return { dom_string: return_dom_string, data: all_blog_tiles_data }
 }
@@ -302,7 +308,7 @@ async function change_page_state(new_state) {
                     {
                         blog_body: { text: "Default" },
                         blog_title: "Default",
-                        category: "testing",
+                        category_id: categories_object[0].category_id,
                         word_count: 1
                     }
                 )
@@ -313,9 +319,9 @@ async function change_page_state(new_state) {
 
             }
         }
-        let blog_tiles = await get_all_blog_tiles();
+        get_all_blog_tiles();
         
-        $("#blog_tiles").insertAdjacentHTML("beforeend", blog_tiles.dom_string);
+        
 
 
 
@@ -327,11 +333,17 @@ async function change_page_state(new_state) {
         }
         let username = temp.groups.username;
         let profile_domstring = `
-            <div id="profile-container" class="animate__animated animate__fadeIn">
-                <div id="profile-control-container" >
-                </div>
+        <div class="flex-vertical">
+        
+            <div id="profile-control-container" >
+            </div>
+            <div id="profile-container" class="animate__animated animate__fadeIn width-full">
+                
                 <div class="profile-header-container flex-vertical align-center">
-                    <img id="avatar-img">
+                    <div id="profile-avatar-container" class="flex-vertical align-center">  
+                        <img id="avatar-img">
+                    </div>
+                    
                     <h4 id="username-text"></h4>
                     <h5 id="date-created"></h5>
                     <h5 id="date-last-accessed"></h5>
@@ -353,6 +365,7 @@ async function change_page_state(new_state) {
                     </div>
                 </div>
             </div>
+        </div>
         `;
         history.pushState(
             { page_state: page_state },

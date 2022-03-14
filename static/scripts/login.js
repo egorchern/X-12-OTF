@@ -130,7 +130,7 @@ function change_login_page_state(new_state) {
                 
                 <input type='password' class="form-control" id='password' required>
                 <div class="invalid-feedback">
-                    Password must be at least 8 characters long, contain at least one capital letter and contain at least one number
+                    Password must be at least 8 characters long, contain at least one capital letter, special character and a number
                 </div>
             </div>
             <div >
@@ -315,7 +315,7 @@ const validate_email = (str) => {
 // Password has to be at least 8 characters, at least one special character, at least one capital letter
 const validate_passwords = (password, repeatPassword) => {
 
-    let password_regex = /(?=\w*\W{1,}\w*)(?=\D*\d{1,}\D*)(?=.{8,})/
+    let password_regex = /(?=.*[A-Z]{1,}.*)(?=.*\W{1,}.*)(?=.*\d{1,}.*)(?=.{8,})/
     let password_valid = password_regex.test(password);
     let passwords_match = password === repeatPassword;
     return {

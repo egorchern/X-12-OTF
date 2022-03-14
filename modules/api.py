@@ -53,6 +53,17 @@ class Api:
                 resp["code"] = 2
             return resp
 
+        @self.api.route("/api/get_all_categories", methods=["GET"])
+        def get_categories():
+            resp = {}
+            categories = self.db.get_all_categories()
+            if isinstance(categories, str):
+                resp["code"] = 2
+            else:
+                resp["code"] = 1
+                resp["data"] = categories
+            return resp
+
         @self.api.route("/api/blog/<blog_id>", methods=["GET"])
         def get_blog(blog_id: int):
             """
@@ -96,7 +107,8 @@ class Api:
             blog_data["blog_body"] = json.dumps(blog_data.get("blog_body"))
             result = self.db.insert_new_blog(blog_data)
             # This means, no problems with inserting a new blog
-            if len(result) == 0:
+            if isinstance(result, str):
+                print(result)
                 resp["code"] = 3
             else:
                 resp["code"] = 1
@@ -164,6 +176,7 @@ class Api:
             if result is None:
                 resp["code"] = 1
             else:
+                print(result)
                 resp["code"] = 3
 
             return resp
@@ -186,14 +199,17 @@ class Api:
             """
             Returns all of the existing blog tiles data in the array.
             """
-            
+            resp = {}
             temp = self.db.get_all_blog_ids()
+            if len(temp) == 0:
+                resp["code"] = 2
+                resp["data"] = []
+                return resp
+                
             # Need to flatten the sql output to just list of blog ids like: [1, 2]
             blog_ids = [x["blog_id"] for x in temp]
-            resp = {}
-            if len(blog_ids) == 0:
-                resp["code"] = 2
-                return resp
+            
+
             result = self.db.get_all_blog_tile_data(tuple(blog_ids))
             
             resp["code"] = 1
@@ -279,7 +295,7 @@ class Api:
             else:
                 resp["code"] = 2
             return resp
-            
-
+        
+        
             
         

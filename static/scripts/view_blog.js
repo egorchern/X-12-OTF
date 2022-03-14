@@ -1,4 +1,4 @@
-function get_top_blog_info(blog_data){
+function insert_top_blog_info(blog_data){
     blog_data.average_controversial_rating = Number(blog_data.average_controversial_rating.toFixed(1))
     blog_data.average_relevancy_rating = Number(blog_data.average_relevancy_rating.toFixed(1))
     blog_data.average_impression_rating = Number(blog_data.average_impression_rating.toFixed(1))
@@ -33,7 +33,7 @@ function get_top_blog_info(blog_data){
             </div>
         </div>
         <div class="flex-horizontal align-center" style="margin-top: 1rem;flex-grow:1">
-            <h5>Category: <strong>${blog_data.category}</strong></h5>
+            <h5>Category: <strong id="category"></strong></h5>
         </div>
         <div class="flex-horizontal align-center" style="margin-top: 1rem;flex-grow:1">
             <span>Date Created:</span>
@@ -85,7 +85,12 @@ function get_top_blog_info(blog_data){
         </div>
     </div>
     `
-    return top_blog_info_dom_string
+    $("#top-blog-info-container").insertAdjacentHTML("beforeend", top_blog_info_dom_string)
+    $("#category").insertAdjacentText("beforeend", categories_hashmap[blog_data.category_id])
+    $("#author_hyperlink").onclick = () => {change_page_state(`/profile/${blog_data.username}`)}
+    if (auth_info.user_id === blog_data.author_user_id){
+        $("#edit-blog-btn").onclick = () => {change_page_state(`/edit_blog/${blog_data.blog_id}`)};
+    }
 }
 
 async function submit_blog_rating(rating_data){
@@ -133,7 +138,7 @@ async function render_view_blog(blog_id){
     if (temp.code != 1){
         return null;
     }
-    console.log(temp)
+    
     let blog_data = temp.blog_data;
     let edit_button_domstring = `
         <button id="edit-blog-btn" class="btn btn-outline-primary profile-control-button flex-horizontal align-center">
@@ -157,22 +162,23 @@ async function render_view_blog(blog_id){
        ${auth_info.user_id != blog_data.author_user_id ? report_button_domstring : ""}
     </div>
     <div id="top-blog-info-container">
-        ${get_top_blog_info(blog_data)}
+        
     </div>
     <div class="page-container width-full flex-vertical align-center">
         <div class="blog-container width-full">
-            <h2 style="text-align: center">${blog_data.blog_title}</h2>
+            <h2 style="text-align: center" id="blog-title"></h2>
             
-            <div id="blog-body">
-                <p>${blog_data.blog_body.text}</p>
+            <div>
+                <p id="blog-body"></p>
             </div>
         </div>
     </div>
     
     `
+    
     $("#view-blog-container").insertAdjacentHTML("beforeend", view_blog_dom_string);
-    if (auth_info.user_id === blog_data.author_user_id){
-        $("#edit-blog-btn").onclick = () => {change_page_state(`/edit_blog/${blog_id}`)};
-    }
-    $("#author_hyperlink").onclick = () => {change_page_state(`/profile/${blog_data.username}`)}
+    $("#blog-title").insertAdjacentText("beforeend", blog_data.blog_title)
+    $("#blog-body").insertAdjacentText('beforeend', blog_data.blog_body.text)
+    insert_top_blog_info(blog_data)
+    
 }

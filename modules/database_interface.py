@@ -2,9 +2,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import SQLAlchemyError
 import datetime
 #from flask_migrate import Migrate
-#result = db.session.execute('SELECT * FROM my_table WHERE my_column = :val', {'val': 5})
 
-#TODO update last accessed field for users when they login
 
 class Database:
     def __init__(self, app):
@@ -12,6 +10,238 @@ class Database:
         # self.migrate = Migrate(app, self.db)
         self.create_database()
     
+    def return_formatted(self, result) -> list:
+        """Formats the sql output into a nice array with dictionaries"""
+        # if result.rowcount == 0: return None
+        response = []
+        
+        for row in result:
+            temp = row._asdict()
+            # Need to convert dates to strings to avoid json errors
+            for key in temp.keys():
+                value = temp[key]
+                if isinstance(value, datetime.date):
+                    temp[key] = value.strftime('%d/%m/%Y')
+                    
+            response.append(temp)
+        return response
+
+    def create_database(self):
+        """Creates the database"""
+
+        def create_users_table():
+            """Creates the users table"""
+            query = """
+            CREATE TABLE IF NOT EXISTS users 
+            (
+                user_id serial NOT NULL,
+                username character varying(40) NOT NULL,
+                email character varying(254) NOT NULL,
+                password_hash text NOT NULL,
+                date_of_birth date NOT NULL,
+                date_last_accessed date NOT NULL,
+                avatar_image_id integer NOT NULL DEFAULT 1,
+                access_level integer NOT NULL DEFAULT 0,
+                personal_description VARCHAR(1000),
+                date_created date NOT NULL,
+                PRIMARY KEY (user_id),
+                UNIQUE(username),
+                UNIQUE(email)
+            );
+            """
+            self.execute_query(query, read_result = False)
+
+        def create_blogs_table():
+            """Creates the blog table"""
+            query = """
+            CREATE TABLE IF NOT EXISTS blogs
+            (
+                blog_id serial NOT NULL,
+                blog_body JSONB NOT NULL,
+                blog_title VARCHAR(500) NOT NULL,
+                author_user_id SERIAL NOT NULL,
+                date_created DATE NOT NULL,
+                date_modified DATE NOT NULL,
+                category_id INTEGER NOT NULL,
+                word_count integer NOT NULL,
+                views integer NOT NULL DEFAULT 0,
+                average_controversial_rating real NOT NULL DEFAULT 0,
+                average_relevancy_rating real NOT NULL DEFAULT 0,
+                average_impression_rating real NOT NULL DEFAULT 0,
+                number_ratings INT NOT NULL DEFAULT 0, 
+                PRIMARY KEY (blog_id),
+                CONSTRAINT fk_author_user_id
+                    FOREIGN KEY(author_user_id)
+                    REFERENCES users(user_id)
+                    ON DELETE CASCADE,
+                CONSTRAINT fk_category_id
+                    FOREIGN KEY(category_id)
+                    REFERENCES categories(category_id)
+            );
+            """
+            self.execute_query(query, read_result = False)
+
+        def create_blog_user_ratings_table():
+            """Creates the user ratings table"""
+            query = """
+            CREATE TABLE IF NOT EXISTS blog_user_ratings
+            (
+                user_id integer NOT NULL,
+                blog_id integer NOT NULL,
+                date_created DATE NOT NULL,
+                relevancy_rating INT NOT NULL,
+                controversy_rating INT NOT NULL,
+                impression_rating INT NOT NULL,
+                PRIMARY KEY(user_id, blog_id),
+                CONSTRAINT fk_user_id
+                    FOREIGN KEY(user_id)
+                    REFERENCES users(user_id)
+                    ON DELETE CASCADE,
+                CONSTRAINT fk_blog_id
+                    FOREIGN KEY(blog_id)
+                    REFERENCES blogs(blog_id)
+                    ON DELETE CASCADE
+            );
+            """
+            self.execute_query(query, read_result = False)
+
+        def create_auth_tokens_table():
+            """Creates the auth tokens table"""
+            query = """
+            CREATE TABLE IF NOT EXISTS auth_tokens
+            (
+                user_id integer NOT NULL,
+                client_identifier text NOT NULL,
+                auth_token text NOT NULL,
+                PRIMARY KEY(client_identifier),
+                CONSTRAINT fk_user_id
+                    FOREIGN KEY(user_id) 
+                    REFERENCES users(user_id)
+                    ON DELETE CASCADE
+            )
+            """
+            self.execute_query(query, read_result = False)
+
+        def create_recovery_tokens_table():
+            query = """
+            CREATE TABLE IF NOT EXISTS recovery_tokens
+            (
+                user_id integer NOT NULL,
+                recovery_hash text NOT NULL,
+                date_created DATE NOT NULL,
+                PRIMARY KEY(user_id),
+                CONSTRAINT fk_user_id
+                    FOREIGN KEY(user_id)
+                    REFERENCES users(user_id)
+                    ON DELETE CASCADE
+            )
+            """
+            self.execute_query(query, read_result = False)
+        
+        def create_user_preferences_table(): 
+            query = """
+            CREATE TABLE IF NOT EXISTS user_preferences
+            (
+                user_id integer NOT NULL,
+                ideal_word_count integer,
+                controversial_cutoff real,
+                impression_cutoff real,
+                relevancy_cutoff real,
+                CONSTRAINT user_preferences_pkey PRIMARY KEY (user_id),
+                CONSTRAINT fk_user_id 
+                    FOREIGN KEY (user_id)
+                    REFERENCES users(user_id)
+                    ON DELETE CASCADE
+                    
+            )
+            """
+            self.execute_query(query, read_result = False)
+
+        def create_categories_table():
+            query = """
+            CREATE TABLE IF NOT EXISTS categories
+            (
+                category_id SERIAL NOT NULL,
+                category_text VARCHAR(200) NOT NULL, 
+                PRIMARY KEY(category_id),
+                UNIQUE(category_text)
+            );
+            
+            """
+            self.execute_query(query, read_result = False)
+
+        def create_user_preference_category_linker_table():
+            query = """
+            CREATE TABLE IF NOT EXISTS user_preference_category_linker
+            (
+                user_id integer NOT NULL,
+                rank integer NOT NULL,
+                category_id integer NOT NULL,
+                CONSTRAINT user_preference_category_linker_pkey PRIMARY KEY (user_id, rank),
+                CONSTRAINT fk_category_id FOREIGN KEY (category_id)
+                    REFERENCES categories (category_id)
+                    ON UPDATE NO ACTION
+                    ON DELETE CASCADE,
+                CONSTRAINT fk_user_id FOREIGN KEY (user_id)
+                    REFERENCES user_preferences (user_id)
+                    ON DELETE CASCADE
+            );
+            """
+            self.execute_query(query, read_result = False)
+
+        def create_user_blog_algorithm_score_table():
+            query = """
+            CREATE TABLE IF NOT EXISTS user_blog_algorithm_score
+            (
+                user_id integer NOT NULL,
+                blog_id integer NOT NULL,
+                is_read boolean NOT NULL,
+                score real NOT NULL,
+                CONSTRAINT user_blog_algorithm_score_pkey PRIMARY KEY (user_id, blog_id),
+                CONSTRAINT fk_blog_id FOREIGN KEY (blog_id)
+                    REFERENCES blogs (blog_id) MATCH SIMPLE
+                    ON DELETE CASCADE,
+                CONSTRAINT fk_user_id FOREIGN KEY (user_id)
+                    REFERENCES users (user_id) MATCH SIMPLE
+                    ON DELETE CASCADE
+                    
+            );
+            """
+            self.execute_query(query, read_result = False)
+
+        create_users_table()
+        create_categories_table()
+        create_auth_tokens_table()
+        create_recovery_tokens_table()
+        create_user_preferences_table()
+        create_blogs_table()
+        create_blog_user_ratings_table()
+        create_user_preference_category_linker_table()
+        create_user_blog_algorithm_score_table()
+        # This ensures that at least one category exists
+        temp = self.get_all_categories()
+        if len(temp) == 0:
+            self.insert_new_category("General")
+            self.insert_new_category("Programming")
+            self.insert_new_category("Hardware")
+
+    def execute_query(self, query: str, params: dict = {}, read_result: bool = True) -> list:
+        """Executes query in query param using params in parms argument. if no need to read result, must specify read_result=False"""
+        try:
+            result = self.db.session.execute(query, params)
+            self.db.session.commit()
+            self.db.session.close()
+            if read_result:
+                return self.return_formatted(result)
+            return None
+        except SQLAlchemyError as e:
+            error = str(e.__dict__['orig'])
+            print(error)
+            return error
+
+    #Blog functions 
+    
+
     def increment_blog_views(self, blog_id: int):
         """Increments the blog views counter for a particular blog."""
         query = """
@@ -20,15 +250,7 @@ class Database:
         WHERE blog_id = :blog_id
         """
         params = {"blog_id": blog_id}
-        try: 
-            result = self.db.session.execute(query, params)
-            self.db.session.commit()
-            self.db.session.close()
-            return None
-
-        except SQLAlchemyError as e:
-            error = str(e.__dict__['orig'])
-            return error
+        return self.execute_query(query, params, False)
 
     def get_blog_ids_authored_by(self, author_user_id: int):
         """Fetches all blog ids that are written by given author_user_id."""
@@ -38,15 +260,7 @@ class Database:
         WHERE author_user_id = :author_user_id
         """
         params = {"author_user_id": author_user_id}
-        try: 
-            result = self.db.session.execute(query, params)
-            self.db.session.commit()
-            self.db.session.close()
-            return self.return_formatted(result)
-
-        except SQLAlchemyError as e:
-            error = str(e.__dict__['orig'])
-            return error
+        return self.execute_query(query, params)
 
     def get_all_blog_ids(self):
         """Fetches all existing blog ids"""
@@ -54,40 +268,24 @@ class Database:
         SELECT blog_id
         FROM blogs
         """
-        params = {}
-        try: 
-            result = self.db.session.execute(query, params)
-            self.db.session.commit()
-            self.db.session.close()
-            return self.return_formatted(result)
-
-        except SQLAlchemyError as e:
-            error = str(e.__dict__['orig'])
-            return error
+        return self.execute_query(query)
     
     def get_all_blog_tile_data(self, blog_ids: tuple):
         """Returns information required for the blog tile for particular blog"""
         query = """
-        SELECT blog_id, blog_title, blogs.date_created, author_user_id, category, word_count, blogs.date_modified, username, avatar_image_id, views,
+        SELECT blog_id, blog_title, blogs.date_created, author_user_id, category_id, word_count, blogs.date_modified, username, avatar_image_id, views,
         average_controversial_rating, average_relevancy_rating, average_impression_rating, number_ratings
         FROM blogs
         INNER JOIN users on users.user_id = blogs.author_user_id
         WHERE blog_id IN :blog_ids
         """
         params = {'blog_ids': blog_ids}
-        try: 
-            result = self.db.session.execute(query, params)
-            self.db.session.commit()
-            self.db.session.close()
-            return self.return_formatted(result)
-        except SQLAlchemyError as e:
-            error = str(e.__dict__['orig'])
-            return error
+        return self.execute_query(query, params)
 
     def get_particular_blog_tile_data(self, blog_id:int):
         """Returns information required for the blog tile for particular blog"""
         query = """
-        SELECT blog_id, blog_title, blogs.date_created, author_user_id, category, word_count, blogs.date_modified, username, avatar_image_id, views,
+        SELECT blog_id, blog_title, blogs.date_created, author_user_id, category_id, word_count, blogs.date_modified, username, avatar_image_id, views,
         average_controversial_rating, average_relevancy_rating, average_impression_rating, number_ratings
         FROM blogs
         INNER JOIN users on users.user_id = blogs.author_user_id
@@ -95,15 +293,7 @@ class Database:
         LIMIT 1
         """
         params = {'blog_id': blog_id}
-        try: 
-            result = self.db.session.execute(query, params)
-            self.db.session.commit()
-            self.db.session.close()
-            return self.return_formatted(result)
-
-        except SQLAlchemyError as e:
-            error = str(e.__dict__['orig'])
-            return error
+        return self.execute_query(query, params)
     
     def get_blog_user_rating(self, user_id: int, blog_id: int):
         """Returns the information about the author of the blog"""
@@ -114,15 +304,7 @@ class Database:
         LIMIT 1
         """
         params = {'blog_id': blog_id, "user_id": user_id}
-        try: 
-            result = self.db.session.execute(query, params)
-            self.db.session.commit()
-            self.db.session.close()
-            return self.return_formatted(result)
-
-        except SQLAlchemyError as e:
-            error = str(e.__dict__['orig'])
-            return error
+        return self.execute_query(query, params)
 
     def insert_blog_user_rating(self,rating_data: dict):
         """Updates the blog user ratings data, first insert data into blog user taings, and then updating average in blog table"""
@@ -154,15 +336,7 @@ class Database:
         
         """
         params = {"blog_id": blog_id}
-        try: 
-            result = self.db.session.execute(query, params)
-            self.db.session.commit()
-            self.db.session.close()
-            return None
-
-        except SQLAlchemyError as e:
-            error = str(e.__dict__['orig'])
-            return error
+        return self.execute_query(query, params, False)
 
     def update_blog_user_ratings(self, rating_data:dict, blog_data: dict):
         """Updates the average user ratings for a blog"""
@@ -184,32 +358,16 @@ class Database:
         WHERE blog_id = :blog_id
         """
         params = {'average_controversial_rating': new_average_controversial_rating, 'average_relevancy_rating': new_average_relevancy_rating, 'average_impression_rating': new_average_impression_rating, 'blog_id' : blog_id}
-        try:
-            result = self.db.session.execute(query, params)
-            self.db.session.commit()
-            self.db.session.close()
-            return None
-        # For catching errors and outputting them
-        except SQLAlchemyError as e:
-            error = str(e.__dict__['orig'])
-            return error        
+        return self.execute_query(query, params, False)     
 
-    def get_num_blog_user_ratings(self, rating_data:dict):
+    def get_num_blog_user_ratings(self, rating_data: dict):
         """Gets the number of user ratings for a blog"""
         query = """
         SELECT COUNT(*)
         FROM blogs_user_ratings
         WHERE blogid = :blog_id
         """
-        try: 
-            result = self.db.session.execute(query, rating_data)
-            self.db.session.commit()
-            self.db.session.close()
-            return self.return_formatted(result)
-
-        except SQLAlchemyError as e:
-            error = str(e.__dict__['orig'])
-            return error
+        return self.execute_query(query, rating_data)
 
     def get_particular_blog_data(self, blog_id: int):
         """Returns full information for particular blog"""
@@ -217,7 +375,7 @@ class Database:
         SELECT username, avatar_image_id, 
         blog_id, blog_title, 
         blog_body, blogs.date_created, 
-        author_user_id, category, word_count, 
+        author_user_id, category_id, word_count, 
         blogs.date_modified, blogs.views,
         average_controversial_rating, average_relevancy_rating, average_impression_rating, number_ratings
         number_ratings
@@ -226,15 +384,7 @@ class Database:
         WHERE blog_id = :blog_id
         """
         params = {'blog_id': blog_id}
-        try: 
-            result = self.db.session.execute(query, params)
-            self.db.session.commit()
-            self.db.session.close()
-            return self.return_formatted(result)
-
-        except SQLAlchemyError as e:
-            error = str(e.__dict__['orig'])
-            return error
+        return self.execute_query(query, params)
 
     def get_blog_author_info(self, blog_id: int):
         """Returns the information about the author of the blog"""
@@ -250,49 +400,25 @@ class Database:
         LIMIT 1
         """
         params = {'blog_id': blog_id}
-        try: 
-            result = self.db.session.execute(query, params)
-            self.db.session.commit()
-            self.db.session.close()
-            return self.return_formatted(result)
-
-        except SQLAlchemyError as e:
-            error = str(e.__dict__['orig'])
-            return error
+        return self.execute_query(query, params)
 
     def update_blog(self, blog_data: dict):
         """Updates the blog with given data"""
         query = """
         UPDATE blogs
-        SET blog_body = :blog_body, blog_title = :blog_title, date_modified = CURRENT_TIMESTAMP, category = :category, word_count = :word_count
+        SET blog_body = :blog_body, blog_title = :blog_title, date_modified = CURRENT_TIMESTAMP, category_id = :category_id, word_count = :word_count
         WHERE blog_id = :blog_id
         """
-        try: 
-            result = self.db.session.execute(query, blog_data)
-            self.db.session.commit()
-            self.db.session.close()
-            return None
-
-        except SQLAlchemyError as e:
-            error = str(e.__dict__['orig'])
-            return error
+        return self.execute_query(query, blog_data, False)
 
     def insert_new_blog(self, blog_data: dict):
         """Inserts a new blog into the database"""
         query = """
-        INSERT INTO blogs (blog_body,blog_title,author_user_id, date_created,date_modified,category,word_count)
-        VALUES(:blog_body, :blog_title , :author_user_id , CURRENT_TIMESTAMP, CURRENT_TIMESTAMP , :category, :word_count)
+        INSERT INTO blogs (blog_body,blog_title,author_user_id, date_created,date_modified,category_id,word_count)
+        VALUES(:blog_body, :blog_title , :author_user_id , CURRENT_TIMESTAMP, CURRENT_TIMESTAMP , :category_id, :word_count)
             RETURNING blog_id
         """
-        try: 
-            result = self.db.session.execute(query, blog_data)
-            self.db.session.commit()
-            self.db.session.close()
-            return self.return_formatted(result)
-            
-        except SQLAlchemyError as e:
-            error = str(e.__dict__['orig'])
-            return error
+        return self.execute_query(query, blog_data)
 
     def delete_blog(self, blog_id: int):
         """Deletes the blog given a blog id"""
@@ -301,427 +427,9 @@ class Database:
         WHERE blog_id = :blog_id
         """
         params = {'blog_id': blog_id}
-        try:
-            result = self.db.session.execute(query, params)
-            self.db.session.commit()
-            self.db.session.close()
-            return None
+        return self.execute_query(query, params, False)
 
-        # For catching errors and outputting them
-        except SQLAlchemyError as e:
-            error = str(e.__dict__['orig'])
-            return error
-            
-    def delete_user(self, username: str):
-        query = """
-        DELETE FROM users
-        WHERE username = :username
-        """
-        params = {'username': username}
-        try:
-            result = self.db.session.execute(query, params)
-            self.db.session.commit()
-            self.db.session.close()
-            return None
-
-        # For catching errors and outputting them
-        except SQLAlchemyError as e:
-            error = str(e.__dict__['orig'])
-            return error
-        
-    def get_user_password_hash(self, identifier: str) -> dict:
-        """Fetches password hash from the users table by either username or email"""
-        query = """
-        SELECT user_id, password_hash
-        FROM users
-        WHERE email=:identifier OR username=:identifier
-        LIMIT 1
-        """
-        try:
-            result = self.db.session.execute(query, {'identifier': identifier})
-            self.db.session.commit()
-            self.db.session.close()
-            return self.return_formatted(result)
-        # For catching errors and outputting them
-        except SQLAlchemyError as e:
-            error = str(e.__dict__['orig'])
-            return error
-
-    def get_public_profile_user_info(self, username: str):
-        """Returns public profile information of the user"""
-        query = """
-        SELECT user_id, avatar_image_id, date_created, date_last_accessed, personal_description
-        FROM users
-        WHERE username=:username
-        LIMIT 1
-        """
-        params = {'username': username}
-        try:
-            result = self.db.session.execute(query, params)
-            self.db.session.commit()
-            self.db.session.close()
-            return self.return_formatted(result)
-        # For catching errors and outputting them
-        except SQLAlchemyError as e:
-            error = str(e.__dict__['orig'])
-            return error
-    
-    def get_user_auth_info(self, auth_token: str) -> dict:
-        """Returns user auth information given a token"""
-        query = """
-        SELECT username, access_level, users.user_id
-        FROM users
-        INNER JOIN auth_tokens on users.user_id = auth_tokens.user_id
-        WHERE auth_token=:auth_token
-        LIMIT 1
-        """
-        params = {"auth_token": auth_token}
-        try:
-            result = self.db.session.execute(query, params)
-            self.db.session.commit()
-            self.db.session.close()
-            return self.return_formatted(result)
-        # For catching errors and outputting them
-        except SQLAlchemyError as e:
-            error = str(e.__dict__['orig'])
-            return error
-    
-    def update_user_info(self, user_info: dict):
-        """Updates the users information with parameters. Only personal descr for now"""
-        query = """
-        UPDATE users
-        SET personal_description = :personal_description
-        WHERE username = :username
-        """
-        params = user_info
-        try:
-            result = self.db.session.execute(query, params)
-            self.db.session.commit()
-            self.db.session.close()
-            return None
-        # For catching errors and outputting them
-        except SQLAlchemyError as e:
-            error = str(e.__dict__['orig'])
-            return error
-
-    def get_all_users(self):
-        """Returns information about all users. Delete after testing"""
-        query = """
-        SELECT *
-        FROM users
-        """
-        try:
-            result = self.db.session.execute(query)
-            self.db.session.commit()
-            self.db.session.close()
-            return self.return_formatted(result)
-        # For catching errors and outputting them
-        except SQLAlchemyError as e:
-            error = str(e.__dict__['orig'])
-            return error
-    
-    def return_formatted(self, result) -> dict:
-        """Formats the sql output into a nice array with dictionaries"""
-        response = []
-        for row in result:
-            temp = row._asdict()
-            # Need to convert dates to strings to avoid json errors
-            for key in temp.keys():
-                value = temp[key]
-                if isinstance(value, datetime.date):
-                    temp[key] = value.strftime('%d/%m/%Y')
-                    
-            response.append(temp)
-        return response
-
-    def create_database(self):
-        """Creates the database"""
-
-        def create_users_table():
-            """Creates the users table"""
-            self.db.session.execute("""
-            CREATE TABLE IF NOT EXISTS users 
-            (
-                user_id serial NOT NULL,
-                username character varying(40) NOT NULL,
-                email character varying(254) NOT NULL,
-                password_hash text NOT NULL,
-                date_of_birth date NOT NULL,
-                date_last_accessed date NOT NULL,
-                avatar_image_id integer NOT NULL DEFAULT 1,
-                access_level integer NOT NULL DEFAULT 0,
-                personal_description character varying(1000),
-                date_created date NOT NULL,
-                preffered_word_count integer,
-                controversial_limit double precision,
-                PRIMARY KEY (user_id),
-                UNIQUE(username),
-                UNIQUE(email)
-            );
-            """)
-            self.db.session.commit()
-            self.db.session.close()
-
-        def create_blog_table():
-            """Creates the blog table"""
-            self.db.session.execute("""
-            CREATE TABLE IF NOT EXISTS blogs
-            (
-                blog_id serial NOT NULL,
-                blog_body JSONB NOT NULL,
-                blog_title VARCHAR(500) NOT NULL,
-                author_user_id SERIAL NOT NULL,
-                date_created DATE NOT NULL,
-                date_modified DATE NOT NULL,
-                category VARCHAR(40) NOT NULL,
-                word_count integer NOT NULL,
-                views integer NOT NULL DEFAULT 0,
-                average_controversial_rating real NOT NULL DEFAULT 0,
-                average_relevancy_rating real NOT NULL DEFAULT 0,
-                average_impression_rating real NOT NULL DEFAULT 0,
-                number_ratings INT NOT NULL DEFAULT 0, 
-                PRIMARY KEY (blog_id),
-                CONSTRAINT fk_author_user_id
-                    FOREIGN KEY(author_user_id)
-                    REFERENCES users(user_id)
-                    ON DELETE CASCADE
-            );
-            """
-            )
-            self.db.session.commit()
-            self.db.session.close()
-
-        def create_blog_user_ratings_table():
-            """Creates the user ratings table"""
-            self.db.session.execute("""
-            CREATE TABLE IF NOT EXISTS blog_user_ratings
-            (
-                user_id integer NOT NULL,
-                blog_id integer NOT NULL,
-                date_created DATE NOT NULL,
-                relevancy_rating INT NOT NULL,
-                controversy_rating INT NOT NULL,
-                impression_rating INT NOT NULL,
-                PRIMARY KEY(user_id, blog_id),
-                CONSTRAINT fk_user_id
-                    FOREIGN KEY(user_id)
-                    REFERENCES users(user_id)
-                    ON DELETE CASCADE,
-                CONSTRAINT fk_blog_id
-                    FOREIGN KEY(blog_id)
-                    REFERENCES blogs(blog_id)
-                    ON DELETE CASCADE
-            );
-            """
-
-            )
-            self.db.session.commit()
-            self.db.session.close()
-
-        def create_auth_tokens_table():
-            """Creates the auth tokens table"""
-            query = """
-            CREATE TABLE IF NOT EXISTS auth_tokens
-            (
-                user_id integer NOT NULL,
-                client_identifier text NOT NULL,
-                auth_token text NOT NULL,
-                PRIMARY KEY(client_identifier),
-                CONSTRAINT fk_user_id
-                    FOREIGN KEY(user_id) 
-                    REFERENCES users(user_id)
-                    ON DELETE CASCADE
-            )
-            """
-            self.db.session.execute(query)
-            self.db.session.commit()
-            self.db.session.close()
-
-        def create_recovery_tokens():
-            query = """
-            CREATE TABLE IF NOT EXISTS recovery_tokens
-            (
-                user_id integer NOT NULL,
-                recovery_hash text NOT NULL,
-                date_created DATE NOT NULL,
-                PRIMARY KEY(user_id),
-                CONSTRAINT fk_user_id
-                    FOREIGN KEY(user_id)
-                    REFERENCES users(user_id)
-                    ON DELETE CASCADE
-            )
-            """
-            self.db.session.execute(query)
-            self.db.session.commit()
-            self.db.session.close()
-
-        create_users_table()
-        create_auth_tokens_table()
-        create_blog_table()
-        create_recovery_tokens()
-        create_blog_user_ratings_table()
-
-    def insert_new_user(self, username: str, email: str, password_hash: str, date_of_birth: str):
-        """Insert new user into database
-        """
-        default_avatar_image_id = 1
-        try:
-            
-            self.db.session.execute(
-                """
-                INSERT INTO users(username, email, password_hash, date_of_birth, date_created, date_last_accessed, avatar_image_id, access_level)
-                VALUES(:username, :email, :password_hash, :date_of_birth, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, :avatar_image_id, :access_level)
-                """,
-                {
-                    'username': username,
-                    'email': email,
-                    'password_hash': password_hash,
-                    'date_of_birth': date_of_birth,
-                    'avatar_image_id': default_avatar_image_id,
-                    'access_level': 1
-                }
-            )
-            self.db.session.commit()
-            self.db.session.close()
-            return True
-        # For catching errors and outputting them
-        except SQLAlchemyError as e:
-            error = str(e.__dict__['orig'])
-            return error
-    
-    def insert_auth_token(self, user_id: int, auth_token: str, client_identifier: str):
-        """Deletes old auth token with same identifier and inserts new auth_token"""
-        self.delete_redundant_auth_token(client_identifier)
-
-        query = """
-        INSERT INTO auth_tokens(user_id, auth_token, client_identifier)
-        VALUES(:user_id, :auth_token, :client_identifier)
-        """
-        try:
-            self.db.session.execute(query, {
-                "user_id": user_id,
-                "auth_token": auth_token,
-                "client_identifier": client_identifier
-            })
-            self.db.session.commit()
-            self.db.session.close()
-            return True
-        # For catching errors and outputting them
-        except SQLAlchemyError as e:
-            error = str(e.__dict__['orig'])
-            return error
-    
-    def delete_auth_token(self, auth_token: str):
-        """Deletes auth token """
-        query = """
-        DELETE FROM auth_tokens
-        WHERE auth_token = :auth_token
-        """
-        params = {'auth_token': auth_token}
-        try:
-            result = self.db.session.execute(query, params)
-            self.db.session.commit()
-            self.db.session.close()
-            return result
-
-        # For catching errors and outputting them
-        except SQLAlchemyError as e:
-            error = str(e.__dict__['orig'])
-            return error
-        
-    def delete_redundant_auth_token(self, client_identifier: str):
-        query = """
-        DELETE FROM auth_tokens
-        WHERE client_identifier = :client_identifier
-        """
-        try:
-            result = self.db.session.execute(query, {"client_identifier": client_identifier})
-            self.db.session.commit()
-            self.db.session.close()
-            return result
-        # For catching errors and outputting them
-        except SQLAlchemyError as e:
-            error = str(e.__dict__['orig'])
-            return error
-
-    def update_user_last_accessed(self, user_id: int):
-
-        query = """
-        UPDATE users
-        SET date_last_accessed = CURRENT_TIMESTAMP
-        WHERE user_id = :user_id
-        """
-        params = {"user_id": user_id}
-        try: 
-            result = self.db.session.execute(query, params)
-            self.db.session.commit()
-            self.db.session.close()
-            return None
-
-        except SQLAlchemyError as e:
-            error = str(e.__dict__['orig'])
-            return error
-    
-    def insert_new_recover_token(self, email: str, recovery_hash: str):
-        query = """
-        DELETE FROM recovery_tokens
-        WHERE 
-            EXISTS(SELECT user_id FROM users WHERE email = :email) AND
-            user_id = (SELECT user_id FROM users WHERE email = :email);
-        INSERT INTO recovery_tokens
-        VALUES(
-            (SELECT user_id FROM users WHERE email = :email),
-            :recovery_hash,
-            CURRENT_TIMESTAMP
-        )
-        RETURNING user_id;
-        """
-        params = {"email": email, "recovery_hash": recovery_hash}
-        try: 
-            result = self.db.session.execute(query, params)
-            self.db.session.commit()
-            self.db.session.close()
-            return self.return_formatted(result)
-            
-        except SQLAlchemyError as e:
-            error = str(e.__dict__['orig'])
-            return error
-
-    def get_recovery_token(self, user_id: int):
-        query = """
-        SELECT *
-        FROM recovery_tokens
-        WHERE user_id = :user_id
-        LIMIT 1
-        """
-        params = {"user_id" : user_id}
-        try: 
-            result = self.db.session.execute(query, params)
-            self.db.session.commit()
-            self.db.session.close()
-            return self.return_formatted(result)
-            
-        except SQLAlchemyError as e:
-            error = str(e.__dict__['orig'])
-            return error
-
-    def update_password_hash(self, user_id: int, password_hash: str):
-        query = """
-        UPDATE users
-        SET password_hash = :password_hash
-        WHERE user_id = :user_id
-        """
-        params = {"password_hash": password_hash, "user_id": user_id}
-        try:
-            result = self.db.session.execute(query, params)
-            self.db.session.commit()
-            self.db.session.close()
-            return None
-        except SQLAlchemyError as e:
-            error = str(e.__dict__['orig'])
-            return error
-
-    def recalculate_new_blog_averages(self, user_id, blog_id):
+    def recalculate_new_blog_averages(self, user_id: int, blog_id: int):
         # First need to recalc blog rating averages
         user_rating = self.get_blog_user_rating(user_id, blog_id)
         if len(user_rating) == 0:
@@ -757,10 +465,7 @@ class Database:
             "average_impression_rating": new_average_impression_rating,
             "average_controversial_rating": new_average_controversial_rating
         }
-        result = self.db.session.execute(query, params)
-        self.db.session.commit()
-        self.db.session.close()
-        return None
+        return self.execute_query(query, params)
 
     def delete_blog_user_rating(self, user_id: int, blog_id: int):
 
@@ -773,15 +478,174 @@ class Database:
         WHERE user_id = :user_id AND blog_id = :blog_id
         """
         params = {"blog_id": blog_id, "user_id": user_id}
-        try:
-            result = self.db.session.execute(query, params)
-            self.db.session.commit()
-            self.db.session.close()
-            return None
+        return self.execute_query(query, params, False)
 
-        except SQLAlchemyError as e:
-            error = str(e.__dict__['orig'])
-            return error
+    # Blog functions
+
+    # User functions
+
+    def delete_user(self, username: str):
+        query = """
+        DELETE FROM users
+        WHERE username = :username
+        """
+        params = {'username': username}
+        return self.execute_query(query, params, False)
+        
+    def get_user_password_hash(self, identifier: str) -> dict:
+        """Fetches password hash from the users table by either username or email"""
+        query = """
+        SELECT user_id, password_hash
+        FROM users
+        WHERE email=:identifier OR username=:identifier
+        LIMIT 1
+        """
+        params = {'identifier': identifier}
+        return self.execute_query(query, params)
+
+    def get_public_profile_user_info(self, username: str):
+        """Returns public profile information of the user"""
+        query = """
+        SELECT user_id, avatar_image_id, date_created, date_last_accessed, personal_description
+        FROM users
+        WHERE username=:username
+        LIMIT 1
+        """
+        params = {'username': username}
+        return self.execute_query(query, params)
+    
+    def get_user_auth_info(self, auth_token: str) -> dict:
+        """Returns user auth information given a token"""
+        query = """
+        SELECT username, access_level, users.user_id
+        FROM users
+        INNER JOIN auth_tokens on users.user_id = auth_tokens.user_id
+        WHERE auth_token=:auth_token
+        LIMIT 1
+        """
+        params = {"auth_token": auth_token}
+        return self.execute_query(query, params)
+    
+    def update_user_info(self, user_info: dict):
+        """Updates the users information with parameters. Only personal descr for now"""
+        query = """
+        UPDATE users
+        SET personal_description = :personal_description, avatar_image_id = :avatar_image_id
+        WHERE user_id = :user_id
+        """
+        params = user_info
+        return self.execute_query(query, params, False)
+
+    def get_all_users(self):
+        """Returns information about all users. Delete after testing"""
+        query = """
+        SELECT *
+        FROM users
+        """
+        return self.execute_query(query)
+    
+    def insert_new_user(self, username: str, email: str, password_hash: str, date_of_birth: str):
+        """Insert new user into database
+        """
+        query = """
+        INSERT INTO users(username, email, password_hash, date_of_birth, date_created, date_last_accessed, avatar_image_id, access_level)
+                VALUES(:username, :email, :password_hash, :date_of_birth, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, :avatar_image_id, :access_level)
+        """
+        default_avatar_image_id = 1
+        params = {
+            'username': username,
+            'email': email,
+            'password_hash': password_hash,
+            'date_of_birth': date_of_birth,
+            'avatar_image_id': default_avatar_image_id,
+            'access_level': 1
+        }
+        return self.execute_query(query, params, False)    
+        
+    
+    def insert_auth_token(self, user_id: int, auth_token: str, client_identifier: str):
+        """Deletes old auth token with same identifier and inserts new auth_token"""
+        self.delete_redundant_auth_token(client_identifier)
+
+        query = """
+        INSERT INTO auth_tokens(user_id, auth_token, client_identifier)
+        VALUES(:user_id, :auth_token, :client_identifier)
+        """
+        params = {
+            "user_id": user_id,
+            "auth_token": auth_token,
+            "client_identifier": client_identifier
+        }
+        
+        return self.execute_query(query, params, False)    
+    
+    def delete_auth_token(self, auth_token: str):
+        """Deletes auth token """
+        query = """
+        DELETE FROM auth_tokens
+        WHERE auth_token = :auth_token
+        """
+        params = {'auth_token': auth_token}
+        return self.execute_query(query, params, False)   
+        
+    def delete_redundant_auth_token(self, client_identifier: str):
+        query = """
+        DELETE FROM auth_tokens
+        WHERE client_identifier = :client_identifier
+        """
+        params = {"client_identifier": client_identifier}
+        
+        return self.execute_query(query, params, False)   
+
+    def update_user_last_accessed(self, user_id: int):
+
+        query = """
+        UPDATE users
+        SET date_last_accessed = CURRENT_TIMESTAMP
+        WHERE user_id = :user_id
+        """
+        params = {"user_id": user_id}
+        return self.execute_query(query, params, False)
+
+    # User functions
+
+    # Recovery functions 
+
+    def insert_new_recover_token(self, email: str, recovery_hash: str):
+        query = """
+        DELETE FROM recovery_tokens
+        WHERE 
+            EXISTS(SELECT user_id FROM users WHERE email = :email) AND
+            user_id = (SELECT user_id FROM users WHERE email = :email);
+        INSERT INTO recovery_tokens
+        VALUES(
+            (SELECT user_id FROM users WHERE email = :email),
+            :recovery_hash,
+            CURRENT_TIMESTAMP
+        )
+        RETURNING user_id;
+        """
+        params = {"email": email, "recovery_hash": recovery_hash}
+        return self.execute_query(query, params)
+
+    def get_recovery_token(self, user_id: int):
+        query = """
+        SELECT *
+        FROM recovery_tokens
+        WHERE user_id = :user_id
+        LIMIT 1
+        """
+        params = {"user_id" : user_id}
+        return self.execute_query(query, params)
+
+    def update_password_hash(self, user_id: int, password_hash: str):
+        query = """
+        UPDATE users
+        SET password_hash = :password_hash
+        WHERE user_id = :user_id
+        """
+        params = {"password_hash": password_hash, "user_id": user_id}
+        return self.execute_query(query, params, False)
     
     def delete_recovery_token(self, user_id: int):
         query = """
@@ -789,15 +653,9 @@ class Database:
         WHERE user_id = :user_id
         """
         params = {"user_id": user_id}
-        try: 
-            result = self.db.session.execute(query, params)
-            self.db.session.commit()
-            self.db.session.close()
-            return None
-
-        except SQLAlchemyError as e:
-            error = str(e.__dict__['orig'])
-            return error
+        return self.execute_query(query, params, False)
+    
+    # Recovery function
     
     def get_blog_ids_by_search(self, search_query: dict):
         """Returns blog ids of blogs searched by search query dictionary, supports arbitrary length"""
@@ -827,6 +685,7 @@ class Database:
             temp = f"%{search_query['body_contains_optional']}%"
             params["body_contains_optional"] = temp
             query += " LOWER(blog_body ->> 'text') LIKE LOWER(:body_contains_optional)"
+        # TODO change this to work with category_id
         if "category" in search_query:
             params["category"] = search_query["category"]
             # If we added someting into WHERE, we need to add AND between params
@@ -836,13 +695,105 @@ class Database:
                 query += "  WHERE "
             param_found = True
             query += " category = :category"
-        try: 
-            result = self.db.session.execute(query, params)
-            self.db.session.commit()
-            self.db.session.close()
-            return self.return_formatted(result)
+        return self.execute_query(query, params)
+    
+    # Category functions
 
-        # For catching errors and outputting them
-        except SQLAlchemyError as e:
-            error = str(e.__dict__['orig'])
-            return error
+    def get_all_categories(self):
+        query = """
+        SELECT *
+        FROM categories
+        """
+        return self.execute_query(query)
+
+    def insert_new_category(self, category_text: str):
+        query = """
+        INSERT INTO categories(category_text)
+        VALUES(:category_text)
+        """
+        params = {'category_text': category_text}
+        return self.execute_query(query, params, False)
+
+    # Category functions
+
+
+    # Discover/recommend functions
+    def get_user_preferences(self, user_id: int):
+        query = """
+        SELECT *
+        FROM user_preferences
+        FULL JOIN user_preference_category_linker on user_preferences.user_id = user_preference_category_linker.user_id
+        WHERE user_preferences.user_id = :user_id
+        ORDER BY rank
+        """
+        params = {'user_id': user_id}
+        return self.execute_query(query, params)
+
+    def delete_user_preferences(self, user_id: int): 
+        query = """
+        DELETE FROM user_preferences
+        WHERE user_id = :user_id
+        """
+        params = {'user_id': user_id}
+        return self.execute_query(query, params, False)
+
+    def insert_user_preferences(self, user_id: int, preferences: dict):
+        self.delete_user_preferences(user_id)
+        
+        query = """
+        INSERT INTO user_preferences(user_id, ideal_word_count, controversial_cutoff, impression_cutoff, relevancy_cutoff)
+        VALUES(:user_id, :ideal_word_count, :controversial_cutoff, :impression_cutoff, :relevancy_cutoff)
+        """
+        params = preferences
+        params['user_id'] = user_id
+        result = self.execute_query(query, params, False)
+        # if result is None:
+        return self.insert_category_rankings(user_id, preferences.get("category_ids"))
+
+    def delete_user_category_rankings(self, user_id: int):
+        query = """
+        DELETE FROM user_preference_category_linker
+        WHERE user_id = :user_id
+        """
+        params = {'user_id': user_id}
+        return self.execute_query(query, params, False)
+        
+    def insert_category_rankings(self, user_id: int, category_ids: list):
+        if category_ids is None:
+            return None
+        # First need to delete old category rankings, since don't know how user modified them
+        tmp = self.delete_user_category_rankings(user_id)
+        query = """
+        INSERT INTO user_preference_category_linker(user_id, rank, category_id)
+        VALUES (:user_id, :rank, :category_id)
+        """
+        # Need to iterate through categories, 0 index - highest rank
+        for i in range(len(category_ids)):
+            # Need to + 1 because want to have human ranking, like starting from 1
+            params = {
+                'user_id': user_id,
+                'category_id': category_ids[i],
+                'rank': i + 1
+            }
+            tmp = self.execute_query(query, params, False)
+
+        return None
+    
+    def insert_algorithm_score(self, user_id: int, blog_id: int, score: float):
+        query = """
+        INSERT INTO user_blog_algorithm_score (user_id, blog_id, is_read, score)
+        VALUES(:user_id, :blog_id, False, :score)
+        """
+        params = {"user_id" : user_id, "blog_id": blog_id, "score": score}
+        return self.execute_query(query, params, False)
+    
+    def delete_algorithm_scores_user(self, user_id):
+        query = """
+        DELETE FROM user_blog_algorithm_score
+        WHERE user_id = :user_id
+        """
+        params = {"user_id": user_id}
+        return self.execute_query(query, params, False)
+
+    # Discover/recommend functions
+    

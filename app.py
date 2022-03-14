@@ -5,6 +5,7 @@ import flask_mail
 from modules.database_interface import Database
 from modules.auth import Auth
 from modules.api import Api
+from modules.recommend import Recommend
 
 # Get database url
 database_uri = os.environ.get('DATABASE_URL')
@@ -31,13 +32,17 @@ app.config['MAIL_USE_SSL'] = True
 mail = flask_mail.Mail(app)
 
 # Initialize component classes
+
 db = Database(app)
 auth = Auth(db, mail)
+recommend = Recommend(db, auth)
 api = Api(db, auth)
+
 
 # This registers routes from external modules
 app.register_blueprint(auth.auth_api)
 app.register_blueprint(api.api)
+app.register_blueprint(recommend.recommend_api)
 
 # Index route, simply send the html doc
 
