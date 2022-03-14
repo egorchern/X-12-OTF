@@ -1,5 +1,12 @@
 let reporting_catergories = ["Promoting violence","Hateful speech"]
 
+const valid_element = (identifier, cls) => {
+    let element = $(identifier);
+    element.classList.remove("is-valid");
+    element.classList.remove("is-invalid");
+    element.classList.add(cls);
+}
+
 //puts all the html elements onto the page
 async function show_report_page(blog_id){
     //get the blog data 
@@ -24,8 +31,6 @@ async function show_report_page(blog_id){
                     <h5 class="modal-title" id="exampleModalLabel">Report Form</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <h6 style="margin-left:1.5rem; padding-bottom: 0.5rem; padding-top: 0.5rem">Blog id: ${blog_id}</h6>
-                <h6 style="margin-left: 1.5rem; padding-top: 0.5rem">Author username: ${blog_data.username}</h6>
                 <div class="modal-body">
                     <p>We take harmful content reports very seriously. 
                     Your report will be manually reviewed by an administrator.
@@ -42,9 +47,12 @@ async function show_report_page(blog_id){
                     </select>
                     <h4>Please provide more details (such as a specific sentence that you find harmful):</h4>
                     <textarea id="edit-report-body" class="form-control"></textarea>
+                    <div class="invalid-feedback" id="invalid-details">
+                        placeholder
+                    </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Submit report</button>
+                    <button type="button" class="btn btn-primary">Submit report</button>
                 </div>
             </div>
         </div>
@@ -55,22 +63,33 @@ async function show_report_page(blog_id){
     var myModal = new bootstrap.Modal($("#bigReport"), {})
     myModal.show();
     const submitBtn = document.querySelector(".modal-footer button");
-    submitBtn.addEventListener("click", () => {submit_report(blog_id)});
+    submitBtn.onclick = () => {submit_report(blog_id, myModal)};
 }
 
-async function submit_report(blog_id){
-    return fetch("/api/blog/report",{
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
+async function submit_report(blog_id, myModal){
+    let identifier_class = $("#edit-report-body").value != "" ? "is-valid" : "is-invalid";
+    if (identifier_class === "is-invalid"){
+        $("#invalid-details").innerHTML = "Please give some details";
+        valid_element("#edit-report-body", identifier_class);
+    }else{
+        let report_data = {
             blog_id: blog_id,
             report_reason: reporting_catergories[$("#report-category").selectedIndex],
             report_body: $("#edit-report-body").value
+        }
+        $("#edit-report-body").value = "";
+        valid_element("#edit-report-body", null);
+        myModal.hide();
+        return fetch("/api/blog/report",{
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(report_data)
+        }).then((result) => result.json())
+        .then((result) => {
+            return result
         })
-    }).then((result) => result.json())
-    .then((result) => {
-        return result
-    })
+
+    }
 }
