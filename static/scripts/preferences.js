@@ -28,11 +28,13 @@ async function on_save_preferences() {
     
     document.querySelectorAll("#category-rankings .draggable .category-text").forEach((category, index) => {
         let category_id = reversed_categories[category.textContent]
-        console.log(category.textContent, category_id);
+        
         preferences.category_ids.push(category_id)
-        console.log(preferences.category_ids)
+        
     })
-    
+    preferences.controversial_cutoff = $("#controversial-range").value;
+    preferences.impression_cutoff = $("#impression-range").value;
+    preferences.relevancy_cutoff = $("#relevancy-range").value;
     let temp = await edit_preferences(preferences)
     if (temp.code === 1) {
         location.reload()
@@ -122,6 +124,36 @@ let preferences_modal_domstring = `
                             
                         </ul>
                     
+                    </div>
+                    <div>
+                        <h5 style="text-align:center">Rating cut-offs</h5>
+                        <h6>Blogs above controversial limit won't be shown. For other, blogs with ratings below specified value won't be shown</h6>
+                        <div class="flex-horizontal align-center">
+                            <div class="flex-vertical align-center cutoff-container">
+                                <label for="customRange1" class="form-label">Controversial cut-off</label>
+                                <div class="flex-horizontal align-center width-full">
+                                    <input type="range" class="form-range" id="controversial-range" min="0" max="10" step="0.1">
+                                    <strong style="margin-left: 0.1em; min-width: 50px; text-align: center"></strong>
+                                </div>
+                                
+                            </div>
+                            <div class="flex-vertical align-center cutoff-container">
+                                <label for="customRange1" class="form-label">Impression cut-off</label>
+                                <div class="flex-horizontal align-center width-full">
+                                    <input type="range" class="form-range" id="impression-range" min="0" max="10" step="0.1">
+                                    <strong style="margin-left: 0.1em; min-width: 50px; text-align: center"></strong>
+                                </div>
+                                
+                            </div>
+                            <div class="flex-vertical align-center cutoff-container">
+                                <label for="customRange1" class="form-label">Relevancy cut-off</label>
+                                <div class="flex-horizontal align-center width-full">
+                                    <input type="range" class="form-range" id="relevancy-range" min="0" max="10" step="0.1">
+                                    <strong style="margin-left: 0.1em; min-width: 50px; text-align: center"></strong>
+                                </div>
+                                
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -225,6 +257,7 @@ async function toggle_preferences_modal() {
             var listItens = document.querySelectorAll('.draggable');
             [].forEach.call(listItens, function (item) {
                 item.classList.remove('over');
+                item.childNodes[2].onclick = removeItem
             });
             this.style.opacity = '1';
         }
@@ -285,7 +318,7 @@ async function toggle_preferences_modal() {
                 
                 ul.appendChild(li);
                 addEventsDragAndDrop(li);
-                console.log(li.childNodes)
+                
                 li.childNodes[2].onclick = removeItem
                 document.querySelectorAll("#newCategory-select option").forEach((element, index) => {
                     if (element.value === newItem) {
@@ -300,6 +333,27 @@ async function toggle_preferences_modal() {
 
 
     }
+    const initialize_cutoffs = () => {
+        const rangeOnInput = (event) => {
+            let target = event.target
+            
+            let element = target.parentNode.childNodes[3].textContent = target.value
+            
+        }
+        let current = $("#controversial-range")
+        current.value = preferences.controversial_cutoff
+        current.parentNode.childNodes[3].textContent = current.value
+        current.oninput = rangeOnInput
+        current = $("#impression-range")
+        current.value = preferences.impression_cutoff
+        current.parentNode.childNodes[3].textContent = current.value
+        current.oninput = rangeOnInput
+        current = $("#relevancy-range")
+        current.value = preferences.relevancy_cutoff
+        current.parentNode.childNodes[3].textContent = current.value
+        current.oninput = rangeOnInput
+        
+    }
     let temp = $("#preferences-modal")
     if (temp != undefined){
         temp.remove();
@@ -309,6 +363,7 @@ async function toggle_preferences_modal() {
     myModal.show();
     initialize_word_counts();
     initialize_categories();
+    initialize_cutoffs();
     $("#save-profile-preferences").onclick = () => {
         myModal.hide()
         on_save_preferences()
