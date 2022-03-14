@@ -722,8 +722,8 @@ class Database:
         query = """
         SELECT *
         FROM user_preferences
-        RIGHT JOIN user_preference_category_linker on user_preferences.user_id = user_preference_category_linker.user_id
-        WHERE user_preferences.user_id = 1
+        FULL JOIN user_preference_category_linker on user_preferences.user_id = user_preference_category_linker.user_id
+        WHERE user_preferences.user_id = :user_id
         ORDER BY rank
         """
         params = {'user_id': user_id}
@@ -744,7 +744,8 @@ class Database:
         INSERT INTO user_preferences(user_id, ideal_word_count, controversial_cutoff, impression_cutoff, relevancy_cutoff)
         VALUES(:user_id, :ideal_word_count, :controversial_cutoff, :impression_cutoff, :relevancy_cutoff)
         """
-        params = {'user_id': user_id} | preferences
+        params = preferences
+        params['user_id'] = user_id
         result = self.execute_query(query, params, False)
         # if result is None:
         return self.insert_category_rankings(user_id, preferences.get("category_ids"))
@@ -758,6 +759,8 @@ class Database:
         return self.execute_query(query, params, False)
         
     def insert_category_rankings(self, user_id: int, category_ids: list):
+        if category_ids is None:
+            return None
         # First need to delete old category rankings, since don't know how user modified them
         tmp = self.delete_user_category_rankings(user_id)
         query = """

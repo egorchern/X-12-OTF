@@ -26,6 +26,7 @@ class Recommend:
                 referer_info.get("user_id"),
                 data
             )
+            resp["code"] = 1
             return resp, 200
 
         @self.recommend_api.route("/api/recommendations/get_preferences", methods=["GET"])
@@ -33,7 +34,7 @@ class Recommend:
             """Gets the preferences of currently logged in user 
             Codes: 1 - succes
             2 - not logged in
-            3 - no preferences set
+           
             """
             resp = {}
             request = req
@@ -45,7 +46,8 @@ class Recommend:
 
             temp = self.db.get_user_preferences(referer_info.get("user_id"))
             if len(temp) == 0:
-                resp["code"] = 3
+                resp["code"] = 1
+                resp["data"] = {}
                 return resp, 200
 
             # Need to format the db response
