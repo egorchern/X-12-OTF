@@ -228,10 +228,26 @@ class Api:
             if report_data["user_id"] is None:
                 resp["code"] = 2
                 return resp
-            result = self.db.insert_report(report_data)
+            result = self.db.insert_blog_report(report_data)
             if result is True:
                 resp["code"] = 1
             else:
                 resp["code"] = 3
             return resp
         
+        @self.api.route("/api/user/report", methods=['POST'])
+        def report_user():
+            request = req
+            resp = {}
+            report_data = request.json
+            user_info = self.auth.get_username_and_access_level(request)
+            report_data["reporter_user_id"] = user_info.get("user_id")
+            if report_data["reporter_user_id"] is None:
+                resp["code"] = 2
+                return resp
+            result = self.db.insert_user_report(report_data)
+            if result is True:
+                resp["code"] = 1
+            else:
+                resp["code"] = 3
+            return resp

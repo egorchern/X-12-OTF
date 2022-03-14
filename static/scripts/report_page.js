@@ -9,12 +9,6 @@ const valid_element = (identifier, cls) => {
 
 //puts all the html elements onto the page
 async function show_report_page(blog_id){
-    //get the blog data 
-    let temp = await get_blog(blog_id)
-    if (temp.code != 1){
-        return null;
-    }
-    let blog_data=temp.blog_data
     //html stuff for displaying the catergories for the drop down menu
     let report_category_options_dom_string = ``
     reporting_catergories.forEach((category, index) => {
@@ -46,7 +40,7 @@ async function show_report_page(blog_id){
                         ${report_category_options_dom_string}
                     </select>
                     <h4>Please provide more details (such as a specific sentence that you find harmful):</h4>
-                    <textarea id="edit-report-body" class="form-control"></textarea>
+                    <textarea id="edit-report-body" class="form-control" maxlength = "2000"></textarea>
                     <div class="invalid-feedback" id="invalid-details">
                         placeholder
                     </div>

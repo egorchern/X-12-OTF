@@ -161,7 +161,7 @@ async function insert_profile_info(){
             </button>
             `;
             profile_control_container.insertAdjacentHTML("beforeend", report_button_domstring);
-            $('report-btn').onclick = submit_report;
+            $('#report-btn').onclick = () => {show_user_report_page(profile_info.user_id)};
         }else if(auth_info.access_level === 2){
             let ban_button_domstring = `
             <button class="btn btn-outline-danger profile-control-button flex-horizontal align-center" id="ban-btn" type="button" tabindex="0">
@@ -217,4 +217,86 @@ async function profile_main(username){
     }
 
     
+}
+
+let user_reporting_catergories = ["Numerous hateful blogs", "Inappropriate description", "Inappropriate profile picture"]
+
+async function show_user_report_page(user_id){
+    //html stuff for displaying the catergories for the drop down menu
+    let user_report_category_options_dom_string = ``
+    user_reporting_catergories.forEach((category, index) => {
+        user_report_category_options_dom_string += `
+        <option value=${index}>${category}</option>
+        `
+    })
+    //html stuff here
+    let report_domstring = `
+    <div class="modal fade" id="big_user_Report" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Report Form</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>We take harmful content reports very seriously. 
+                    Your report will be manually reviewed by an administrator.
+                    Please provide as much information as possible to make it easier to make our judgement. 
+                        <br>
+                    
+                        
+                        
+                    </p>
+                
+                    <h4>Please select why do you think this user is harmful:</h4>
+                    <select class="form-select" id="report-category">
+                        ${user_report_category_options_dom_string}
+                    </select>
+                    <h4>Please provide more details (what specifically about the user in harmful):</h4>
+                    <textarea id="edit-report-body" class="form-control" maxlength = "2000"></textarea>
+                    <div class="invalid-feedback" id="invalid-details">
+                        placeholder
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary">Submit report</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    `
+    let body = $("body");
+    body.insertAdjacentHTML("beforeend",report_domstring);
+    var myModal = new bootstrap.Modal($("#big_user_Report"), {})
+    myModal.show();
+    const submitBtn = document.querySelector(".modal-footer button");
+    submitBtn.onclick = () => {submit_user_report(user_id, myModal)};
+}
+
+async function submit_user_report(user_id, myModal){
+    let identifier_class = $("#edit-report-body").value != "" ? "is-valid" : "is-invalid";
+    if (identifier_class === "is-invalid"){
+        $("#invalid-details").innerHTML = "Please give some details";
+        valid_element("#edit-report-body", identifier_class);
+    }else{
+        let report_data = {
+            user_id: user_id,
+            report_reason: reporting_catergories[$("#report-category").selectedIndex],
+            report_body: $("#edit-report-body").value
+        }
+        $("#edit-report-body").value = "";
+        valid_element("#edit-report-body", null);
+        myModal.hide();
+        return fetch("/api/user/report",{
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(report_data)
+        }).then((result) => result.json())
+        .then((result) => {
+            return result
+        })
+
+    }
 }
