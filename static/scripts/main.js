@@ -207,6 +207,7 @@ function insert_blog_tile(
 async function get_all_blog_tiles() {
     let return_dom_string = ``
     let temp = await get_all_blog_tiles_data();
+    console.log(temp);
     if (temp.code != 1) {
         return { dom_string: "" }
     }

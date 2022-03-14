@@ -201,8 +201,8 @@ class Api:
             """
             resp = {}
             temp = self.db.get_all_blog_ids()
-            if temp is None:
-                resp["code"] = 1
+            if len(temp) == 0:
+                resp["code"] = 2
                 resp["data"] = []
                 return resp
                 
