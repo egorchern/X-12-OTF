@@ -95,7 +95,18 @@ function get_user_info() {
         });
 }
 
-
+async function register_activity(){
+    return fetch("/auth/register_activity", {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json",
+        }
+    })
+    .then((result) => result.json())
+    .then((result) => {
+        return result
+    });
+}
 
 function insert_blog_tile(
     blog_data, identifier
@@ -580,6 +591,7 @@ document.addEventListener("DOMContentLoaded", (event) => {
     }
     details_promise.then((user_details) => {
         auth_info = user_details;
+        register_activity();
         main();
     });
 
