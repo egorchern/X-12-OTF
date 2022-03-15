@@ -115,7 +115,7 @@ let preferences_modal_domstring = `
                         <div class="flex-horizontal align-center" style="margin-bottom: 2em; ">
                             <select class="form-select" id="newCategory-select" style="height: 50px; max-width: 250px;">
                             </select>
-                            <span class="material-icons" style="color: #6bb86a" id="add-category-btn">
+                            <span class="material-icons" style="color: #0d6efd" id="add-category-btn">
                             add_circle
                             </span>
                         </div>

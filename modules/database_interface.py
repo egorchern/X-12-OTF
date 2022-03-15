@@ -296,7 +296,7 @@ class Database:
         return self.execute_query(query, params)
     
     def get_blog_user_rating(self, user_id: int, blog_id: int):
-        """Returns the information about the author of the blog"""
+        """Returns the information about a blog rating for a particular blog and user"""
         query = """
         SELECT *
         FROM blog_user_ratings
@@ -465,7 +465,7 @@ class Database:
             "average_impression_rating": new_average_impression_rating,
             "average_controversial_rating": new_average_controversial_rating
         }
-        return self.execute_query(query, params)
+        return self.execute_query(query, params, False)
 
     def delete_blog_user_rating(self, user_id: int, blog_id: int):
 
@@ -480,6 +480,7 @@ class Database:
         params = {"blog_id": blog_id, "user_id": user_id}
         return self.execute_query(query, params, False)
 
+    
     # Blog functions
 
     # User functions
@@ -718,6 +719,7 @@ class Database:
 
 
     # Discover/recommend functions
+
     def get_user_preferences(self, user_id: int):
         query = """
         SELECT *
