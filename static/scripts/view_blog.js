@@ -126,6 +126,187 @@ async function delete_blog_rating(blog_id){
     })
 }
 
+async function get_posted_blog_rating(blog_id){
+    return fetch(`/api/blog/${blog_id}/get_posted_rating`, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        
+    })
+        .then((result) => result.json())
+        .then((result) => {
+            return result
+        });
+}
+
+async function parse_posted_blog_rating(blog_id){
+    let res = await get_posted_blog_rating(blog_id)
+    console.log(res)
+    switch (res.code){
+        case 1: {
+            let rating_data = res.data
+            console.log(rating_data)
+            // Already rated by user
+            let controversial_percentage = `${(rating_data.controversy_rating / rating_limit * 100).toFixed(2)}%`;
+            let relevancy_percentage = `${(rating_data.relevancy_rating / rating_limit * 100).toFixed(2)}%`;
+            let impression_percentage = `${(rating_data.impression_rating / rating_limit * 100).toFixed(2)}%`;
+            let domstring = `
+            <h4> You already rated this blog </h4>
+            <div class="blog-tile-ratings-grid width-full">
+                <div class="flex-vertical align-center">
+                    <span>Controversial: </span>
+                </div>
+                
+                <div class="bar-container">
+                    <div class="bar-fill" style="width: ${controversial_percentage};background-color:red">
+                    </div>
+                </div>
+                <div class="flex-vertical align-center">
+                    <strong>${rating_data.controversy_rating}/${rating_limit}</strong>
+                </div>
+
+                <div class="flex-vertical align-center">
+                    <span>Relevancy: </span>
+                </div>
+                <div class="bar-container">
+                    <div class="bar-fill" style="width: ${relevancy_percentage};background-color:blue">
+                    </div>
+                </div>
+                <div class="flex-vertical align-center">
+                    <strong>${rating_data.relevancy_rating}/${rating_limit}</strong>
+                </div>
+
+            
+            
+                <div class="flex-vertical align-center">
+                    <span>Impression: </span>
+                </div>
+                <div class="bar-container">
+                    <div class="bar-fill" style="width: ${impression_percentage};background-color:green">
+                    </div>
+                </div>
+                <div class="flex-vertical align-center">
+                    <strong>${rating_data.impression_rating}/${rating_limit}</strong>
+                </div>
+            </div>
+            <button id="delete-rating-btn" style="margin-top: 0.3em" class="btn btn-outline-danger profile-control-button flex-horizontal align-center">
+                <span class="material-icons">
+                    delete
+                </span>
+                Delete rating
+            </button>
+            `
+            $("#rating-container").insertAdjacentHTML("beforeend", domstring)
+            $("#delete-rating-btn").onclick = () => {on_delete_rating_click(blog_id)}
+            break;
+        }
+        case 2: {
+            // Not logged in
+            break;
+        }
+        case 3: {
+            let rateblog = `
+            <h5>Please rate this blog</h5>
+       
+            <div class="slidecontainer">
+                <div class="flex-vertical align-left" style="float:left;width:60%;">
+                    <strong>Controversy:</strong>
+                </div>
+                <div class="flex-vertical align-right" style="float:right;width:40%;">
+                    <font size="-1.5">How strongly do you feel that anything discussed was controversial?</font>
+                </div>
+                <input style="" type="range" min="0" max="10" value="5" class="ratingslider" id="controversyRange" oninput="this.nextElementSibling.value = this.value">
+                <output style="width: 4%; text-align: center;font-weight: bolder">5</output>
+                
+            </div>
+            <div class="slidecontainer">
+                <div class="flex-vertical align-left" style="float:left;width:60%">
+                    <strong>Relevancy:</strong>
+                </div>
+                <div class="flex-vertical align-right" style="float:right,width:40%">
+                    <font size="-1.5">How strongly do you feel that everything in the blog was relevant to the title, category or tags?</font>
+                </div>
+                <input style="" type="range" min="0" max="10" value="5" class="ratingslider" id="relevancyRange" oninput="this.nextElementSibling.value = this.value">
+                <output style="width: 4%; text-align: center;font-weight: bolder;">5</output>
+                
+            </div>
+            <div class="slidecontainer">
+                <div class="flex-vertical align-left" style="float:left;width:60%">
+                    <strong>Impression:</strong>
+                </div>
+                <div class="flex-vertical align-right" style="float:right,width:40%">
+                    <font size="-1.5">How likely are you to recommend this blog to others?</font>
+                </div>
+                <input style="" type="range" min="0" max="10" value="5" class="ratingslider" id="impressionRange" oninput="this.nextElementSibling.value = this.value">
+                <output style="width: 4%; text-align: center;font-weight: bolder;">5</output>
+                
+            </div>
+            
+            <button id="ratingSubmit" style="margin-top: 0.8em" class="btn btn-outline-primary profile-control-button flex-horizontal align-center">
+                Submit
+            </button>
+    
+    `
+            // Not rated by user
+            // let new_rating_domstring = `
+            // <div class="flex-vertical align-center width-full">
+            //     <label for="customRange1" class="form-label">Controversial cut-off</label>
+            //     <div class="flex-horizontal align-center width-full">
+            //         <input type="range" class="form-range" id="controversial-range" min="0" max="10" step="1">
+            //         <strong style="margin-left: 0.1em; text-align: center"></strong>
+            //     </div>
+            
+            // </div>
+            // <div class="flex-vertical align-center">
+            //     <label for="customRange1" class="form-label">Impression cut-off</label>
+            //     <div class="flex-horizontal align-center width-full">
+            //         <input type="range" class="form-range" id="impression-range" min="0" max="10" step="1">
+            //         <strong style="margin-left: 0.1em; text-align: center"></strong>
+            //     </div>
+                
+            // </div>
+            // <div class="flex-vertical align-center">
+            //     <label for="customRange1" class="form-label">Relevancy cut-off</label>
+            //     <div class="flex-horizontal align-center width-full">
+            //         <input type="range" class="form-range" id="relevancy-range" min="0" max="10" step="1">
+            //         <strong style="margin-left: 0.1em; text-align: center"></strong>
+            //     </div>
+                
+            // </div>
+            // `
+            $("#rating-container").insertAdjacentHTML("beforeend", rateblog)
+            $("#ratingSubmit").onclick = () => {on_submit_blog_rating_click(blog_id)}
+            break;
+        }
+    }
+}
+
+async function on_delete_rating_click(blog_id){
+    let res_from_delete_rating = await delete_blog_rating(blog_id);
+    if (res_from_delete_rating.code != 1){
+        return null;
+    }
+    location.reload();
+}
+
+async function on_submit_blog_rating_click(blog_id){
+    let rating_data = {
+        blog_id: blog_id,
+        controversy_rating: Number($("#controversyRange").value),
+        relevancy_rating:Number($("#relevancyRange").value),
+        impression_rating:Number($("#impressionRange").value)
+
+    }
+    let res_from_submit_rating = await submit_blog_rating(rating_data)
+    // If non valid, then user must have gone out of their way to do this, like use console, no need to show any error
+    if(res_from_submit_rating.code != 1){
+        return null
+    }
+    
+    location.reload();
+}
+
 // submit_blog_rating({
 //     controversy_rating: Math.floor(Math.random() * 10),
 //     relevancy_rating: Math.floor(Math.random() * 10),
@@ -171,7 +352,13 @@ async function render_view_blog(blog_id){
             <div>
                 <p id="blog-body"></p>
             </div>
+            
         </div>
+        <div class="flex-vertical align-center width-full" id="rating-container">
+            
+        </div>
+        
+        
     </div>
     
     `
@@ -179,6 +366,8 @@ async function render_view_blog(blog_id){
     $("#view-blog-container").insertAdjacentHTML("beforeend", view_blog_dom_string);
     $("#blog-title").insertAdjacentText("beforeend", blog_data.blog_title)
     $("#blog-body").insertAdjacentText('beforeend', blog_data.blog_body.text)
+
     insert_top_blog_info(blog_data)
+    parse_posted_blog_rating(blog_id)
     
 }

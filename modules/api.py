@@ -266,13 +266,16 @@ class Api:
             """
             request = req
             resp = {}
+            temp = request.json
+            rating_data = temp.get("rating_data")
             # We only want logged in users to be able to submit blog rating
             auth_info = self.auth.get_username_and_access_level(request)
+            author_username = self.db.get_blog_author_info(rating_data.get("blog_id"))
             if auth_info.get("username") is None:
                 resp["code"] = 3
                 return resp
-            temp = request.json
-            rating_data = temp.get("rating_data")
+            
+            
             rating_data["user_id"] = auth_info.get("user_id")
             blog_user_rating_from_db = self.db.get_blog_user_rating(
                 rating_data.get("user_id"),
@@ -307,6 +310,23 @@ class Api:
                 resp["code"] = 2
             return resp
         
-        
+        @self.api.route("/api/blog/<blog_id>/get_posted_rating", methods=["GET"])
+        def get_posted_rating(blog_id: int):
+            request = req
+            referrer_info = self.auth.get_username_and_access_level(request)
+            resp = {}
+            # If user is not logged in, then can't return their blog rating
+            if referrer_info.get("user_id") is None:
+                resp["code"] = 2
+                return resp, 401
+            
+            rating_data = self.db.get_blog_user_rating(referrer_info.get("user_id"), blog_id)
+            if len(rating_data) == 0:
+                resp["code"] = 3
+            else:
+                resp["code"] = 1
+                resp["data"] = rating_data[0]
+
+            return resp, 200
             
         
