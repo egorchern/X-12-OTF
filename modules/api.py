@@ -1,13 +1,13 @@
 from flask import Blueprint, request as req, make_response
 import json
-
+import threading
 
 class Api:
-    def __init__(self, db, auth):
+    def __init__(self, db, auth, recommend):
         self.db = db
         self.api = Blueprint("api", __name__)
         self.auth = auth
-
+        self.recommend = recommend
         @self.api.route("/api/profile/<username>", methods=["GET"])
         def get_profile_public_info(username):
             """
@@ -53,6 +53,17 @@ class Api:
                 resp["code"] = 2
             return resp
 
+        @self.api.route("/api/get_all_categories", methods=["GET"])
+        def get_categories():
+            resp = {}
+            categories = self.db.get_all_categories()
+            if isinstance(categories, str):
+                resp["code"] = 2
+            else:
+                resp["code"] = 1
+                resp["data"] = categories
+            return resp
+
         @self.api.route("/api/blog/<blog_id>", methods=["GET"])
         def get_blog(blog_id: int):
             """
@@ -95,12 +106,15 @@ class Api:
             # Need to JSON the blog body
             blog_data["blog_body"] = json.dumps(blog_data.get("blog_body"))
             result = self.db.insert_new_blog(blog_data)
-            # This means, no problems with inserting a new blog
-            if len(result) == 0:
+            # This means, problems with inserting a new blog
+            if isinstance(result, str):
+                print(result)
                 resp["code"] = 3
             else:
+                blog_id = result[0]["blog_id"]
                 resp["code"] = 1
-                resp["blog_id"] = result[0]["blog_id"]
+                resp["blog_id"] = blog_id
+                
             return resp
 
         @self.api.route("/api/blog/delete/<blog_id>", methods=["DELETE"])
@@ -163,39 +177,52 @@ class Api:
             result = self.db.update_blog(blog_data)
             if result is None:
                 resp["code"] = 1
+                x = threading.Thread(target=self.recommend.on_blog_change, args=(blog_id, ))
+                x.start()
+                
             else:
+                print(result)
                 resp["code"] = 3
 
             return resp
         
-        @self.api.route("/api/get_blog_tiles_from_blog_ids/<blog_ids>", methods=["GET"])
+        @self.api.route("/api/blog/get_blog_tiles_from_blog_ids/<blog_ids>", methods=["GET"])
         def get_blog_tiles_from_blog_ids(blog_ids):
             """
             Returns all of the existing blog tiles data in the array.
             """
+            request = req
+            referer_info = self.auth.get_username_and_access_level(request)
             blog_ids = json.loads(blog_ids)
             resp = {}
             result = self.db.get_all_blog_tile_data(tuple(blog_ids))
+            for i in range(len(result)):
+                result[i] = self.recommend.inject_algo_info(referer_info.get("user_id"), result[i])
             resp["code"] = 1
             resp["data"] = result
             return resp
 
         # For testing only
-        @self.api.route("/api/get_all_blog_tiles_data", methods=["GET"])
+        @self.api.route("/api/blog/get_all_blog_tiles_data", methods=["GET"])
         def get_all_blog_tiles_data():
             """
             Returns all of the existing blog tiles data in the array.
             """
-            
+            resp = {}
             temp = self.db.get_all_blog_ids()
+            if len(temp) == 0:
+                resp["code"] = 2
+                resp["data"] = []
+                return resp
+                
             # Need to flatten the sql output to just list of blog ids like: [1, 2]
             blog_ids = [x["blog_id"] for x in temp]
-            resp = {}
-            if len(blog_ids) == 0:
-                resp["code"] = 2
-                return resp
-            result = self.db.get_all_blog_tile_data(tuple(blog_ids))
             
+            request = req
+            referer_info = self.auth.get_username_and_access_level(request)
+            result = self.db.get_all_blog_tile_data(tuple(blog_ids))
+            for i in range(len(result)):
+                result[i] = self.recommend.inject_algo_info(referer_info.get("user_id"), result[i])
             resp["code"] = 1
             resp["data"] = result
            
@@ -217,7 +244,7 @@ class Api:
             else:
                 resp["code"] = 2
             return resp
-
+          
         @self.api.route("/api/blog/report", methods=['POST'])
         def report_blog():
             request = req
@@ -251,3 +278,88 @@ class Api:
             else:
                 resp["code"] = 3
             return resp
+        
+        @self.api.route("/api/search_blogs", methods=["GET"])
+        def search_blogs():
+            request = req
+            args = request.args
+            resp = {}
+            search_result = self.db.get_blog_ids_by_search(args)
+            # Need to flatten the sql output to just list of blog ids like: [1, 2]
+            blog_ids = [x["blog_id"] for x in search_result]
+            resp["data"] = blog_ids
+            return resp
+
+        @self.api.route("/api/blog/submit_rating", methods=["POST"])
+        def submit_rating():
+            """Submit a rating for a certain blog, only registered users allowed
+            CODES: 1 - success
+            2 - Blog does not exist
+            3 - Not logged in or author
+            4 - Already rated that blog
+            """
+            request = req
+            resp = {}
+            temp = request.json
+            rating_data = temp.get("rating_data")
+            # We only want logged in users to be able to submit blog rating
+            auth_info = self.auth.get_username_and_access_level(request)
+            author_username = self.db.get_blog_author_info(rating_data.get("blog_id"))
+            if auth_info.get("username") is None:
+                resp["code"] = 3
+                return resp
+            
+            
+            rating_data["user_id"] = auth_info.get("user_id")
+            blog_user_rating_from_db = self.db.get_blog_user_rating(
+                rating_data.get("user_id"),
+                rating_data.get("blog_id")
+            )
+            # This means user has rated that blog already
+            if len(blog_user_rating_from_db) > 0:
+                resp["code"] = 4
+                return resp
+
+            result = self.db.insert_blog_user_rating(rating_data)
+            if len(result) > 0:
+                resp["code"] = 1
+            else:
+                resp["code"] = 2
+            return resp
+        
+        @self.api.route("/api/blog/delete_rating", methods=["DELETE"])
+        def delete_rating():
+            """Deletes rating for a certain blog from certain user
+            CODES: 1 - success
+            2 - not authenticated or rating does not exist
+            """
+            request = req
+            resp = {}
+            auth_info = self.auth.get_username_and_access_level(request)
+            inpt = request.json
+            result = self.db.delete_blog_user_rating(auth_info.get("user_id"), inpt.get("blog_id"))
+            if result is None:
+                resp["code"] = 1
+            else:
+                resp["code"] = 2
+            return resp
+        
+        @self.api.route("/api/blog/<blog_id>/get_posted_rating", methods=["GET"])
+        def get_posted_rating(blog_id: int):
+            request = req
+            referrer_info = self.auth.get_username_and_access_level(request)
+            resp = {}
+            # If user is not logged in, then can't return their blog rating
+            if referrer_info.get("user_id") is None:
+                resp["code"] = 2
+                return resp, 401
+            
+            rating_data = self.db.get_blog_user_rating(referrer_info.get("user_id"), blog_id)
+            if len(rating_data) == 0:
+                resp["code"] = 3
+            else:
+                resp["code"] = 1
+                resp["data"] = rating_data[0]
+
+            return resp, 200
+            

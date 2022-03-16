@@ -8,29 +8,29 @@ window.onpopstate = (ev) => {
 };
 
 async function get_all_blog_tiles_data(){
-    return fetch("/api/get_all_blog_tiles_data", {
+    return fetch("/api/blog/get_all_blog_tiles_data", {
         method: "GET",
         headers: {
             "Content-Type": "application/json",
         }
     })
-    .then((result) => result.json())
-    .then((result) => {
-        return result
-    });
+        .then((result) => result.json())
+        .then((result) => {
+            return result
+        });
 }
 
 async function get_certain_blog_tiles_data(blog_ids){
-    return fetch(`/api/get_blog_tiles_from_blog_ids/${JSON.stringify(blog_ids)}`, {
+    return fetch(`/api/blog/get_blog_tiles_from_blog_ids/${JSON.stringify(blog_ids)}`, {
         method: "GET",
         headers: {
             "Content-Type": "application/json",
         }
     })
-    .then((result) => result.json())
-    .then((result) => {
-        return result
-    });
+        .then((result) => result.json())
+        .then((result) => {
+            return result
+        });
 }
 
 // Jquery like selection, because I like it
@@ -95,62 +95,70 @@ function get_user_info() {
         });
 }
 
-function get_blog_tile(
-    name,
-    date_created,
-    word_count,
-    category,
-    title,
-    blog_id,
-    avatar_image_id,
-    views,
-    controversial_rating = Math.random() * rating_limit,
-    relevancy_rating = Math.random() * rating_limit,
-    impression_rating = Math.random() * rating_limit,
-    tags = []
+async function register_activity(){
+    return fetch("/auth/register_activity", {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json",
+        }
+    })
+    .then((result) => result.json())
+    .then((result) => {
+        return result
+    });
+}
+
+function insert_blog_tile(
+    blog_data, identifier
 ) {
     // <div class="flex-vertical align-center">
     //                 <span>Date created:</span>
     //                 <strong>${date_created}</strong>
     //             </div>
-    controversial_rating = Number(controversial_rating.toFixed(1))
-    relevancy_rating = Number(relevancy_rating.toFixed(1))
-    impression_rating = Number(impression_rating.toFixed(1))
-    let controversial_percentage = `${(controversial_rating / rating_limit * 100).toFixed(2)}%`;
-    let relevancy_percentage = `${(relevancy_rating / rating_limit * 100).toFixed(2)}%`;
-    let impression_percentage = `${(impression_rating / rating_limit * 100).toFixed(2)}%`;
+    blog_data.average_controversial_rating = Number(blog_data.average_controversial_rating.toFixed(1))
+    blog_data.average_relevancy_rating = Number(blog_data.average_relevancy_rating.toFixed(1))
+    blog_data.average_impression_rating = Number(blog_data.average_impression_rating.toFixed(1))
+    let controversial_percentage = `${(blog_data.average_controversial_rating / rating_limit * 100).toFixed(2)}%`;
+    let relevancy_percentage = `${(blog_data.average_relevancy_rating / rating_limit * 100).toFixed(2)}%`;
+    let impression_percentage = `${(blog_data.average_impression_rating / rating_limit * 100).toFixed(2)}%`;
     let blog_tile_dom_string = `
-    <div class="blog-tile animate__animated animate__fadeIn" id="blog-tile-${blog_id}" onclick="change_page_state('/blog/${blog_id}')">
+    <div class="blog-tile animate__animated animate__fadeIn" id="blog-tile-${blog_data.blog_id}" onclick="change_page_state('/blog/${blog_data.blog_id}')">
         <div class="blog-tile-top">
             <div class="flex-vertical align-center blog-tile-left" style="word-break:break-all">
-                <img class="author-avatar" src="/images/avatar_${avatar_image_id}.webp">
+                <img class="author-avatar" src="/images/avatar_${blog_data.avatar_image_id}.webp">
                 <div class="flex-vertical align-center">
                     <span>Created by:</span>
-                    <strong>${name}</strong>
+                    <strong class="username"></strong>
                 </div>
                 
                 <div class="flex-vertical align-center">
                     <span>Word count:</span>
-                    <strong>${word_count}</strong>
+                    <strong>${blog_data.word_count}</strong>
                 </div>
                 
                 <div class="flex-vertical align-center">
                     <span>Views:</span>
-                    <strong>${views}</strong>
+                    <strong>${blog_data.views}</strong>
                 </div>
             </div>
             <div>
                 <div class="flex-vertical align-center blog-tile-right height-full">
                     <div class="flex-horizontal align-center width-full">
-                        <h5 style="flex-grow:1; text-align:center;">
-                            ${category}
+                        <h5 style="flex-grow:1; text-align:center;" class="category">
+                            
                         </h5>
                         
                         <img src="/images/flag.png" class="controversy-flag" style="opacity: ${controversial_percentage}">
                     </div>
-                    <h4 style="text-align: center">
-                        ${title}
-                    </h4>
+                    <div class="flex-horizontal align-center width-full">
+                        <h4 style="text-align: center; flex-grow: 1" class="blog-title">
+                            
+                        </h4>
+                        <span style="font-size: 0.9em; text-align: center">
+                            (№ ratings: <strong>${blog_data.number_ratings}</strong>)
+                        </span>
+                    </div>
+                    
                     <div class="blog-tile-ratings-grid width-full">
 
                     
@@ -163,7 +171,7 @@ function get_blog_tile(
                             </div>
                         </div>
                         <div class="flex-vertical align-center">
-                            <strong>${controversial_rating}/${rating_limit}</strong>
+                            <strong>${blog_data.average_controversial_rating}/${rating_limit}</strong>
                         </div>
                         
 
@@ -177,7 +185,7 @@ function get_blog_tile(
                             </div>
                         </div>
                         <div class="flex-vertical align-center">
-                            <strong>${relevancy_rating}/${rating_limit}</strong>
+                            <strong>${blog_data.average_relevancy_rating}/${rating_limit}</strong>
                         </div>
 
                     
@@ -190,7 +198,7 @@ function get_blog_tile(
                             </div>
                         </div>
                         <div class="flex-vertical align-center">
-                            <strong>${impression_rating}/${rating_limit}</strong>
+                            <strong>${blog_data.average_impression_rating}/${rating_limit}</strong>
                         </div>
 
                     </div>
@@ -201,26 +209,36 @@ function get_blog_tile(
         </div>
     </div>
     `;
-    return blog_tile_dom_string;
+    $(identifier).insertAdjacentHTML("beforeend", blog_tile_dom_string);
+    $(`#blog-tile-${blog_data.blog_id} .username`).insertAdjacentText("beforeend", blog_data.username)
+    $(`#blog-tile-${blog_data.blog_id} .category`).insertAdjacentText("beforeend", categories_hashmap[blog_data.category_id])
+    $(`#blog-tile-${blog_data.blog_id} .blog-title`).insertAdjacentText("beforeend", blog_data.blog_title)
 }
 
-async function get_all_blog_tiles(){
+async function get_all_blog_tiles() {
     let return_dom_string = ``
     let temp = await get_all_blog_tiles_data();
-    if (temp.code != 1){
-        return {dom_string: ""}
+    
+    if (temp.code != 1) {
+        return { dom_string: "" }
     }
-    console.log(temp);
+    
     let all_blog_tiles_data = temp.data
-    all_blog_tiles_data.forEach((blog_data, index) => {
-        return_dom_string += get_blog_tile(blog_data.username, blog_data.date_created, blog_data.word_count, blog_data.category, blog_data.blog_title, blog_data.blog_id, blog_data.avatar_image_id, blog_data.views)
+    
+    all_blog_tiles_data.sort((a, b) => {
+        return b.algorithm_info.score - a.algorithm_info.score
     })
-    return {dom_string: return_dom_string, data: all_blog_tiles_data}
+    console.log(all_blog_tiles_data)
+    all_blog_tiles_data.forEach((blog_data, index) => {
+        insert_blog_tile(blog_data, "#blog_tiles")
+    })
+    return { dom_string: return_dom_string, data: all_blog_tiles_data }
 }
 
 // This changes page state depending on the url. So makes possible to go straight to some page
 function initialize_page_state() {
     let path = document.location.pathname;
+    
     if (path === "/") {
         change_page_state("/home");
     } else if (path === "/home") {
@@ -231,10 +249,15 @@ function initialize_page_state() {
         change_page_state(path);
     } else if (/^\/edit_blog\/\d+$/.test(path)) {
         change_page_state(path);
-    } else if(/^\/blog\/\d+$/.test(path)){
+    } else if (/^\/blog\/\d+$/.test(path)) {
         change_page_state(path)
+    } else if (/^\/recover_password\/(?<user_id>\d+)\/(?<recovery_token>.+)$/.test(path)) {
+        change_page_state(path);
+    } else if (path === "/aboutus") {
+        change_page_state("/aboutus");
+    } else if(/^\/search$/.test(path)){
+        change_page_state(path + location.search);
     }
-    
 }
 
 /*
@@ -248,14 +271,16 @@ Page States:
 "/blog/<blog_id>": View blog
 */
 async function change_page_state(new_state) {
-    console.log(page_state, new_state);
     // If trying to switch to the same state, no need to do anything
     if (new_state === page_state) {
         return null;
     }
+    console.log(page_state + " -> " + new_state);
     page_state = new_state;
+
     // Remove all elements from main
     let main_html = delete_dom_children("main");
+    remove_alert();
     if (new_state === "/login") {
         let login_domstring = `
             <div class='login-page-container flex-vertical align-center'>
@@ -270,7 +295,8 @@ async function change_page_state(new_state) {
         `;
         history.pushState({ page_state: page_state }, null, "/login-register");
         main_html.insertAdjacentHTML("beforeend", login_domstring);
-        switch_login_page_state();
+        change_login_page_state("login");
+
     } else if (new_state === "/home") {
         let create_blog_dom_string = `
         <button class="btn btn-outline-primary profile-control-button flex-horizontal align-center" id="create-blog-btn" type="button" tabindex="0">
@@ -284,6 +310,7 @@ async function change_page_state(new_state) {
         let home_domstring = `
         <div id="home-container">
             ${(auth_info.username != null) ? create_blog_dom_string : ""}
+            <h2 style="text-align:center">All blogs sorted by recommendation strength</h2>
             <div class="flex-horizontal align-center margin-children flex-wrap" id="blog_tiles">
                 
             </div>
@@ -293,26 +320,26 @@ async function change_page_state(new_state) {
         history.pushState({ page_state: page_state }, null, "/home");
         main_html.insertAdjacentHTML("beforeend", home_domstring);
         if (auth_info.username != null) {
-            $("#create-blog-btn").onclick = async function() {
+            $("#create-blog-btn").onclick = async function () {
                 let result = await create_blog(
                     {
                         blog_body: { text: "Default" },
                         blog_title: "Default",
-                        category: "testing",
+                        category_id: categories_object[0].category_id,
                         word_count: 1
                     }
                 )
-                if (result.code === 1){
+                if (result.code === 1) {
                     change_page_state(`/edit_blog/${result.blog_id}`);
                 }
-                
-                
+
+
             }
         }
-        let blog_tiles = await get_all_blog_tiles();
-        console.log(blog_tiles);
-        $("#blog_tiles").insertAdjacentHTML("beforeend", blog_tiles.dom_string);
+        get_all_blog_tiles();
         
+        
+
 
 
     } else if (/^\/profile\/.+$/.test(new_state)) {
@@ -323,11 +350,17 @@ async function change_page_state(new_state) {
         }
         let username = temp.groups.username;
         let profile_domstring = `
-            <div id="profile-container" class="animate__animated animate__fadeIn">
-                <div id="profile-control-container" >
-                </div>
+        <div class="flex-vertical">
+        
+            <div id="profile-control-container" >
+            </div>
+            <div id="profile-container" class="animate__animated animate__fadeIn width-full">
+                
                 <div class="profile-header-container flex-vertical align-center">
-                    <img id="avatar-img">
+                    <div id="profile-avatar-container" class="flex-vertical align-center">  
+                        <img id="avatar-img">
+                    </div>
+                    
                     <h4 id="username-text"></h4>
                     <h5 id="date-created"></h5>
                     <h5 id="date-last-accessed"></h5>
@@ -340,7 +373,7 @@ async function change_page_state(new_state) {
                 </div>
                 <div class="flex-vertical align-center" style="grid-column: 1 / 3;">
                     
-                    <h3 style="flex-grow:1; text-align: center">Authored Blogs</h3>
+                    <h3 style="text-align: center">Authored Blogs</h3>
                     <span class="width-full flex-horizontal" style="justify-content:flex-end">Blogs shown: <strong id="blogs-shown" style="margin-left:2px">?/?</strong></span>
                     
                     
@@ -349,6 +382,7 @@ async function change_page_state(new_state) {
                     </div>
                 </div>
             </div>
+        </div>
         `;
         history.pushState(
             { page_state: page_state },
@@ -373,7 +407,7 @@ async function change_page_state(new_state) {
         main_html.insertAdjacentHTML("beforeend", edit_blog_dom_string);
         render_edit_blog(blog_id);
     }
-    else if(/^\/blog\/\d+$/.test(new_state)){
+    else if (/^\/blog\/\d+$/.test(new_state)) {
         let temp = /^\/blog\/(?<blog_id>\d+)$/.exec(new_state);
         if (temp === null) {
             return null;
@@ -387,6 +421,104 @@ async function change_page_state(new_state) {
         main_html.insertAdjacentHTML("beforeend", view_blog_dom_string);
         render_view_blog(blog_id);
 
+    }
+    else if (/^\/recover_password\/(?<user_id>\d+)\/(?<recovery_token>.+)$/.test(new_state)) {
+        let temp = /^\/recover_password\/(?<user_id>\d+)\/(?<recovery_token>.+)$/.exec(new_state);
+        if (temp === null) {
+            return null;
+        }
+        let user_id = temp.groups.user_id;
+        let recovery_token = temp.groups.recovery_token;
+        let recover_password_dom_string = `
+        <div class='login-page-container flex-vertical align-center'>
+            <div class="auth-grid">
+                <div id="alert-box" class="flex-vertical align-center">
+                    
+                </div>
+                
+            </div>
+                
+        </div>
+        `
+        history.pushState({ page_state: page_state }, null, `/recover_password/${user_id}/${recovery_token}`);
+        main_html.insertAdjacentHTML("beforeend", recover_password_dom_string);
+        render_recover_password(user_id, recovery_token);
+    }
+    else if (new_state === "/aboutus") {
+        let aboutus = `
+        <div class="section">
+        <div class="container">
+            <div class="content-section">
+                <div class="header">
+                    <a href="/">
+                    <div class="nav-logo-container flex-horizontal">
+                    <img src="/images/logo.webp" alt="OpenThoughtFloor logo">
+                    </div>
+                    <h1>Open Thought Floor</h1>
+                    </a>
+                    <i class="fa-regular fa-user fa-lg"></i>
+                    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+                </div>
+                <div class="about-us">
+                    <h2>About Us</h2>
+                    <p>OTF is a user-curated, metadata-rich, freedom of speech oriented blogging platform.
+                        OTF offers a light, clean, elegant interface for you to have the most incredible reading
+                        experience. Our team aims to provide the most functional blogging platform in the world, typically
+                        with
+                        <span class="br"></span>
+                        <ul>
+                            <li>
+                                User Ratings
+                            </li>
+                            <li>
+                                Extensive blog content customization
+                            </li>
+                            <li>
+                                Accurate recommendations
+                            </li>
+                            <li>
+                                Comments, etc.
+                            </li>
+                        </ul>
+                        Users have options to choose the right blog for them based on the author’s
+                        profile and other users’ ratings. OTF will be officially launched soon.</p>
+                </div>
+                <div class="team-members">
+                    <h2>Our Team</h2>
+                    <h3>Egor Chernyshev</h3>
+                    <h3>Henry Bowman</h3>
+                    <h3>Archawudh Eamsureya</h3>
+                    <h3>Bryn Dowton</h3>
+                    <h3>Daniel Gobel</h3>
+                    <h3>Junle Yu</h3>
+                    <h3>Arun John</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+        `
+        history.pushState({ page_state: page_state }, null, "/aboutus");
+        main_html.insertAdjacentHTML("beforeend", aboutus);
+    }
+    else if(/^\/search\?(?<search_query>.*)$/.test(new_state)){
+        let temp = /^\/search\?(?<search_query>.*)$/.exec(new_state)
+        if (temp === null) {
+            return null;
+        }
+        let search_domstring = `
+        <div id="search-page" class="flex-vertical align-center">
+            <h3 style="text-align: center">Search results</h3>
+            <span class="width-full flex-horizontal" style="justify-content:flex-end">Blogs shown: <strong id="blogs-shown" style="margin-left:2px">?/?</strong></span>
+            <div id="authored-blogs-container" class="flex-horizontal align-center flex-wrap">
+                        
+            </div>
+        </div>
+        
+        `
+        let search_query = temp.groups.search_query
+        history.pushState({ page_state: page_state }, null, new_state);
+        main_html.insertAdjacentHTML("beforeend", search_domstring);
+        render_search_page(search_query);
     }
 }
 
@@ -431,6 +563,14 @@ async function main() {
     $("#home-btn").onclick = () => {
         change_page_state("/home");
     };
+    $("#about-us-btn").onclick = () => {
+        change_page_state("/aboutus");
+    };
+    $("#search-bar").onsubmit = (ev) => 
+    {
+        ev.preventDefault();
+        on_simple_search_click()
+    };
     initialize_page_state();
 }
 
@@ -440,8 +580,24 @@ let details_promise = get_user_info();
 // When all static content is loaded
 document.addEventListener("DOMContentLoaded", (event) => {
     // need to have details ready before executing main
+    if (shouldShowPopup()) {
+        switchcookie();
+    }
+    // If agree to google analytics, then initiate google magic
+    if (storage_cookie.getItem("analytics_accepted_value") === "Yes") {
+        var my_awesome_script = document.createElement('script');
+
+        my_awesome_script.setAttribute('src', 'https://www.googletagmanager.com/gtag/js?id=G-GSB3D915WS%27');
+
+        document.head.appendChild(my_awesome_script);
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'G-GSB3D915WS');
+    }
     details_promise.then((user_details) => {
         auth_info = user_details;
+        register_activity();
         main();
     });
 

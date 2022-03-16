@@ -18,29 +18,25 @@
     crossorigin="anonymous"></script>
   <link rel="icon" href="/images/logo.webp">
   <link rel="stylesheet" href="/styles/main.css">
+  <link rel="stylesheet" href="/styles/allcookies.css">
+  <link rel="stylesheet" href="/styles/aboutus.css">
   <link rel="stylesheet" href="/styles/login.css">
   <link rel="stylesheet" href="/styles/profile.css">
   <link rel="stylesheet" href="/styles/blog.css">
+  <link rel="stylesheet" href="/styles/spinner.css">
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <script src="/scripts/main.js"></script>
   <script src="/scripts/login.js"></script>
   <script src="/scripts/profile.js"></script>
   <script src="/scripts/edit_blog.js"></script>
   <script src="/scripts/view_blog.js"></script>
-  <script src="/scripts/report_page.js"></script>
 
-  <!-- Global site tag (gtag.js) - Google Analytics -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GSB3D915WS"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag() { dataLayer.push(arguments); }
-    gtag('js', new Date());
-
-    gtag('config', 'G-GSB3D915WS');
-  </script>
+  <script src="/scripts/cookie.js"></script>
+  <script src="/scripts/search.js"></script>
+  <script src="/scripts/preferences.js"></script>
 </head>
 
-<body class="flex-vertical">
+<body class="flex-vertical" id="main">
   <nav>
 
     <div class="flex-vertical align-center">
@@ -58,16 +54,18 @@
       <span class="nav-heading">Home</span>
     </button>
     <div class="nav-item-container flex-vertical search-bar-container">
-      <div class="nav-search-bar flex-horizontal">
+      <form class="nav-search-bar flex-horizontal" id="search-bar">
         <button type="button" class="advanced-search-button flex-vertical align-center btn btn-primary"
           role="navigation" tabindex="0">
           Advanced search
         </button>
         <input type="text" class="form-control" id="quick-search-input">
-        <span class="material-icons" id="search-icon" role="button" tabindex="0">
-          search
-        </span>
-      </div>
+        <button type="submit" class="flex-vertical align-center">
+          <span class="material-icons" id="search-icon" role="button" tabindex="0">
+            search
+          </span>
+        </button>
+      </form>
     </div>
     <button class="nav-item-container nav-button flex-horizontal" role="navigation" tabindex="0">
 
@@ -90,7 +88,7 @@
     </div>
     -->
   </nav>
-  <main >
+  <main>
 
 
 
