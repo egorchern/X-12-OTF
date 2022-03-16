@@ -31,7 +31,7 @@ class Recommend:
             resp["code"] = 1
             x = threading.Thread(target=self.on_user_preferences_change, args=(user_id, ))
             x.start()
-            self.on_user_preferences_change(user_id)
+            
             return resp, 200
 
         @self.recommend_api.route("/api/recommendations/get_preferences", methods=["GET"])
@@ -111,10 +111,15 @@ class Recommend:
         for entry in temp:
             # Categories are sorted by rank already, so just sequentially append them
             category_ids.append(entry.get("category_id"))
-        category_index = category_ids.index(blog_info.get("category_id"))
-        
-        categories_count = self.db.get_categories_count()[0].get("count") + 1
-        category_rank = abs(category_index - categories_count)
+        category_index = -1
+        for i in range(len(category_ids)):
+            if category_ids[i] == blog_info.get("category_id"):
+                category_index = i
+                break
+        category_rank = 0
+        if category_index != -1:
+            categories_count = self.db.get_categories_count()[0].get("count") + 1
+            category_rank = abs(category_index - categories_count)
         # Customize the score for the particular user and their preferences
         CATEGORY_MATCH_FACTOR = 10
         WORD_COUNT_MAX_SCORE = 15

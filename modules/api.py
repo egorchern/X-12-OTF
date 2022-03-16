@@ -179,7 +179,7 @@ class Api:
                 resp["code"] = 1
                 x = threading.Thread(target=self.recommend.on_blog_change, args=(blog_id, ))
                 x.start()
-                self.recommend.on_blog_change(blog_id)
+                
             else:
                 print(result)
                 resp["code"] = 3

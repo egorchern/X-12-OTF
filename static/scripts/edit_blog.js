@@ -130,9 +130,12 @@ async function render_edit_blog(blog_id){
     }
     let blog_data = temp.blog_data;
     let category_options_dom_string = ``
-    categories.forEach((category, index) => {
+    
+    Object.keys(categories_hashmap).forEach((category_key, index) => {
+        let category = categories_hashmap[category_key];
+        
         category_options_dom_string += `
-        <option ${blog_data.category === category ? "selected": ""} value=${index}>${category}</option>
+        <option ${blog_data.category_id == category_key ? "selected": ""} value=${index}>${category}</option>
         `
     })
     
