@@ -95,7 +95,18 @@ function get_user_info() {
         });
 }
 
-
+async function register_activity(){
+    return fetch("/auth/register_activity", {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json",
+        }
+    })
+    .then((result) => result.json())
+    .then((result) => {
+        return result
+    });
+}
 
 function insert_blog_tile(
     blog_data, identifier
@@ -207,12 +218,17 @@ function insert_blog_tile(
 async function get_all_blog_tiles() {
     let return_dom_string = ``
     let temp = await get_all_blog_tiles_data();
-    console.log(temp);
+    
     if (temp.code != 1) {
         return { dom_string: "" }
     }
     
     let all_blog_tiles_data = temp.data
+    
+    all_blog_tiles_data.sort((a, b) => {
+        return b.algorithm_info.score - a.algorithm_info.score
+    })
+    console.log(all_blog_tiles_data)
     all_blog_tiles_data.forEach((blog_data, index) => {
         insert_blog_tile(blog_data, "#blog_tiles")
     })
@@ -294,6 +310,7 @@ async function change_page_state(new_state) {
         let home_domstring = `
         <div id="home-container">
             ${(auth_info.username != null) ? create_blog_dom_string : ""}
+            <h2 style="text-align:center">All blogs sorted by recommendation strength</h2>
             <div class="flex-horizontal align-center margin-children flex-wrap" id="blog_tiles">
                 
             </div>
@@ -580,6 +597,7 @@ document.addEventListener("DOMContentLoaded", (event) => {
     }
     details_promise.then((user_details) => {
         auth_info = user_details;
+        register_activity();
         main();
     });
 

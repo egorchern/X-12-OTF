@@ -36,7 +36,7 @@ mail = flask_mail.Mail(app)
 db = Database(app)
 auth = Auth(db, mail)
 recommend = Recommend(db, auth)
-api = Api(db, auth)
+api = Api(db, auth, recommend)
 
 
 # This registers routes from external modules
@@ -114,4 +114,4 @@ def get_all_users():
 
 # Run the flask server
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, threaded=True)

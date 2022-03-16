@@ -1,13 +1,13 @@
 from flask import Blueprint, request as req, make_response
 import json
-
+import threading
 
 class Api:
-    def __init__(self, db, auth):
+    def __init__(self, db, auth, recommend):
         self.db = db
         self.api = Blueprint("api", __name__)
         self.auth = auth
-
+        self.recommend = recommend
         @self.api.route("/api/profile/<username>", methods=["GET"])
         def get_profile_public_info(username):
             """
@@ -106,13 +106,15 @@ class Api:
             # Need to JSON the blog body
             blog_data["blog_body"] = json.dumps(blog_data.get("blog_body"))
             result = self.db.insert_new_blog(blog_data)
-            # This means, no problems with inserting a new blog
+            # This means, problems with inserting a new blog
             if isinstance(result, str):
                 print(result)
                 resp["code"] = 3
             else:
+                blog_id = result[0]["blog_id"]
                 resp["code"] = 1
-                resp["blog_id"] = result[0]["blog_id"]
+                resp["blog_id"] = blog_id
+                
             return resp
 
         @self.api.route("/api/blog/delete/<blog_id>", methods=["DELETE"])
@@ -175,6 +177,9 @@ class Api:
             result = self.db.update_blog(blog_data)
             if result is None:
                 resp["code"] = 1
+                x = threading.Thread(target=self.recommend.on_blog_change, args=(blog_id, ))
+                x.start()
+                
             else:
                 print(result)
                 resp["code"] = 3
@@ -186,9 +191,13 @@ class Api:
             """
             Returns all of the existing blog tiles data in the array.
             """
+            request = req
+            referer_info = self.auth.get_username_and_access_level(request)
             blog_ids = json.loads(blog_ids)
             resp = {}
             result = self.db.get_all_blog_tile_data(tuple(blog_ids))
+            for i in range(len(result)):
+                result[i] = self.recommend.inject_algo_info(referer_info.get("user_id"), result[i])
             resp["code"] = 1
             resp["data"] = result
             return resp
@@ -209,9 +218,11 @@ class Api:
             # Need to flatten the sql output to just list of blog ids like: [1, 2]
             blog_ids = [x["blog_id"] for x in temp]
             
-
+            request = req
+            referer_info = self.auth.get_username_and_access_level(request)
             result = self.db.get_all_blog_tile_data(tuple(blog_ids))
-            
+            for i in range(len(result)):
+                result[i] = self.recommend.inject_algo_info(referer_info.get("user_id"), result[i])
             resp["code"] = 1
             resp["data"] = result
            

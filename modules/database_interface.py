@@ -38,7 +38,6 @@ class Database:
                 username character varying(40) NOT NULL,
                 email character varying(254) NOT NULL,
                 password_hash text NOT NULL,
-                date_of_birth date NOT NULL,
                 date_last_accessed date NOT NULL,
                 avatar_image_id integer NOT NULL DEFAULT 1,
                 access_level integer NOT NULL DEFAULT 0,
@@ -536,10 +535,10 @@ class Database:
         params = user_info
         return self.execute_query(query, params, False)
 
-    def get_all_users(self):
+    def get_all_user_ids(self):
         """Returns information about all users. Delete after testing"""
         query = """
-        SELECT *
+        SELECT user_id
         FROM users
         """
         return self.execute_query(query)
@@ -548,8 +547,8 @@ class Database:
         """Insert new user into database
         """
         query = """
-        INSERT INTO users(username, email, password_hash, date_of_birth, date_created, date_last_accessed, avatar_image_id, access_level)
-                VALUES(:username, :email, :password_hash, :date_of_birth, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, :avatar_image_id, :access_level)
+        INSERT INTO users(username, email, password_hash, date_created, date_last_accessed, avatar_image_id, access_level)
+                VALUES(:username, :email, :password_hash, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, :avatar_image_id, :access_level)
         """
         default_avatar_image_id = 1
         params = {
@@ -714,6 +713,13 @@ class Database:
         params = {'category_text': category_text}
         return self.execute_query(query, params, False)
 
+    def get_categories_count(self):
+        query = """
+        SELECT COUNT(*) 
+        FROM categories
+        """
+        return self.execute_query(query)
+
     # Category functions
 
 
@@ -794,6 +800,32 @@ class Database:
         """
         params = {"user_id": user_id}
         return self.execute_query(query, params, False)
+
+    def delete_all_algo_scores_blog(self, blog_id: int):
+        query = """
+        DELETE FROM user_blog_algorithm_score
+        WHERE blog_id = :blog_id
+        """
+        params = {"blog_id": blog_id}
+        self.execute_query(query, params, False)
+    
+    def delete_all_algo_scores_user(self, user_id: int):
+        query = """
+        DELETE FROM user_blog_algorithm_score
+        WHERE user_id = :user_id
+        """
+        params = {"user_id": user_id}
+        self.execute_query(query, params, False)
+    
+    def get_algo_info(self, user_id: int, blog_id: int):
+        query = """
+        SELECT score, is_read
+        FROM user_blog_algorithm_score
+        WHERE user_id = :user_id AND blog_id = :blog_id
+        LIMIT 1;
+        """
+        params = {"user_id": user_id, "blog_id": blog_id}
+        return self.execute_query(query, params)
 
     # Discover/recommend functions
     

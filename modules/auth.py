@@ -135,6 +135,21 @@ class Auth:
         def route_check_recovery_link_status(user_id: int, recovery_token: str):
             return self.get_recovery_link_status(user_id, recovery_token)
 
+        @self.auth_api.route("/auth/register_activity", methods=["PUT"])
+        def registerer_activity():
+            request = req
+            referrer_info = self.get_username_and_access_level(request)
+            resp = {}
+            if referrer_info.get("user_id") is None:
+                resp["code"] = 1
+                return resp, 200
+            result = self.db.update_user_last_accessed(referrer_info.get("user_id"))
+            if result is None:
+                resp["code"] = 1
+                return resp, 200
+            resp["code"] = 2
+            return resp, 404
+            
     # Hash password
     def hash(self, text: str) -> str:
         """Returns a hashed text"""
