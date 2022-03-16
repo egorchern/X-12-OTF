@@ -151,7 +151,7 @@ async function insert_profile_info(){
         $('#edit-btn').onclick = toggle_edit_state;
     }
     else{
-        if(auth_info.access_level === 1){
+        if(auth_info.access_level === 1 && auth_info.username != null){
             let report_button_domstring = `
             <button class="btn btn-outline-danger profile-control-button flex-horizontal align-center" id="report-btn">
                 <span class="material-icons">

@@ -119,7 +119,7 @@ async function render_view_blog(blog_id){
     let view_blog_dom_string = `
     <div id="blog-buttons-container" class="flex-horizontal align-end width-full">
        ${auth_info.user_id === blog_data.author_user_id ? edit_button_domstring : ""}
-       ${auth_info.user_id != blog_data.author_user_id ? report_button_domstring : ""}
+       ${auth_info.user_id != blog_data.author_user_id && auth_info.username != null? report_button_domstring : ""}
     </div>
     <div id="top-blog-info-container">
         ${get_top_blog_info(blog_data)}
