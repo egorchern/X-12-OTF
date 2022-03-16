@@ -330,7 +330,7 @@ async function render_view_blog(blog_id){
         </button>
     `;
     let report_button_domstring = `
-        <button class="btn btn-outline-danger profile-control-button flex-horizontal align-center">
+        <button id="report-blog-btn" class="btn btn-outline-danger profile-control-button flex-horizontal align-center">
             <span class="material-icons">
                 gavel
             </span>
@@ -340,7 +340,7 @@ async function render_view_blog(blog_id){
     let view_blog_dom_string = `
     <div id="blog-buttons-container" class="flex-horizontal align-end width-full">
        ${auth_info.user_id === blog_data.author_user_id ? edit_button_domstring : ""}
-       ${auth_info.user_id != blog_data.author_user_id ? report_button_domstring : ""}
+       ${auth_info.user_id != blog_data.author_user_id && auth_info.username != null? report_button_domstring : ""}
     </div>
     <div id="top-blog-info-container">
         
@@ -364,6 +364,19 @@ async function render_view_blog(blog_id){
     `
     
     $("#view-blog-container").insertAdjacentHTML("beforeend", view_blog_dom_string);
+
+    if (auth_info.user_id === blog_data.author_user_id){
+        $("#edit-blog-btn").onclick = () => {change_page_state(`/edit_blog/${blog_id}`)};
+    }else{
+        //applies the change page state function to the report button which makes the page change to the report page
+        $('#report-blog-btn').onclick = () => {show_report_page(blog_id)};
+    }
+    $("#author_hyperlink").onclick = () => {change_page_state(`/profile/${blog_data.username}`)}
+}
+
+
+//submit_report(6, "Test", "Some reason")
+
     $("#blog-title").insertAdjacentText("beforeend", blog_data.blog_title)
     $("#blog-body").insertAdjacentText('beforeend', blog_data.blog_body.text)
 
@@ -371,3 +384,4 @@ async function render_view_blog(blog_id){
     parse_posted_blog_rating(blog_id)
     
 }
+
