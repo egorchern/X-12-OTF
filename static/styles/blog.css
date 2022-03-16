@@ -89,3 +89,73 @@
     max-width: 750px;
     margin: auto;
 }
+ 
+.slidecontainer {
+    width: 90%; /* Width of the outside container */
+  }
+ 
+  /* The slider itself */
+.ratingslider {
+    -webkit-appearance: none;  /* Override default CSS styles */
+    appearance: none;
+    width: 95%; /* Full-width */
+    height: 10px; /* Specified height */
+    background: #d3d3d3; /* Grey background */
+    outline: none; /* Remove outline */
+    opacity: 0.8; /* Set transparency (for mouse-over effects on hover) */
+    -webkit-transition: .2s; /* 0.2 seconds transition on hover */
+    transition: opacity .2s;
+   
+}
+
+#ratingSubmit {
+    padding: 4px 26px;
+}
+
+  /* Mouse-over effects */
+.ratingslider:hover {
+    opacity: 1; /* Fully shown on mouse-over */
+}
+ 
+/* The slider handle (use -webkit- (Chrome, Opera, Safari, Edge) and -moz- (Firefox) to override default look) */
+.ratingslider::-webkit-slider-thumb {
+    -webkit-appearance: none; /* Override default look */
+    appearance: none;
+    width: 20px; /* Set a specific slider handle width */
+    height: 20px; /* Slider handle height */
+    border-radius: 50%;
+    background: #0c6eb9; /* Blue background */
+    cursor: pointer; /* Cursor on hover */
+}
+ 
+.ratingslider::-moz-range-thumb {
+    width: 20px; /* Set a specific slider handle width */
+    height: 20px; /* Slider handle height */
+    border-radius: 50%;
+    background: #04AA6D; /* Green background */
+    cursor: pointer; /* Cursor on hover */
+}
+
+#controversyRange::-webkit-slider-thumb{
+    background: red;
+}
+
+#relevancyRange::-webkit-slider-thumb{
+    background: blue;
+}
+
+#impressionRange::-webkit-slider-thumb{
+    background: green;
+}
+
+#controversyRange::-moz-range-thumb{
+    background: red;
+}
+
+#relevancyRange::-moz-range-thumb{
+    background: blue;
+}
+
+#impressionRange::-moz-range-thumb{
+    background: green;
+}

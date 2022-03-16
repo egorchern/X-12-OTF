@@ -260,7 +260,7 @@ class Api:
             # We only want logged in users to be able to submit blog rating
             auth_info = self.auth.get_username_and_access_level(request)
             author_username = self.db.get_blog_author_info(rating_data.get("blog_id"))
-            if auth_info.get("username") is None or :
+            if auth_info.get("username") is None:
                 resp["code"] = 3
                 return resp
             

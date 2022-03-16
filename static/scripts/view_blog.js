@@ -206,6 +206,48 @@ async function parse_posted_blog_rating(blog_id){
             break;
         }
         case 3: {
+            let rateblog = `
+            <h5>Please rate this blog</h5>
+       
+            <div class="slidecontainer">
+                <div class="flex-vertical align-left" style="float:left;width:60%;">
+                    <strong>Controversy:</strong>
+                </div>
+                <div class="flex-vertical align-right" style="float:right;width:40%;">
+                    <font size="-1.5">How strongly do you feel that anything discussed was controversial?</font>
+                </div>
+                <input style="" type="range" min="0" max="10" value="5" class="ratingslider" id="controversyRange" oninput="this.nextElementSibling.value = this.value">
+                <output style="width: 4%; text-align: center;font-weight: bolder">5</output>
+                
+            </div>
+            <div class="slidecontainer">
+                <div class="flex-vertical align-left" style="float:left;width:60%">
+                    <strong>Relevancy:</strong>
+                </div>
+                <div class="flex-vertical align-right" style="float:right,width:40%">
+                    <font size="-1.5">How strongly do you feel that everything in the blog was relevant to the title, category or tags?</font>
+                </div>
+                <input style="" type="range" min="0" max="10" value="5" class="ratingslider" id="relevancyRange" oninput="this.nextElementSibling.value = this.value">
+                <output style="width: 4%; text-align: center;font-weight: bolder;">5</output>
+                
+            </div>
+            <div class="slidecontainer">
+                <div class="flex-vertical align-left" style="float:left;width:60%">
+                    <strong>Impression:</strong>
+                </div>
+                <div class="flex-vertical align-right" style="float:right,width:40%">
+                    <font size="-1.5">How likely are you to recommend this blog to others?</font>
+                </div>
+                <input style="" type="range" min="0" max="10" value="5" class="ratingslider" id="impressionRange" oninput="this.nextElementSibling.value = this.value">
+                <output style="width: 4%; text-align: center;font-weight: bolder;">5</output>
+                
+            </div>
+            
+            <button id="ratingSubmit" style="margin-top: 0.8em" class="btn btn-outline-primary profile-control-button flex-horizontal align-center">
+                Submit
+            </button>
+    
+    `
             // Not rated by user
             // let new_rating_domstring = `
             // <div class="flex-vertical align-center width-full">
@@ -233,8 +275,9 @@ async function parse_posted_blog_rating(blog_id){
                 
             // </div>
             // `
-            // $("#rating-container").insertAdjacentHTML("beforeend", new_rating_domstring)
-            // break;
+            $("#rating-container").insertAdjacentHTML("beforeend", rateblog)
+            $("#ratingSubmit").onclick = () => {on_submit_blog_rating_click(blog_id)}
+            break;
         }
     }
 }
@@ -247,8 +290,12 @@ async function on_delete_rating_click(blog_id){
     location.reload();
 }
 
-async function on_submit_blog_rating_click(){
+async function on_submit_blog_rating_click(blog_id){
     let rating_data = {
+        blog_id: blog_id,
+        controversy_rating: Number($("#controversyRange").value),
+        relevancy_rating:Number($("#relevancyRange").value),
+        impression_rating:Number($("#impressionRange").value)
 
     }
     let res_from_submit_rating = await submit_blog_rating(rating_data)
