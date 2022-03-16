@@ -36,7 +36,7 @@ mail = flask_mail.Mail(app)
 db = Database(app)
 auth = Auth(db, mail)
 recommend = Recommend(db, auth)
-api = Api(db, auth)
+api = Api(db, auth, recommend)
 
 
 # This registers routes from external modules
