@@ -89,7 +89,7 @@ function insert_top_blog_info(blog_data){
     $("#category").insertAdjacentText("beforeend", categories_hashmap[blog_data.category_id])
     $("#author_hyperlink").onclick = () => {change_page_state(`/profile/${blog_data.username}`)}
     if (auth_info.user_id === blog_data.author_user_id){
-        $("#edit-blog-btn").onclick = () => {change_page_state(`/edit_blog/${blog_id}`)};
+        $("#edit-blog-btn").onclick = () => {change_page_state(`/edit_blog/${blog_data.blog_id}`)};
     }else{
         //applies the change page state function to the report button which makes the page change to the report page
         $('#report-blog-btn').onclick = () => {show_report_page(blog_data.blog_id)};

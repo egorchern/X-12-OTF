@@ -2,6 +2,7 @@ let login_page_state = "register";
 let spinner_domstring = `
 <div class="lds-roller" style="margin:1rem;"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
 `
+
 // Logs the client in. Sends params to server route "/auth/login" via fetch and returns response code
 async function login(identifier, password) {
     return fetch("/auth/login", {
@@ -70,7 +71,7 @@ async function check_recovery_link_status(user_id, recovery_token) {
 //change_password("123$Qweasdzxc", "B8cijqoUbewrkCZh1fQZ3zePNnZTCOBPq482yAyv9-RyatYZLzqxYuxaAw98OPX6", 1)
 // check_recovery_link_status(1, "B8cijqoUbewrkCZh1fQZ3zePNnZTCOBPq482yAyv9-RyatYZLzqxYuxaAw98OPX6")
 // Registers the client. Sends params to server route "/auth/register" via fetch and returns response code
-async function register(username, email, password, date_of_birth) {
+async function register(username, email, password, hcaptcha_response) {
     return fetch("/auth/register", {
         method: "POST",
         headers: {
@@ -80,12 +81,12 @@ async function register(username, email, password, date_of_birth) {
             username: username,
             email: email,
             password: password,
-            date_of_birth: date_of_birth,
+            hcaptcha_response: hcaptcha_response
         }),
     })
         .then((result) => result.json())
         .then((result) => {
-            return result.code;
+            return result
         });
 }
 
@@ -173,6 +174,7 @@ function change_login_page_state(new_state) {
                 ev.preventDefault();
                 on_register_click();
             };
+            
             
             break;
         }
@@ -264,6 +266,7 @@ let reset_validation_classes = (identifiers) => {
         $(identifier).classList.remove('is-valid', "is-invalid")
     })
 }
+
 // Event handler for login button click
 async function on_login_click() {
     reset_validation_classes(["#identifier", "#password"])
@@ -322,6 +325,23 @@ const validate_passwords = (password, repeatPassword) => {
         password_valid: password_valid,
         passwords_match: passwords_match
     };
+}
+
+async function check_username_email(email, username) {
+    return fetch("/auth/check_username_email", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            username: username,
+            email: email,
+        }),
+    })
+        .then((result) => result.json())
+        .then((result) => {
+            return result
+        });
 }
 
 // Event handler for register button click
@@ -390,21 +410,52 @@ async function on_register_click() {
         || temp.passwords_match === false || dob_valid === false || terms_agreement_checked === false) {
         return null;
     }
+    
     $("#alert-box").insertAdjacentHTML('beforeend', spinner_domstring);
-    let code = await register(username, email, password, dob);
-    delete_dom_children("#alert-box");
-    // This means that the chosen username is already taken
-    if (code === 2) {
-        $("#username-invalid-feedback").innerHTML = "Please choose a different username, as this username is already taken";
-        validate_element("#username", "is-invalid");
+    let tmp = await check_username_email(email, username)
+    
+    if(tmp.code != 1){
+        return null
     }
+    let uniqueness_info = tmp.data;
     // This means the chosen email is taken
-    else if (code === 3) {
+    if (uniqueness_info.email_exists){
         $("#email-invalid-feedback").innerHTML = "Please choose a different email address, as an account with this email address already exists";
         validate_element("#email", "is-invalid");
+        delete_dom_children("#alert-box");
     }
+    else{
+        validate_element("#email", "is-valid");
+    }
+    // This means that the chosen username is already taken
+    if (uniqueness_info.username_exists){
+        $("#username-invalid-feedback").innerHTML = "Please choose a different username, as this username is already taken";
+        validate_element("#username", "is-invalid");
+        delete_dom_children("#alert-box");
+    }
+    else{
+        validate_element("#username", "is-valid");
+    }
+    
+    if(uniqueness_info.username_exists || uniqueness_info.email_exists){
+        delete_dom_children("#alert-box");
+        
+        return null
+    }
+    // This will only get executed if username and email are unique
+    // Execute invisible hcaptcha
+    let hcaptcha_widget = hcaptcha.render($("body"), {
+        size: "invisible",
+        sitekey: "28dd5d54-e402-445c-ac00-541d3e9cadc3"
+    })
+    let hcaptcha_result = await hcaptcha.execute(hcaptcha_widget, {
+        async: true
+    })
+    
+    let reg_result = await register(username, email, password, hcaptcha_result.response);
+    delete_dom_children("#alert-box");
     // This means successfully registered
-    else if (code === 1) {
+    if (reg_result.code === 1) {
         compose_alert(`Account with username: <strong>${username}</strong> has been successfully registered!`, true)
         
     }

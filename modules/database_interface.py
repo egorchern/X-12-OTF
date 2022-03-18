@@ -596,7 +596,7 @@ class Database:
         """
         return self.execute_query(query)
     
-    def insert_new_user(self, username: str, email: str, password_hash: str, date_of_birth: str):
+    def insert_new_user(self, username: str, email: str, password_hash: str):
         """Insert new user into database
         """
         query = """
@@ -608,12 +608,10 @@ class Database:
             'username': username,
             'email': email,
             'password_hash': password_hash,
-            'date_of_birth': date_of_birth,
             'avatar_image_id': default_avatar_image_id,
             'access_level': 1
         }
         return self.execute_query(query, params, False)    
-        
     
     def insert_auth_token(self, user_id: int, auth_token: str, client_identifier: str):
         """Deletes old auth token with same identifier and inserts new auth_token"""
@@ -658,6 +656,30 @@ class Database:
         """
         params = {"user_id": user_id}
         return self.execute_query(query, params, False)
+
+    def get_email_exists(self, email: str):
+        query = """
+        SELECT 
+        EXISTS(
+            SELECT 1
+            FROM users
+            WHERE email = :email
+        )
+        """
+        params = {"email": email}
+        return self.execute_query(query, params)
+    
+    def get_username_exists(self, username: str):
+        query = """
+        SELECT 
+        EXISTS(
+            SELECT 1
+            FROM users
+            WHERE username = :username
+        )
+        """
+        params = {"username": username}
+        return self.execute_query(query, params)
 
     # User functions
 

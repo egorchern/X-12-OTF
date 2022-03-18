@@ -27,6 +27,7 @@ Deployment at: https://openthoughtfloor.herokuapp.com/
 - DATABASE_URL: postgres://postgres:YourPassword@localhost:5432/postgres
 - MAILING_EMAIL: mailing email address
 - MAILING_PASSWORD: mailing email password
+- HCAPTCHA_SECRET: hcaptcha private key
 To set environmental variables permanently in Windows
 - Launch CMD as administrator
 - Type SETX EnvironmentVariableNameHere ValueHere /m
