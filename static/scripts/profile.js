@@ -212,9 +212,9 @@ async function insert_profile_info() {
         $('#preferences-btn').onclick = toggle_preferences_modal
     }
     else {
-        if (auth_info.access_level === 1) {
+        if(auth_info.access_level === 1 && auth_info.username != null){
             let report_button_domstring = `
-            <button class="btn btn-outline-danger profile-control-button flex-horizontal align-center">
+            <button class="btn btn-outline-danger profile-control-button flex-horizontal align-center" id="report-btn">
                 <span class="material-icons">
                     gavel
                 </span>
@@ -222,6 +222,7 @@ async function insert_profile_info() {
             </button>
             `;
             profile_control_container.insertAdjacentHTML("beforeend", report_button_domstring);
+            $('#report-btn').onclick = () => {show_user_report_page(profile_info.user_id)};
         } else if (auth_info.access_level === 2) {
             let ban_button_domstring = `
             <button class="btn btn-outline-danger profile-control-button flex-horizontal align-center" id="ban-btn" type="button" tabindex="0">

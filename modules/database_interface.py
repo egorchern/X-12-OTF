@@ -208,6 +208,56 @@ class Database:
             """
             self.execute_query(query, read_result = False)
 
+        def create_blog_report_table():
+            """Creates the report table"""
+            query = """
+            CREATE TABLE IF NOT EXISTS user_blog_reports
+            (
+                report_id SERIAL NOT NULL,
+                reporter_user_id SERIAL NOT NULL,
+                blog_id SERIAL NOT NULL,
+                report_reason VARCHAR(100) NOT NULL,
+                report_body VARCHAR(2000) NOT NULL,
+                found_harmful BOOL,
+                report_date DATE NOT NULL,
+                PRIMARY KEY(report_id),
+                CONSTRAINT fk_reporter_user_id
+                    FOREIGN KEY(reporter_user_id)
+                    REFERENCES users(user_id)
+                    ON DELETE CASCADE,
+                CONSTRAINT fk_blog_id
+                    FOREIGN KEY(blog_id)
+                    REFERENCES blogs(blog_id)
+                    ON DELETE CASCADE
+            );
+            """
+            self.execute_query(query, read_result = False)
+
+        def create_user_report_table():
+            query = """
+            CREATE TABLE IF NOT EXISTS user_profile_reports
+            (
+                report_id SERIAL NOT NULL,
+                reporter_user_id SERIAL NOT NULL,
+                user_id SERIAL NOT NULL,
+                report_reason VARCHAR(100) NOT NULL,
+                report_body VARCHAR(2000) NOT NULL,
+                found_harmful BOOL,
+                report_date DATE NOT NULL,
+                PRIMARY KEY(report_id),
+                CONSTRAINT fk_reporter_user_id
+                    FOREIGN KEY(reporter_user_id)
+                    REFERENCES users(user_id)
+                    ON DELETE CASCADE
+                ,CONSTRAINT fk_user_id
+                    FOREIGN KEY(user_id)
+                    REFERENCES users(user_id)
+                    ON DELETE CASCADE
+            );
+            """
+            
+            self.execute_query(query, read_result = False)
+
         create_users_table()
         create_categories_table()
         create_auth_tokens_table()
@@ -217,6 +267,8 @@ class Database:
         create_blog_user_ratings_table()
         create_user_preference_category_linker_table()
         create_user_blog_algorithm_score_table()
+        create_blog_report_table()
+        create_user_report_table()
         # This ensures that at least one category exists
         temp = self.get_all_categories()
         if len(temp) == 0:
@@ -831,3 +883,16 @@ class Database:
 
     # Discover/recommend functions
     
+    def insert_blog_report(self, report_data: dict):
+        query = """
+        INSERT INTO user_blog_reports(reporter_user_id, blog_id, report_reason, report_body, found_harmful, report_date)
+        VALUES(:user_id, :blog_id, :report_reason, :report_body, False, CURRENT_TIMESTAMP)
+        """
+        self.execute_query(query, report_data, False)
+    
+    def insert_user_report(self, report_data: dict):
+        query = """
+        INSERT INTO user_profile_reports(reporter_user_id, user_id,report_reason, report_body, found_harmful, report_date)
+        VALUES(:reporter_user_id, :user_id, :report_reason, :report_body, False, CURRENT_TIMESTAMP)
+        """
+        self.execute_query(query, report_data, False)
