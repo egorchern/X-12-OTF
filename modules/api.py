@@ -328,5 +328,39 @@ class Api:
                 resp["data"] = rating_data[0]
 
             return resp, 200
+        
+        @self.api.route("/api/blog/report", methods=['POST'])
+        def report_blog():
+            request = req
+            resp = {}
+            report_data = request.json
+            user_info = self.auth.get_username_and_access_level(request)
+            report_data["user_id"] = user_info.get("user_id")
+            if report_data["user_id"] is None:
+                resp["code"] = 2
+                return resp
+            result = self.db.insert_blog_report(report_data)
+            if result is True:
+                resp["code"] = 1
+            else:
+                resp["code"] = 3
+            return resp
+        
+        @self.api.route("/api/user/report", methods=['POST'])
+        def report_user():
+            request = req
+            resp = {}
+            report_data = request.json
+            user_info = self.auth.get_username_and_access_level(request)
+            report_data["reporter_user_id"] = user_info.get("user_id")
+            if report_data["reporter_user_id"] is None:
+                resp["code"] = 2
+                return resp
+            result = self.db.insert_user_report(report_data)
+            if result is True:
+                resp["code"] = 1
+            else:
+                resp["code"] = 3
+            return resp
             
         

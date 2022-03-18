@@ -89,7 +89,10 @@ function insert_top_blog_info(blog_data){
     $("#category").insertAdjacentText("beforeend", categories_hashmap[blog_data.category_id])
     $("#author_hyperlink").onclick = () => {change_page_state(`/profile/${blog_data.username}`)}
     if (auth_info.user_id === blog_data.author_user_id){
-        $("#edit-blog-btn").onclick = () => {change_page_state(`/edit_blog/${blog_data.blog_id}`)};
+        $("#edit-blog-btn").onclick = () => {change_page_state(`/edit_blog/${blog_id}`)};
+    }else{
+        //applies the change page state function to the report button which makes the page change to the report page
+        $('#report-blog-btn').onclick = () => {show_report_page(blog_data.blog_id)};
     }
 }
 
@@ -330,7 +333,7 @@ async function render_view_blog(blog_id){
         </button>
     `;
     let report_button_domstring = `
-        <button class="btn btn-outline-danger profile-control-button flex-horizontal align-center">
+        <button class="btn btn-outline-danger profile-control-button flex-horizontal align-center" id="report-blog-btn">
             <span class="material-icons">
                 gavel
             </span>
@@ -366,7 +369,7 @@ async function render_view_blog(blog_id){
     $("#view-blog-container").insertAdjacentHTML("beforeend", view_blog_dom_string);
     $("#blog-title").insertAdjacentText("beforeend", blog_data.blog_title)
     $("#blog-body").insertAdjacentText('beforeend', blog_data.blog_body.text)
-
+    
     insert_top_blog_info(blog_data)
     parse_posted_blog_rating(blog_id)
     
