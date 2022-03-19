@@ -143,8 +143,8 @@ async function get_posted_blog_rating(blog_id){
         });
 }
 
-async function parse_posted_blog_rating(blog_id){
-    let res = await get_posted_blog_rating(blog_id)
+async function parse_posted_blog_rating(blog_data){
+    let res = await get_posted_blog_rating(blog_data.blog_id)
     console.log(res)
     switch (res.code){
         case 1: {
@@ -251,35 +251,16 @@ async function parse_posted_blog_rating(blog_id){
             </button>
     
     `
-            // Not rated by user
-            // let new_rating_domstring = `
-            // <div class="flex-vertical align-center width-full">
-            //     <label for="customRange1" class="form-label">Controversial cut-off</label>
-            //     <div class="flex-horizontal align-center width-full">
-            //         <input type="range" class="form-range" id="controversial-range" min="0" max="10" step="1">
-            //         <strong style="margin-left: 0.1em; text-align: center"></strong>
-            //     </div>
             
-            // </div>
-            // <div class="flex-vertical align-center">
-            //     <label for="customRange1" class="form-label">Impression cut-off</label>
-            //     <div class="flex-horizontal align-center width-full">
-            //         <input type="range" class="form-range" id="impression-range" min="0" max="10" step="1">
-            //         <strong style="margin-left: 0.1em; text-align: center"></strong>
-            //     </div>
-                
-            // </div>
-            // <div class="flex-vertical align-center">
-            //     <label for="customRange1" class="form-label">Relevancy cut-off</label>
-            //     <div class="flex-horizontal align-center width-full">
-            //         <input type="range" class="form-range" id="relevancy-range" min="0" max="10" step="1">
-            //         <strong style="margin-left: 0.1em; text-align: center"></strong>
-            //     </div>
-                
-            // </div>
-            // `
-            $("#rating-container").insertAdjacentHTML("beforeend", rateblog)
-            $("#ratingSubmit").onclick = () => {on_submit_blog_rating_click(blog_id)}
+            if(auth_info.user_id == blog_data.author_user_id){
+                $("#rating-container").insertAdjacentHTML("beforeend", `<h3>You can't rate your own blog!</h3>`);
+            }
+            else{
+                $("#rating-container").insertAdjacentHTML("beforeend", rateblog)
+                $("#ratingSubmit").onclick = () => {on_submit_blog_rating_click(blog_data.blog_id)}
+            }
+            
+            
             break;
         }
     }
@@ -371,6 +352,6 @@ async function render_view_blog(blog_id){
     $("#blog-body").insertAdjacentText('beforeend', blog_data.blog_body.text)
     
     insert_top_blog_info(blog_data)
-    parse_posted_blog_rating(blog_id)
+    parse_posted_blog_rating(blog_data)
     
 }

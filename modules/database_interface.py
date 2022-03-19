@@ -509,12 +509,14 @@ class Database:
         SET average_controversial_rating = :average_controversial_rating,
         average_relevancy_rating = :average_relevancy_rating,
         average_impression_rating = :average_impression_rating,
-        number_ratings = number_ratings - 1;
+        number_ratings = number_ratings - 1
+        WHERE blog_id = :blog_id;
         """
         params = {
             "average_relevancy_rating": new_average_relevancy_rating,
             "average_impression_rating": new_average_impression_rating,
-            "average_controversial_rating": new_average_controversial_rating
+            "average_controversial_rating": new_average_controversial_rating,
+            "blog_id": blog_id
         }
         return self.execute_query(query, params, False)
 
