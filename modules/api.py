@@ -284,7 +284,8 @@ class Api:
                 data = {
                     "secret": self.hcaptcha_secret,
                     "response": hcaptcha_response
-                }
+                },
+                timeout = 5
                     
             )
             res_json = res.json()
@@ -354,6 +355,22 @@ class Api:
             if report_data["user_id"] is None:
                 resp["code"] = 2
                 return resp
+            hcaptcha_response = report_data.get("hcaptcha_response")
+            # Hcaptcha verify component
+            hcaptcha_verify_url = "https://hcaptcha.com/siteverify"
+            res = requests.post(
+                hcaptcha_verify_url,
+                data = {
+                    "secret": self.hcaptcha_secret,
+                    "response": hcaptcha_response
+                },
+                timeout = 5
+                    
+            )
+            res_json = res.json()
+            if not res_json["success"]:
+                resp["code"] = 5
+                return resp, 400
             result = self.db.insert_blog_report(report_data)
             if result is True:
                 resp["code"] = 1
@@ -371,6 +388,22 @@ class Api:
             if report_data["reporter_user_id"] is None:
                 resp["code"] = 2
                 return resp
+            hcaptcha_response = report_data.get("hcaptcha_response")
+            # Hcaptcha verify component
+            hcaptcha_verify_url = "https://hcaptcha.com/siteverify"
+            res = requests.post(
+                hcaptcha_verify_url,
+                data = {
+                    "secret": self.hcaptcha_secret,
+                    "response": hcaptcha_response
+                },
+                timeout = 5
+                    
+            )
+            res_json = res.json()
+            if not res_json["success"]:
+                resp["code"] = 5
+                return resp, 400
             result = self.db.insert_user_report(report_data)
             if result is True:
                 resp["code"] = 1

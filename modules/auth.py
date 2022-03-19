@@ -1,3 +1,4 @@
+from socket import timeout
 import bcrypt
 import re
 from secrets import token_urlsafe
@@ -225,7 +226,8 @@ class Auth:
             data = {
                 "secret": self.hcaptcha_secret,
                 "response": hcaptcha_response
-            }
+            },
+            timeout = 5
                 
         )
         res_json = res.json()
@@ -299,7 +301,8 @@ class Auth:
             data = {
                 "secret": self.hcaptcha_secret,
                 "response": hcaptcha_response
-            }
+            },
+            timeout = 5
                 
         )
         res_json = res.json()

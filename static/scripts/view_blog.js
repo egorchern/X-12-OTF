@@ -295,6 +295,7 @@ async function on_delete_rating_click(blog_id){
 }
 
 async function on_submit_blog_rating_click(blog_id){
+    $("#rating-container").insertAdjacentHTML('beforebegin', spinner_domstring);
     let rating_data = {
         blog_id: blog_id,
         controversy_rating: Number($("#controversyRange").value),
@@ -310,6 +311,7 @@ async function on_submit_blog_rating_click(blog_id){
         async: true
     })
     let res_from_submit_rating = await submit_blog_rating(rating_data, hcaptcha_result.response)
+    $(".lds-roller").remove();
     // If non valid, then user must have gone out of their way to do this, like use console, no need to show any error
     if(res_from_submit_rating.code != 1){
         return null
