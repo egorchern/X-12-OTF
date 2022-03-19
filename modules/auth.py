@@ -212,12 +212,26 @@ class Auth:
         identifier = user_data.get("identifier")
         password = user_data.get("password")
         client_identifier = user_data.get("client_identifier")
+        hcaptcha_response = user_data.get("hcaptcha_response")
         # Check that all parameters are of right format 
-        if not isinstance(identifier, str) or not isinstance(password, str) or not isinstance(client_identifier, str):
+        if not isinstance(identifier, str) or not isinstance(password, str) or not isinstance(client_identifier, str) or not isinstance(hcaptcha_response, str):
             return {
                 "code": 4
             }
-        
+        # Hcaptcha verify component
+        hcaptcha_verify_url = "https://hcaptcha.com/siteverify"
+        res = requests.post(
+            hcaptcha_verify_url,
+            data = {
+                "secret": self.hcaptcha_secret,
+                "response": hcaptcha_response
+            }
+                
+        )
+        res_json = res.json()
+        if not res_json["success"]:
+            resp["code"] = 5
+            return resp, 400
         user_id, credentials_matching = self.credentials_matching(identifier, password)
         resp = {}
         if user_id is not None:

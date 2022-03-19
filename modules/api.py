@@ -1,13 +1,15 @@
 from flask import Blueprint, request as req, make_response
 import json
 import threading
+import requests
 
 class Api:
-    def __init__(self, db, auth, recommend):
+    def __init__(self, db, auth, recommend, hcaptcha_secret):
         self.db = db
         self.api = Blueprint("api", __name__)
         self.auth = auth
         self.recommend = recommend
+        self.hcaptcha_secret = hcaptcha_secret
         @self.api.route("/api/profile/<username>", methods=["GET"])
         def get_profile_public_info(username):
             """
@@ -274,8 +276,21 @@ class Api:
             if auth_info.get("username") is None:
                 resp["code"] = 3
                 return resp
-            
-            
+            hcaptcha_response = temp.get("hcaptcha_response")
+            # Hcaptcha verify component
+            hcaptcha_verify_url = "https://hcaptcha.com/siteverify"
+            res = requests.post(
+                hcaptcha_verify_url,
+                data = {
+                    "secret": self.hcaptcha_secret,
+                    "response": hcaptcha_response
+                }
+                    
+            )
+            res_json = res.json()
+            if not res_json["success"]:
+                resp["code"] = 5
+                return resp, 400
             rating_data["user_id"] = auth_info.get("user_id")
             blog_user_rating_from_db = self.db.get_blog_user_rating(
                 rating_data.get("user_id"),

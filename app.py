@@ -40,7 +40,7 @@ mail = flask_mail.Mail(app)
 db = Database(app)
 auth = Auth(db, mail, hcaptcha_secret)
 recommend = Recommend(db, auth)
-api = Api(db, auth, recommend)
+api = Api(db, auth, recommend, hcaptcha_secret)
 
 
 # This registers routes from external modules

@@ -4,7 +4,7 @@ let spinner_domstring = `
 `
 
 // Logs the client in. Sends params to server route "/auth/login" via fetch and returns response code
-async function login(identifier, password) {
+async function login(identifier, password, hcaptcha_response) {
     return fetch("/auth/login", {
         method: "POST",
         headers: {
@@ -14,6 +14,7 @@ async function login(identifier, password) {
             identifier: identifier,
             password: password,
             client_identifier: localStorage.getItem("client_identifier"),
+            hcaptcha_response: hcaptcha_response
         }),
     })
         .then((result) => result.json())
@@ -291,7 +292,14 @@ async function on_login_click() {
         return null
     }
     $("#alert-box").insertAdjacentHTML('beforeend', spinner_domstring);
-    let code = await login(identifier, password);
+    let hcaptcha_widget = hcaptcha.render($("body"), {
+        size: "invisible",
+        sitekey: "28dd5d54-e402-445c-ac00-541d3e9cadc3"
+    })
+    let hcaptcha_result = await hcaptcha.execute(hcaptcha_widget, {
+        async: true
+    })
+    let code = await login(identifier, password, hcaptcha_result.response);
     delete_dom_children("#alert-box");
     // if code is 2, then non-existant account with identifier
     if (code === 2) {

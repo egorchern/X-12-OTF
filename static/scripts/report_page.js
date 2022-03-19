@@ -39,8 +39,8 @@ async function show_report_page(blog_id){
                     <select class="form-select" id="report-category">
                         ${report_category_options_dom_string}
                     </select>
-                    <h4>Please provide more details (such as a specific sentence that you find harmful):</h4>
-                    <textarea id="edit-report-body" class="form-control" maxlength = "2000"></textarea>
+                    <h4 style="margin-top:0.8rem;"> Please provide more details (such as a specific sentence that you find harmful):</h4>
+                    <textarea id="edit-report-body" class="form-control" style="min-height:300px"></textarea>
                     <div class="invalid-feedback" id="invalid-details">
                         placeholder
                     </div>

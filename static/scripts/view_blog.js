@@ -96,7 +96,7 @@ function insert_top_blog_info(blog_data){
     }
 }
 
-async function submit_blog_rating(rating_data){
+async function submit_blog_rating(rating_data, hcaptcha_response){
     return fetch("/api/blog/submit_rating", {
         method: "POST",
         headers: {
@@ -104,6 +104,7 @@ async function submit_blog_rating(rating_data){
         },
         body: JSON.stringify({
             rating_data: rating_data,
+            hcaptcha_response: hcaptcha_response
         }),
     })
         .then((result) => result.json())
@@ -214,7 +215,7 @@ async function parse_posted_blog_rating(blog_id){
        
             <div class="slidecontainer">
                 <div class="flex-vertical align-left" style="float:left;width:60%;">
-                    <strong>Controversy:</strong>
+                    <strong style="font-size: larger">Controversy:</strong>
                 </div>
                 <div class="flex-vertical align-right" style="float:right;width:40%;">
                     <font size="-1.5">How strongly do you feel that anything discussed was controversial?</font>
@@ -225,7 +226,7 @@ async function parse_posted_blog_rating(blog_id){
             </div>
             <div class="slidecontainer">
                 <div class="flex-vertical align-left" style="float:left;width:60%">
-                    <strong>Relevancy:</strong>
+                    <strong style="font-size: larger">Relevancy:</strong>
                 </div>
                 <div class="flex-vertical align-right" style="float:right,width:40%">
                     <font size="-1.5">How strongly do you feel that everything in the blog was relevant to the title, category or tags?</font>
@@ -236,7 +237,7 @@ async function parse_posted_blog_rating(blog_id){
             </div>
             <div class="slidecontainer">
                 <div class="flex-vertical align-left" style="float:left;width:60%">
-                    <strong>Impression:</strong>
+                    <strong style="font-size: larger">Impression:</strong>
                 </div>
                 <div class="flex-vertical align-right" style="float:right,width:40%">
                     <font size="-1.5">How likely are you to recommend this blog to others?</font>
@@ -301,7 +302,14 @@ async function on_submit_blog_rating_click(blog_id){
         impression_rating:Number($("#impressionRange").value)
 
     }
-    let res_from_submit_rating = await submit_blog_rating(rating_data)
+    let hcaptcha_widget = hcaptcha.render($("body"), {
+        size: "invisible",
+        sitekey: "28dd5d54-e402-445c-ac00-541d3e9cadc3"
+    })
+    let hcaptcha_result = await hcaptcha.execute(hcaptcha_widget, {
+        async: true
+    })
+    let res_from_submit_rating = await submit_blog_rating(rating_data, hcaptcha_result.response)
     // If non valid, then user must have gone out of their way to do this, like use console, no need to show any error
     if(res_from_submit_rating.code != 1){
         return null
