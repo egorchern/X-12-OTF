@@ -1,4 +1,4 @@
-function insert_top_blog_info(blog_data){
+function insert_top_blog_info(blog_data) {
     blog_data.average_controversial_rating = Number(blog_data.average_controversial_rating.toFixed(1))
     blog_data.average_relevancy_rating = Number(blog_data.average_relevancy_rating.toFixed(1))
     blog_data.average_impression_rating = Number(blog_data.average_impression_rating.toFixed(1))
@@ -87,16 +87,16 @@ function insert_top_blog_info(blog_data){
     `
     $("#top-blog-info-container").insertAdjacentHTML("beforeend", top_blog_info_dom_string)
     $("#category").insertAdjacentText("beforeend", categories_hashmap[blog_data.category_id])
-    $("#author_hyperlink").onclick = () => {change_page_state(`/profile/${blog_data.username}`)}
-    if (auth_info.user_id === blog_data.author_user_id){
-        $("#edit-blog-btn").onclick = () => {change_page_state(`/edit_blog/${blog_id}`)};
-    }else{
+    $("#author_hyperlink").onclick = () => { change_page_state(`/profile/${blog_data.username}`) }
+    if (auth_info.user_id === blog_data.author_user_id) {
+        $("#edit-blog-btn").onclick = () => { change_page_state(`/edit_blog/${blog_id}`) };
+    } else {
         //applies the change page state function to the report button which makes the page change to the report page
-        $('#report-blog-btn').onclick = () => {show_report_page(blog_data.blog_id)};
+        $('#report-blog-btn').onclick = () => { show_report_page(blog_data.blog_id) };
     }
 }
 
-async function submit_blog_rating(rating_data){
+async function submit_blog_rating(rating_data) {
     return fetch("/api/blog/submit_rating", {
         method: "POST",
         headers: {
@@ -112,7 +112,7 @@ async function submit_blog_rating(rating_data){
         });
 }
 
-async function delete_blog_rating(blog_id){
+async function delete_blog_rating(blog_id) {
     return fetch("/api/blog/delete_rating", {
         method: "DELETE",
         headers: {
@@ -121,21 +121,21 @@ async function delete_blog_rating(blog_id){
         body: JSON.stringify({
             blog_id: blog_id
         })
-        
+
     })
-    .then((result) => result.json())
-    .then((result) => {
-        return result
-    })
+        .then((result) => result.json())
+        .then((result) => {
+            return result
+        })
 }
 
-async function get_posted_blog_rating(blog_id){
+async function get_posted_blog_rating(blog_id) {
     return fetch(`/api/blog/${blog_id}/get_posted_rating`, {
         method: "GET",
         headers: {
             "Content-Type": "application/json",
         },
-        
+
     })
         .then((result) => result.json())
         .then((result) => {
@@ -143,10 +143,10 @@ async function get_posted_blog_rating(blog_id){
         });
 }
 
-async function parse_posted_blog_rating(blog_data){
+async function parse_posted_blog_rating(blog_data) {
     let res = await get_posted_blog_rating(blog_data.blog_id)
     console.log(res)
-    switch (res.code){
+    switch (res.code) {
         case 1: {
             let rating_data = res.data
             console.log(rating_data)
@@ -201,7 +201,7 @@ async function parse_posted_blog_rating(blog_data){
             </button>
             `
             $("#rating-container").insertAdjacentHTML("beforeend", domstring)
-            $("#delete-rating-btn").onclick = () => {on_delete_rating_click(blog_id)}
+            $("#delete-rating-btn").onclick = () => { on_delete_rating_click(blog_id) }
             break;
         }
         case 2: {
@@ -251,43 +251,43 @@ async function parse_posted_blog_rating(blog_data){
             </button>
     
     `
-            
-            if(auth_info.user_id == blog_data.author_user_id){
+
+            if (auth_info.user_id == blog_data.author_user_id) {
                 $("#rating-container").insertAdjacentHTML("beforeend", `<h3>You can't rate your own blog!</h3>`);
             }
-            else{
+            else {
                 $("#rating-container").insertAdjacentHTML("beforeend", rateblog)
-                $("#ratingSubmit").onclick = () => {on_submit_blog_rating_click(blog_data.blog_id)}
+                $("#ratingSubmit").onclick = () => { on_submit_blog_rating_click(blog_data.blog_id) }
             }
-            
-            
+
+
             break;
         }
     }
 }
 
-async function on_delete_rating_click(blog_id){
+async function on_delete_rating_click(blog_id) {
     let res_from_delete_rating = await delete_blog_rating(blog_id);
-    if (res_from_delete_rating.code != 1){
+    if (res_from_delete_rating.code != 1) {
         return null;
     }
     location.reload();
 }
 
-async function on_submit_blog_rating_click(blog_id){
+async function on_submit_blog_rating_click(blog_id) {
     let rating_data = {
         blog_id: blog_id,
         controversy_rating: Number($("#controversyRange").value),
-        relevancy_rating:Number($("#relevancyRange").value),
-        impression_rating:Number($("#impressionRange").value)
+        relevancy_rating: Number($("#relevancyRange").value),
+        impression_rating: Number($("#impressionRange").value)
 
     }
     let res_from_submit_rating = await submit_blog_rating(rating_data)
     // If non valid, then user must have gone out of their way to do this, like use console, no need to show any error
-    if(res_from_submit_rating.code != 1){
+    if (res_from_submit_rating.code != 1) {
         return null
     }
-    
+
     location.reload();
 }
 
@@ -298,13 +298,15 @@ async function on_submit_blog_rating_click(blog_id){
 //     blog_id: 1
 // })
 // delete_blog_rating(1)
-async function render_view_blog(blog_id){
+async function render_view_blog(blog_id) {
     let temp = await get_blog(blog_id)
-    if (temp.code != 1){
+    if (temp.code != 1) {
         return null;
     }
-    
+
     let blog_data = temp.blog_data;
+    blog_data.date_created = convert_iso_date(new Date(blog_data.date_created))
+    blog_data.date_modified = convert_iso_date(new Date(blog_data.date_modified))
     let edit_button_domstring = `
         <button id="edit-blog-btn" class="btn btn-outline-primary profile-control-button flex-horizontal align-center">
             <span class="material-icons">
@@ -346,12 +348,99 @@ async function render_view_blog(blog_id){
     </div>
     
     `
-    
+
     $("#view-blog-container").insertAdjacentHTML("beforeend", view_blog_dom_string);
     $("#blog-title").insertAdjacentText("beforeend", blog_data.blog_title)
     $("#blog-body").insertAdjacentText('beforeend', blog_data.blog_body.text)
-    
+
     insert_top_blog_info(blog_data)
     parse_posted_blog_rating(blog_data)
-    
+
 }
+
+async function post_comment(blog_id, comment_text, hcaptcha_response) {
+    return fetch("/api/blog/post_comment", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            blog_id: blog_id,
+            comment_text: comment_text,
+            hcaptcha_response: hcaptcha_response
+        }),
+    })
+        .then((result) => result.json())
+        .then((result) => {
+            return result
+        });
+}
+
+async function edit_comment(comment_id, comment_text) {
+    return fetch("/api/blog/edit_comment", {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            comment_id: comment_id,
+            comment_text: comment_text,
+
+        }),
+    })
+        .then((result) => result.json())
+        .then((result) => {
+            return result
+        });
+}
+
+async function delete_comment(comment_id) {
+    return fetch("/api/blog/delete_comment", {
+        method: "DELETE",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            comment_id: comment_id,
+
+
+        }),
+    })
+        .then((result) => result.json())
+        .then((result) => {
+            return result
+        });
+}
+
+async function get_comment_ids(blog_id) {
+    return fetch(`/api/blog/${blog_id}/get_comment_ids`, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+        }
+    })
+        .then((result) => result.json())
+        .then((result) => {
+            return result
+        });
+
+}
+
+async function get_comment_content(comment_ids) {
+    return fetch(`/api/blog/get_comments/${JSON.stringify(comment_ids)}`, {
+        method: "GET",
+        headers: {
+
+            "Content-Type": "application/json",
+
+        }
+    })
+    .then((result) => result.json())
+        .then((result) => {
+            return result
+        });
+}
+// post_comment(1, "Yo", "")
+// get_comment_ids(1)
+// edit_comment(2, "This should not be yo now")
+// get_comment_content([2, 1])
