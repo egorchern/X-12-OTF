@@ -294,6 +294,7 @@ async function on_submit_blog_rating_click(blog_id) {
 }
 
 async function render_comments_prereq(){
+    comments_currently_showing = 0;
     let page_container = $(".page-container");
     let dom_template = `
     <div class="flex-vertical width-full full-comments-container">
@@ -327,15 +328,22 @@ async function insert_comment(comment_data){
     let comments_container = $(".comments-container")
     let comment_id = `comment_${comment_data.comment_id}`
     let comment_template = `
-    <div class="comment" id="${comment_id}">
-        <div class="comment-top-info">
-            <span>Something here</span>
+    <div class="comment flex-horizontal" id="${comment_id}">
+        
+        <img src="/images/avatar_${comment_data.avatar_image_id}.webp" alt="profile avatar">
+        <div class="flex-vertical" style="margin-left: 0.8rem;">
+            <div class="flex-horizontal" style="padding-left: 0.5rem; justify-content: flex-start; align-items:center">
+                <button style="font-weight: bolder" class="comment_author_hyperlink hoverable-text">${comment_data.username}</button>
+                <time datetime=${comment_data.datetime_created}>${new Date(comment_data.datetime_created).toLocaleString()}</time>
+            </div>
+            <p class="comment-body" style="margin-bottom:0"></p>
         </div>
-        <p class="comment-body" style="margin-bottom:0"></p>
+        
     </div>
     `
     comments_container.insertAdjacentHTML("beforeend", comment_template)
-    $(`#${comment_id} .comment-body`).insertAdjacentText("beforeend", comment_data.comment_text)
+    $(`#${comment_id} .comment-body`).insertAdjacentText("beforeend", comment_data.comment_text);
+    $(`#${comment_id} .comment_author_hyperlink`).onclick = () => {change_page_state(`/profile/${comment_data.username}`)}
 }
 
 async function fetch_and_render_next_comments(){

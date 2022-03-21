@@ -18,13 +18,15 @@ async function get_public_profile_info(username) {
 }
 
 function convert_iso_date(dt){
-    var _dd = "";
-    var _mm="";
-    var _yy = dt.getFullYear();
-    dt.getDate() <10 ? (_dd='0'+dt.getDate()):(_dd=dt.getDate());
-    (dt.getMonth()+1) <10?(_mm='0'+(dt.getMonth()+1)):(_mm = dt.getDate()+1);
-    let out_dt = `${_dd}/${_mm}/${_yy}`;
-    return out_dt
+    // var _dd = "";
+    // var _mm="";
+    // var _yy = dt.getFullYear();
+    // dt.getDate() <10 ? (_dd='0'+dt.getDate()):(_dd=dt.getDate());
+    // (dt.getMonth()+1) <10?(_mm='0'+(dt.getMonth()+1)):(_mm = dt.getDate()+1);
+    // let out_dt = `${_dd}/${_mm}/${_yy}`;
+    // return out_dt
+    return dt.toLocaleDateString()
+    
 }
 
 function on_edit_avatar_click(avatar_id) {

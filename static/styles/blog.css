@@ -179,3 +179,13 @@
     border-radius: 0.8rem;
     box-shadow: 0 4px 16px 4px rgb(0 0 0 / 14%);
 }
+
+.comment img{
+    max-height: 3.5rem;
+    width: auto;
+}
+
+.comment time{
+    margin-left: 0.3rem;
+    color: hsla(0, 0%, 10%, 0.7)
+}

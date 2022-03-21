@@ -594,8 +594,10 @@ class Database:
 
     def get_comments_from_ids(self, comment_ids: list):
         query = """
-        SELECT *
+        SELECT comment_id, comments.datetime_created, username, comments.user_id,
+        comment_text, avatar_image_id
         FROM comments
+        INNER JOIN users ON users.user_id = comments.user_id
         WHERE comment_id IN :comment_ids
         ORDER BY datetime_created DESC;
         """
