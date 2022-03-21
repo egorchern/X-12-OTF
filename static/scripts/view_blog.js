@@ -89,13 +89,15 @@ function insert_top_blog_info(blog_data) {
     $("#category").insertAdjacentText("beforeend", categories_hashmap[blog_data.category_id])
     $("#author_hyperlink").onclick = () => { change_page_state(`/profile/${blog_data.username}`) }
     if (auth_info.user_id === blog_data.author_user_id) {
-        $("#edit-blog-btn").onclick = () => { change_page_state(`/edit_blog/${blog_id}`) };
+        $("#edit-blog-btn").onclick = () => { change_page_state(`/edit_blog/${blog_data.blog_id}`) };
     } else {
         //applies the change page state function to the report button which makes the page change to the report page
         $('#report-blog-btn').onclick = () => { show_report_page(blog_data.blog_id) };
     }
 }
-
+let comment_ids = [];
+let comments_currently_showing = 0;
+let comments_increment = 4;
 async function submit_blog_rating(rating_data) {
     return fetch("/api/blog/submit_rating", {
         method: "POST",
@@ -291,6 +293,75 @@ async function on_submit_blog_rating_click(blog_id) {
     location.reload();
 }
 
+async function render_comments_prereq(){
+    let page_container = $(".page-container");
+    let dom_template = `
+    <div class="flex-vertical width-full full-comments-container">
+        <h4>Comments</h4>
+        <span class="width-full flex-horizontal" style="justify-content:end; text-align:end;">
+            Comments shown:
+            <strong id="comments_shown" style="margin-left:2px"></strong>
+        </span>
+        <div class="comments-container"></div>
+    </div>
+    `
+    page_container.insertAdjacentHTML("beforeend", dom_template)
+    if (comments_currently_showing < comment_ids.length) {
+        let show_more_domstring = `
+        <button class="btn btn-outline-primary flex-horizontal align-center" id="comments-show-more-btn">
+            <span class="material-icons">
+                arrow_circle_down
+            </span>
+
+            Show more
+        </button>
+        `;
+        $(".comments-container").insertAdjacentHTML("beforeend", show_more_domstring);
+
+        $("#comments-show-more-btn").onclick = () => { fetch_and_render_next_comments() }
+    }
+    fetch_and_render_next_comments()
+}
+
+async function insert_comment(comment_data){
+    let comments_container = $(".comments-container")
+    let comment_id = `comment_${comment_data.comment_id}`
+    let comment_template = `
+    <div class="comment" id="${comment_id}">
+        <div class="comment-top-info">
+            <span>Something here</span>
+        </div>
+        <p class="comment-body" style="margin-bottom:0"></p>
+    </div>
+    `
+    comments_container.insertAdjacentHTML("beforeend", comment_template)
+    $(`#${comment_id} .comment-body`).insertAdjacentText("beforeend", comment_data.comment_text)
+}
+
+async function fetch_and_render_next_comments(){
+    if (comments_currently_showing >= comment_ids.length) {
+        $("#comments_shown").innerHTML = `${comments_currently_showing}/${comment_ids.length}`;
+        return null;
+    }
+    let temp = await get_comment_content(comment_ids.slice(comments_currently_showing, comments_currently_showing + comments_increment));
+    if (temp.code != 1) {
+        return null
+    }
+    let comments_data = temp.data;
+    console.log(comments_data)
+    comments_data.forEach((comment_data, index) => {
+        insert_comment(comment_data)
+    })
+    
+    comments_currently_showing = Math.min(comments_currently_showing + comments_increment, comment_ids.length);
+    $("#comments_shown").innerHTML = `${comments_currently_showing}/${comment_ids.length}`;
+    // If all of the authored blogs are shown, then we should remove the "show more" blogs button.
+    temp = $("#comments-show-more-btn")
+    if (temp != null && comments_currently_showing == comment_ids.length) {
+        temp.remove();
+    }
+}
+
 // submit_blog_rating({
 //     controversy_rating: Math.floor(Math.random() * 10),
 //     relevancy_rating: Math.floor(Math.random() * 10),
@@ -355,7 +426,12 @@ async function render_view_blog(blog_id) {
 
     insert_top_blog_info(blog_data)
     parse_posted_blog_rating(blog_data)
-
+    temp = await get_comment_ids(blog_id);
+    if (temp.code != 1){
+        return null;
+    }
+    comment_ids = temp.data;
+    render_comments_prereq();
 }
 
 async function post_comment(blog_id, comment_text, hcaptcha_response) {
