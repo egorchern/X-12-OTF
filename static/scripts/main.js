@@ -7,7 +7,7 @@ window.onpopstate = (ev) => {
     change_page_state(state.page_state);
 };
 
-async function get_all_blog_tiles_data(){
+async function get_all_blog_tiles_data() {
     return fetch("/api/blog/get_all_blog_tiles_data", {
         method: "GET",
         headers: {
@@ -20,7 +20,7 @@ async function get_all_blog_tiles_data(){
         });
 }
 
-async function get_certain_blog_tiles_data(blog_ids){
+async function get_certain_blog_tiles_data(blog_ids) {
     return fetch(`/api/blog/get_blog_tiles_from_blog_ids/${JSON.stringify(blog_ids)}`, {
         method: "GET",
         headers: {
@@ -95,17 +95,17 @@ function get_user_info() {
         });
 }
 
-async function register_activity(){
+async function register_activity() {
     return fetch("/auth/register_activity", {
         method: "PUT",
         headers: {
             "Content-Type": "application/json",
         }
     })
-    .then((result) => result.json())
-    .then((result) => {
-        return result
-    });
+        .then((result) => result.json())
+        .then((result) => {
+            return result
+        });
 }
 
 function insert_blog_tile(
@@ -218,13 +218,13 @@ function insert_blog_tile(
 async function get_all_blog_tiles() {
     let return_dom_string = ``
     let temp = await get_all_blog_tiles_data();
-    
+
     if (temp.code != 1) {
         return { dom_string: "" }
     }
-    
+
     let all_blog_tiles_data = temp.data
-    
+
     all_blog_tiles_data.sort((a, b) => {
         return b.algorithm_info.score - a.algorithm_info.score
     })
@@ -238,7 +238,7 @@ async function get_all_blog_tiles() {
 // This changes page state depending on the url. So makes possible to go straight to some page
 function initialize_page_state() {
     let path = document.location.pathname;
-    
+
     if (path === "/") {
         change_page_state("/home");
     } else if (path === "/home") {
@@ -255,7 +255,13 @@ function initialize_page_state() {
         change_page_state(path);
     } else if (path === "/aboutus") {
         change_page_state("/aboutus");
-    } else if(/^\/search$/.test(path)){
+    } else if (path === "/legalpage") {
+        change_page_state("/legalpage");
+    } else if (path === "/termsandcons") {
+        change_page_state("/termsandcons");
+    } else if (path === "/contentguidelines") {
+        change_page_state("/contentguidelines");
+    } else if (/^\/search$/.test(path)) {
         change_page_state(path + location.search);
     }
 }
@@ -337,8 +343,8 @@ async function change_page_state(new_state) {
             }
         }
         get_all_blog_tiles();
-        
-        
+
+
 
 
 
@@ -500,7 +506,309 @@ async function change_page_state(new_state) {
         history.pushState({ page_state: page_state }, null, "/aboutus");
         main_html.insertAdjacentHTML("beforeend", aboutus);
     }
-    else if(/^\/search\?(?<search_query>.*)$/.test(new_state)){
+    else if (new_state === "/legalpage") {
+        let legalpage = `
+        <div class="termsandconssection">
+        <div class="termsandconscontainer">
+            <div class="content-section">
+                <div class="termsandconsheader">
+                    <a href="/">
+                    <h1>Open Thought Floor</h1>
+                    </a>
+                </div>
+                <div class="termsandconscontent">
+                    <h1>Legal Page</h1>
+                    <h2>TERMS AND CONDITIONS</h2>
+                    <p>
+                     You can refer to our Terms and Conditions page:
+                        <a href="/termsandcons">Terms and Conditions</a>
+                    </p>
+                    <span class="br"></span>
+
+                    <h2>CONTENT GUIDELINES</h2>
+                    <p>
+                     You can refer to our Content Guidelines page:
+                        <a href="/contentguidelines">Content Guidelines</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+</div>
+        `
+        history.pushState({ page_state: page_state }, null, "/legalpage");
+        main_html.insertAdjacentHTML("beforeend", legalpage);
+    }
+    else if (new_state === "/termsandcons") {
+        let termsandcons = `
+        <div class="termsandconssection">
+        <div class="termsandconscontainer">
+            <div class="termsandconscontent-section">
+                <div class="termsandconsheader">
+                    <a href="/">
+                    <h1>Open Thought Floor</h1>
+                    </a>
+                </div>
+                <div class="termsandconscontent">
+                    <h1>TERMS AND CONDITIONS</h1>
+                    <h2>1. AGREEMENT TO TERMS</h2>
+                    <p>
+                        <span class="br"></span>
+                        These Terms of Use constitute a legally binding agreement made between you, whether personally
+                        or on behalf of an entity (“you”) and OTF ("Company," “we," “us," or “our”), concerning your
+                        access to and use of the http://www.otf.com website as well as any other media form, media
+                        channel, mobile website or mobile application related, linked, or otherwise connected thereto
+                        (collectively, the “Site”).
+                        You agree that by accessing the Site, you have read, understood, and agreed to be bound by all
+                        of these Terms of Use. IF YOU DO NOT AGREE WITH ALL OF THESE TERMS OF USE, THEN YOU ARE
+                        EXPRESSLY PROHIBITED FROM USING THE SITE AND YOU MUST DISCONTINUE USE IMMEDIATELY.
+                        <span class="br"></span>
+                        Supplemental terms and conditions or documents that may be posted on the Site from time to time
+                        are hereby expressly incorporated herein by reference. We reserve the right, in our sole
+                        discretion, to make changes or modifications to these Terms of Use from time to time.
+                        Please ensure that you check the applicable Terms every time you use our Site so that you
+                        understand which Terms apply. You will be subject to, and will be deemed to have been made
+                        aware of and to have accepted, the changes in any revised Terms of Use by your continued use of
+                        the Site after the date such revised Terms of Use are posted.
+                        <span class="br"></span>
+                        The information provided on the Site is not intended for distribution to or use by any person or
+                        entity in any jurisdiction or country where such distribution or use would be contrary to law or
+                        regulation or which would subject us to any registration requirement within such jurisdiction or
+                        country. Accordingly, those persons who choose to access the Site from other locations do so on
+                        their own initiative and are solely responsible for compliance with local laws, if and to the
+                        extent local laws are applicable.
+                        <span class="br"></span>
+                        All users who are minors in the jurisdiction in which they reside (generally under the age of 18
+                        ) must have the permission of, and be directly supervised by, their parent or guardian to use the Site. If you are a minor, you must have your parent or guardian read and agree to these Terms of Use prior to you using the Site.
+                    </p>
+
+                    <h2>2. INTELLECTUAL PROPERTY RIGHTS</h2>
+                    <p>
+                        <span class="br"></span>
+                        Unless otherwise indicated, the Site is our proprietary property and all source code, databases,
+                        functionality, software, website designs, audio, video, text, photographs, and graphics on the
+                        Site (collectively, the “Content”) and the trademarks, service marks, and logos contained
+                        therein (the “Marks”) are owned or controlled by us or licensed to us, and are protected by
+                        copyright and trademark laws and various other intellectual property rights and unfair
+                        competition laws of the United States, international copyright laws, and international
+                        conventions. The Content and the Marks are provided on the Site “AS IS” for your information
+                        and personal use only. Except as expressly provided in these Terms of Use, no part of the Site
+                        and no Content or Marks may be copied, reproduced, aggregated, republished, uploaded, posted,
+                        publicly displayed, encoded, translated, transmitted, distributed, sold, licensed, or otherwise
+                        exploited for any commercial purpose whatsoever, without our express prior written permission.
+                        <span class="br"></span>
+                        Provided that you are eligible to use the Site, you are granted a limited license to access and
+                        use the Site and to download or print a copy of any portion of the Content to which you have
+                        properly gained access solely for your personal, non-commercial use. We reserve all rights not
+                        expressly granted to you in and to the Site, the Content and the Marks.
+                    </p>
+
+                    <h2>3. USER REPRESENTATIONS</h2>
+                    <p>
+                        <span class="br"></span>
+                    By using the Site, you represent and warrant that: (1) all registration information you submit will
+                        be true, accurate, current, and complete; (2) you will maintain the accuracy of such information
+                        and promptly update such registration information as necessary; (3) you have the legal capacity
+                        and you agree to comply with these Terms of Use; (4) you are not a minor in the jurisdiction in
+                        which you reside, or if a minor, you have received parental permission to use the Site; (5) you
+                        will not access the Site through automated or non-human means, whether through a bot, script, or
+                        otherwise; (6) you will not use the Site for any illegal or unauthorized purpose; and (7) your
+                        use of the Site will not violate any applicable law or regulation.
+                        <span class="br"></span>
+                    If you provide any information that is untrue, inaccurate, not current, or incomplete, we have the
+                        right to suspend or terminate your account and refuse any and all current or future use of the
+                        Site (or any portion thereof).
+                    </p>
+
+                    <h2>4. USER REGISTRATION</h2>
+                    <p>
+                        <span class="br"></span>
+                        You may be required to register with the Site. You agree to keep your password confidential and
+                        will be responsible for all use of your account and password. We reserve the right to remove,
+                        reclaim, or change a username you select if we determine, in our sole discretion, that such
+                        username is inappropriate, obscene, or otherwise objectionable.
+                    </p>
+
+
+                    <h2>5. USER GENERATED CONTRIBUTIONS</h2>
+                    <p>
+                        <span class="br"></span>
+                        The Site may invite you to chat, contribute to, or participate in blogs, message boards, online
+                        forums, and other functionality, and may provide you with the opportunity to create, submit,
+                        post, display, transmit, perform, publish, distribute, or broadcast content and materials to
+                        us or on the Site, including but not limited to text, writings, video, audio, photographs,
+                        graphics, comments, suggestions, or personal information or other material (collectively,
+                        "Contributions"). Contributions may be viewable by other users of the Site and through
+                        third-party websites. As such, any Contributions you transmit may be treated as non-confidential
+                        and non-proprietary. When you create or make available any Contributions, you thereby represent
+                        and warrant that:
+                        <span class="br"></span>
+                        <span class="br1"></span>
+                        ● The creation, distribution, transmission, public display, or performance, and the accessing, downloading, or copying of your Contributions do not and will not infringe the proprietary rights, including but not limited to the copyright, patent, trademark, trade secret, or moral rights of any third party.
+                        <span class="br1">
+                        ● You are the creator and owner of or have the necessary licenses, rights, consents, releases, and permissions to use and to authorize us, the Site, and other users of the Site to use your Contributions in any manner contemplated by the Site and these Terms of Use.</span>
+                        <span class="br1">
+                        ● You have the written consent, release, and/or permission of each and every identifiable individual person in your Contributions to use the name or likeness of each and every such identifiable individual person to enable inclusion and use of your Contributions in any manner contemplated by the Site and these Terms of Use.
+                        </span>
+                        <span class="br1">
+                        ● Your Contributions are not false, inaccurate, or misleading.
+                        </span>
+                        <span class="br1">
+                        ● Your Contributions are not unsolicited or unauthorized advertising, promotional materials, pyramid schemes, chain letters, spam, mass mailings, or other forms of solicitation.
+                        </span>
+                        <span class="br1">
+                          ● Your Contributions are not obscene, lewd, lascivious, filthy, violent, harassing, libelous, slanderous, or otherwise objectionable (as determined by us).
+                        </span>
+                        <span class="br1">
+                            ● Your Contributions do not ridicule, mock, disparage, intimidate, or abuse anyone.
+                        </span>
+                        <span class="br1">
+                        ● Your Contributions are not used to harass or threaten (in the legal sense of those terms) any other person and to promote violence against a specific person or class of people.
+                        </span>
+                        <span class="br1">
+                           ● Your Contributions do not violate any applicable law, regulation, or rule.
+                        </span>
+                        <span class="br1">
+                            ● Your Contributions do not violate the privacy or publicity rights of any third party.
+                        </span>
+                        <span class="br1">
+                            ● Your Contributions do not violate any applicable law concerning child pornography, or otherwise intended to protect the health or well-being of minors.
+                        </span>
+                         <span class="br1">
+                             ● Your Contributions do not include any offensive comments that are connected to race, national origin, gender, sexual preference, or physical handicap.
+                         </span>
+                         <span class="br1">
+                             ● Your Contributions do not otherwise violate, or link to material that violates, any provision of these Terms of Use, or any applicable law or regulation.
+                         </span>
+                        <span class="br">
+                          ● Any use of the Site in violation of the foregoing violates these Terms of Use and may result in, among other things, termination or suspension of your rights to use the Site.
+                        </span>
+                    </p>
+
+
+                    <h2>6. GUIDELINES FOR REVIEWS</h2>
+                    <p>
+                        <span class="br">
+                            We may provide you areas on the Site to leave reviews or ratings. When posting a review, you must comply with the following criteria: (1) you should have firsthand experience with the person/entity being reviewed; (2) your reviews should not contain offensive profanity, or abusive, racist, offensive, or hate language; (3) your reviews should not contain discriminatory references based on religion, race, gender, national origin, age, marital status, sexual orientation, or disability; (4) your reviews should not contain references to illegal activity; (5) you should not be affiliated with competitors if posting negative reviews; (6) you should not make any conclusions as to the legality of conduct; (7) you may not post any false or misleading statements; and (8) you may not organize a campaign encouraging others to post reviews, whether positive or negative.
+                        </span>
+
+                        <span class="br">
+                            We may accept, reject, or remove reviews in our sole discretion. We have absolutely no obligation to screen reviews or to delete reviews, even if anyone considers reviews objectionable or inaccurate. Reviews are not endorsed by us, and do not necessarily represent our opinions or the views of any of our affiliates or partners. We do not assume liability for any review or for any claims, liabilities, or losses resulting from any review. By posting a review, you hereby grant to us a perpetual, non-exclusive, worldwide, royalty-free, fully-paid, assignable, and sublicensable right and license to reproduce, modify, translate, transmit by any means, display, perform, and/or distribute all content relating to reviews.
+                        </span>
+                    </p>
+
+
+                    <h2>7. SUBMISSIONS</h2>
+                    <p>
+                        <span class="br">
+                            You acknowledge and agree that any questions, comments, suggestions, ideas, feedback, or other information regarding the Site ("Submissions") provided by you to us are non-confidential and shall become our sole property. We shall own exclusive rights, including all intellectual property rights, and shall be entitled to the unrestricted use and dissemination of these Submissions for any lawful purpose, commercial or otherwise, without acknowledgment or compensation to you. You hereby waive all moral rights to any such Submissions, and you hereby warrant that any such Submissions are original with you or that you have the right to submit such Submissions. You agree there shall be no recourse against us for any alleged or actual infringement or misappropriation of any proprietary right in your Submissions.
+                        </span>
+                    </p>
+
+                    <h2>8. SITE MANAGEMENT</h2>
+                    <p>
+                        <span class="br">We reserve the right, but not the obligation, to: (1) monitor the Site for violations of these Terms of Use; (2) take appropriate legal action against anyone who, in our sole discretion, violates the law or these Terms of Use, including without limitation, reporting such user to law enforcement authorities; (3) in our sole discretion and without limitation, refuse, restrict access to, limit the availability of, or disable (to the extent technologically feasible) any of your Contributions or any portion thereof; (4) in our sole discretion and without limitation, notice, or liability, to remove from the Site or otherwise disable all files and content that are excessive in size or are in any way burdensome to our systems; and (5) otherwise manage the Site in a manner designed to protect our rights and property and to facilitate the proper functioning of the Site.</span>
+                    </p>
+
+
+                    <h2>9. PRIVACY POLICY</h2>
+                    <p>
+                        <span class="br">
+                        We care about data privacy and security. Please review our Privacy Policy: __________. By using the Site, you agree to be bound by our Privacy Policy, which is incorporated into these Terms of Use. Please be advised the Site is hosted in the United Kingdom. If you access the Site from any other region of the world with laws or other requirements governing personal data collection, use, or disclosure that differ from applicable laws in the United Kingdom, then through your continued use of the Site, you are transferring your data to the United Kingdom, and you agree to have your data transferred to and processed in the United Kingdom.
+                        </span>
+                    </p>
+
+
+                     <h2>10. MODIFICATIONS AND INTERRUPTIONS</h2>
+                    <p>
+                        <span class="br">
+                        We reserve the right to change, modify, or remove the contents of the Site at any time or for any reason at our sole discretion without notice. However, we have no obligation to update any information on our Site. We also reserve the right to modify or discontinue all or part of the Site without notice at any time. We will not be liable to you or any third party for any modification, price change, suspension, or discontinuance of the Site.
+                        </span>
+
+                        <span class="br">
+                        We cannot guarantee the Site will be available at all times. We may experience hardware, software, or other problems or need to perform maintenance related to the Site, resulting in interruptions, delays, or errors. We reserve the right to change, revise, update, suspend, discontinue, or otherwise modify the Site at any time or for any reason without notice to you. You agree that we have no liability whatsoever for any loss, damage, or inconvenience caused by your inability to access or use the Site during any downtime or discontinuance of the Site. Nothing in these Terms of Use will be construed to obligate us to maintain and support the Site or to supply any corrections, updates, or releases in connection therewith.
+                        </span>
+                    </p>
+
+                     <h2>11. USER DATA</h2>
+                    <p>
+                        <span class="br">
+                        We will maintain certain data that you transmit to the Site for the purpose of managing the performance of the Site, as well as data relating to your use of the Site. Although we perform regular routine backups of data, you are solely responsible for all data that you transmit or that relates to any activity you have undertaken using the Site. You agree that we shall have no liability to you for any loss or corruption of any such data, and you hereby waive any right of action against us arising from any such loss or corruption of such data.
+                        </span>
+
+                    </p>
+
+                     <h2>12. MISCELLANEOUS</h2>
+                    <p>
+                        <span class="br">
+                        These Terms of Use and any policies or operating rules posted by us on the Site or in respect to the Site constitute the entire agreement and understanding between you and us. Our failure to exercise or enforce any right or provision of these Terms of Use shall not operate as a waiver of such right or provision. These Terms of Use operate to the fullest extent permissible by law. We may assign any or all of our rights and obligations to others at any time. We shall not be responsible or liable for any loss, damage, delay, or failure to act caused by any cause beyond our reasonable control. If any provision or part of a provision of these Terms of Use is determined to be unlawful, void, or unenforceable, that provision or part of the provision is deemed severable from these Terms of Use and does not affect the validity and enforceability of any remaining provisions. There is no joint venture, partnership, employment or agency relationship created between you and us as a result of these Terms of Use or use of the Site. You agree that these Terms of Use will not be construed against us by virtue of having drafted them. You hereby waive any and all defenses you may have based on the electronic form of these Terms of Use and the lack of signing by the parties hereto to execute these Terms of Use.
+                        </span>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+        `
+        history.pushState({ page_state: page_state }, null, "/termsandcons");
+        main_html.insertAdjacentHTML("beforeend", termsandcons);
+    }
+    else if (new_state === "/contentguidelines") {
+        let contentguidelines = `
+        <div class="contentsection">
+        <div class="contentcontainer">
+            <div class="content-section">
+                <div class="contentheader">
+                    <a href="/">
+                    <h1>Open Thought Floor</h1>
+                    </a>
+                </div>
+                <div class="contentcontent">
+                    <h1>CONTENT GUIDELINES</h1>
+                    <h2>At OTF, we make our goal to provide people a platform where they can express their
+                    opinions freely. We don’t want to censor people's opinions, but we do recognize that
+                    some content can be harmful to other people’s wellbeing. As such, if your content is
+                    found to be categorised in the below list, your blog will be deleted and your account
+                    permanently terminated.</h2>
+                    <h3>Prohibited</h3>
+                    <p>
+                        <span class="br"></span>
+                        1)Threatening, or encouraging to threat a group or individuals with violence or
+                        any other form of inappropriate actions such as doxing. Examples would be:
+                        Encouraging readers to commit violence against conservative MPs. Encouraging
+                        readers to send threats to a specific person.
+                        <span class="br"></span>
+                        2)Any sexual content involving minors. No sexual content, visual or text is allowed
+                        to be posted if it contains minors.
+                        <span class="br"></span>
+                        3)Any content containing racial, gender and health discrimination. For example,
+                        writing about any race superiority is strictly not allowed.
+                    </p>
+
+                    <h2>The following content will be allowed on our platform, but you must appropriately
+                    categorise it, so that users are aware of the content and can avoid it.</h2>
+                    <h3>Labelled</h3>
+                    <p>
+                        <span class="br"></span>
+                        1)Anti-scientific content. Content that goes against the established scientific
+                        consensus, such as Flat-earth theory
+                        <span class="br"></span>
+                        2)Political content. Examples would be: critique of any political figures or groups.
+                        <span class="br"></span>
+                        3)Visual sexually explicit content. We allow sexual content, as long as it does not
+involve visual data. For example, sharing textual guidance on techniques is
+allowed, but sharing pictures is prohibited.
+                    </p>
+
+                </div>
+            </div>
+        </div>
+    </div>
+        `
+        history.pushState({ page_state: page_state }, null, "/contentguidelines");
+        main_html.insertAdjacentHTML("beforeend", contentguidelines);
+    }
+
+    else if (/^\/search\?(?<search_query>.*)$/.test(new_state)) {
         let temp = /^\/search\?(?<search_query>.*)$/.exec(new_state)
         if (temp === null) {
             return null;
@@ -566,8 +874,10 @@ async function main() {
     $("#about-us-btn").onclick = () => {
         change_page_state("/aboutus");
     };
-    $("#search-bar").onsubmit = (ev) => 
-    {
+    $("#legal-btn").onclick = () => {
+        change_page_state("/legalpage");
+    };
+    $("#search-bar").onsubmit = (ev) => {
         ev.preventDefault();
         on_simple_search_click()
     };

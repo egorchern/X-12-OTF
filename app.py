@@ -68,6 +68,18 @@ def aboutus():
 
 # Routes for internal page states
 
+@app.route('/legalpage', methods=['GET'])
+def legalpage():
+    return flask.render_template('index.html')
+
+@app.route('/termsandcons', methods=['GET'])
+def termsandcons():
+    return flask.render_template('index.html')
+
+@app.route('/contentguidelines', methods=['GET'])
+def acontentguidelines():
+    return flask.render_template('index.html')
+
 
 @app.route('/login-register', methods=['GET'])
 def login_register():
