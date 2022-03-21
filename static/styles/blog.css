@@ -86,8 +86,15 @@
     
 }
 #rating-container{
+    margin-top: 4rem;
     max-width: 750px;
-    margin: auto;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#post_new_comment_btn{
+    margin-top: 1rem;
+    max-width: fit-content;
 }
  
 .slidecontainer {
@@ -188,4 +195,8 @@
 .comment time{
     margin-left: 0.3rem;
     color: hsla(0, 0%, 10%, 0.7)
+}
+
+#post_new_comment_btn{
+
 }

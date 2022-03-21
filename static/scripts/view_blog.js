@@ -98,6 +98,9 @@ function insert_top_blog_info(blog_data) {
 let comment_ids = [];
 let comments_currently_showing = 0;
 let comments_increment = 4;
+let gl_blog_id;
+let MAX_COMMENT_CHARCOUNT = 2000;
+
 async function submit_blog_rating(rating_data) {
     return fetch("/api/blog/submit_rating", {
         method: "POST",
@@ -298,18 +301,47 @@ async function render_comments_prereq(){
     let page_container = $(".page-container");
     let dom_template = `
     <div class="flex-vertical width-full full-comments-container">
-        <h4>Comments</h4>
+        <h4 style="text-align: center">Comments</h4>
         <span class="width-full flex-horizontal" style="justify-content:end; text-align:end;">
             Comments shown:
             <strong id="comments_shown" style="margin-left:2px"></strong>
         </span>
-        <div class="comments-container"></div>
+        <form class="comment flex-vertical" id="new_comment_form" style="align-items: flex-end">
+            <div class="width-full">
+                <h5 style="text-align: start;">
+                    New comment 
+                    
+                </h5>
+                <h6 style="flex-grow:1; text-align: end;">
+                    Character count: 
+                    <strong id="new-comment-charcount">0/${MAX_COMMENT_CHARCOUNT}</strong>
+                </h6>
+                
+            </div>
+            
+            <textarea class="form-control"></textarea>
+            <div class="invalid-feedback">
+                Your comment is too long or empty.
+            </div>
+            <button type="submit" class="flex-horizontal align-center btn 
+            btn-outline-primary" id="post_new_comment_btn">
+                <span class="material-icons">
+                post_add
+                </span>
+                Post
+            </button>
+        </form>
+        <div class="comments-container">
+            
+        </div>
+
     </div>
     `
     page_container.insertAdjacentHTML("beforeend", dom_template)
     if (comments_currently_showing < comment_ids.length) {
         let show_more_domstring = `
-        <button class="btn btn-outline-primary flex-horizontal align-center" id="comments-show-more-btn">
+        <button class="btn btn-outline-primary flex-horizontal align-center" id="comments-show-more-btn"
+        style="max-width: fit-content; margin:auto;">
             <span class="material-icons">
                 arrow_circle_down
             </span>
@@ -317,15 +349,37 @@ async function render_comments_prereq(){
             Show more
         </button>
         `;
-        $(".comments-container").insertAdjacentHTML("beforeend", show_more_domstring);
+        $(".comments-container").insertAdjacentHTML("afterend", show_more_domstring);
 
         $("#comments-show-more-btn").onclick = () => { fetch_and_render_next_comments() }
+    }
+    $("#new_comment_form").onsubmit = (ev) => {
+        ev.preventDefault();
+        on_new_comment_post_click();
+    }
+    $("#new_comment_form textarea").oninput = (ev) => {
+        
+        let text = ev.target.value;
+        $("#new-comment-charcount").innerHTML = `${text.length}/${MAX_COMMENT_CHARCOUNT}`
     }
     fetch_and_render_next_comments()
 }
 
+async function on_new_comment_post_click(){
+    let comment_text = $("#new_comment_form textarea").value;
+    if (comment_text.length < 1 || comment_text.length >= 2000){
+        validate_element("#new_comment_form textarea", "is-invalid")
+        return null;
+    }
+    reset_validation_classes(["#new_comment_form textarea"])
+   
+    let temp = await post_comment(gl_blog_id, comment_text, "")
+    
+    if(temp.code != 1){ return null };
+    location.reload();
+}
+
 async function insert_comment(comment_data){
-    let comments_container = $(".comments-container")
     let comment_id = `comment_${comment_data.comment_id}`
     let comment_template = `
     <div class="comment flex-horizontal" id="${comment_id}">
@@ -341,7 +395,7 @@ async function insert_comment(comment_data){
         
     </div>
     `
-    comments_container.insertAdjacentHTML("beforeend", comment_template)
+    $(".comments-container").insertAdjacentHTML("beforeend", comment_template)
     $(`#${comment_id} .comment-body`).insertAdjacentText("beforeend", comment_data.comment_text);
     $(`#${comment_id} .comment_author_hyperlink`).onclick = () => {change_page_state(`/profile/${comment_data.username}`)}
 }
@@ -384,6 +438,7 @@ async function render_view_blog(blog_id) {
     }
 
     let blog_data = temp.blog_data;
+    gl_blog_id = blog_data.blog_id
     blog_data.date_created = convert_iso_date(new Date(blog_data.date_created))
     blog_data.date_modified = convert_iso_date(new Date(blog_data.date_modified))
     let edit_button_domstring = `
