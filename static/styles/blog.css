@@ -91,7 +91,15 @@
     margin-left: auto;
     margin-right: auto;
 }
-
+.comment-control-button{
+    margin: 0.4rem;
+    transition: all 200ms;
+    height: fit-content;
+}
+.comment-control-button:hover{
+    cursor: pointer;
+    transform: scale(1.3);
+}
 #post_new_comment_btn{
     margin-top: 1rem;
     max-width: fit-content;

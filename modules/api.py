@@ -410,7 +410,7 @@ class Api:
             request = req
             data = request.json
             comment_data = self.db.get_comment(data.get("comment_id"))
-            if isinstance(comment_data, str):
+            if isinstance(comment_data, str) or len(comment_data) == 0:
                 resp["code"] = 2
                 return resp, 400
             comment_data = comment_data[0]
@@ -433,7 +433,7 @@ class Api:
             request = req
             data = request.json
             comment_data = self.db.get_comment(data.get("comment_id"))
-            if isinstance(comment_data, str):
+            if isinstance(comment_data, str) or len(comment_data) == 0:
                 resp["code"] = 2
                 return resp, 400
             comment_data = comment_data[0]

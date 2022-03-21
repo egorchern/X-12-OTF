@@ -302,10 +302,7 @@ async function render_comments_prereq(){
     let dom_template = `
     <div class="flex-vertical width-full full-comments-container">
         <h4 style="text-align: center">Comments</h4>
-        <span class="width-full flex-horizontal" style="justify-content:end; text-align:end;">
-            Comments shown:
-            <strong id="comments_shown" style="margin-left:2px"></strong>
-        </span>
+        
         <form class="comment flex-vertical" id="new_comment_form" style="align-items: flex-end">
             <div class="width-full">
                 <h5 style="text-align: start;">
@@ -334,6 +331,10 @@ async function render_comments_prereq(){
         <div class="comments-container">
             
         </div>
+        <span class="width-full flex-horizontal" style="justify-content:end; text-align:end;">
+            Comments shown:
+            <strong id="comments_shown" style="margin-left:2px"></strong>
+        </span>
 
     </div>
     `
@@ -398,6 +399,24 @@ async function insert_comment(comment_data){
     $(".comments-container").insertAdjacentHTML("beforeend", comment_template)
     $(`#${comment_id} .comment-body`).insertAdjacentText("beforeend", comment_data.comment_text);
     $(`#${comment_id} .comment_author_hyperlink`).onclick = () => {change_page_state(`/profile/${comment_data.username}`)}
+    if (comment_data.user_id != auth_info.user_id) {return null}
+    let own_comment_controls = `
+    <div class="flex-horizontal align-items" style="flex-grow:1; justify-content:flex-end">
+        <span class="material-icons comment-control-button" style="color:#0e6ffd">
+        edit
+        </span>
+        <span class="material-icons comment-control-button delete-comment" style="color:#dc3545">
+        delete
+        </span>
+    </div>
+    `
+    $(`#${comment_id}`).insertAdjacentHTML("beforeend", own_comment_controls)
+    $(`#${comment_id} .delete-comment`).onclick = async function(){
+        let temp = await delete_comment(comment_data.comment_id)
+        if(temp.code != 1){return null}
+        location.reload()
+    }
+    
 }
 
 async function fetch_and_render_next_comments(){
