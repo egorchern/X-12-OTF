@@ -512,7 +512,7 @@ async function change_page_state(new_state) {
         <div class="termsandconscontainer">
             <div class="content-section">
                 <div class="termsandconsheader">
-                    <a href="/">
+                    <a href="/" class="hoverable-text">
                     <h1>Open Thought Floor</h1>
                     </a>
                 </div>
@@ -521,14 +521,14 @@ async function change_page_state(new_state) {
                     <h2>TERMS AND CONDITIONS</h2>
                     <p>
                      You can refer to our Terms and Conditions page:
-                        <a href="/termsandcons">Terms and Conditions</a>
+                        <a href="/termsandcons" class="hoverable-text">Terms and Conditions</a>
                     </p>
                     <span class="br"></span>
 
                     <h2>CONTENT GUIDELINES</h2>
                     <p>
                      You can refer to our Content Guidelines page:
-                        <a href="/contentguidelines">Content Guidelines</a>
+                        <a href="/contentguidelines" class="hoverable-text">Content Guidelines</a>
                     </p>
                 </div>
             </div>
@@ -544,7 +544,7 @@ async function change_page_state(new_state) {
         <div class="termsandconscontainer">
             <div class="termsandconscontent-section">
                 <div class="termsandconsheader">
-                    <a href="/">
+                    <a href="/" class="hoverable-text">
                     <h1>Open Thought Floor</h1>
                     </a>
                 </div>
@@ -758,7 +758,7 @@ async function change_page_state(new_state) {
         <div class="contentcontainer">
             <div class="content-section">
                 <div class="contentheader">
-                    <a href="/">
+                    <a href="/" class="hoverable-text">
                     <h1>Open Thought Floor</h1>
                     </a>
                 </div>
