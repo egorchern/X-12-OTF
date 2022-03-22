@@ -87,10 +87,11 @@ function insert_top_blog_info(blog_data) {
     `
     $("#top-blog-info-container").insertAdjacentHTML("beforeend", top_blog_info_dom_string)
     $("#category").insertAdjacentText("beforeend", categories_hashmap[blog_data.category_id])
-    $("#author_hyperlink").onclick = () => { change_page_state(`/profile/${blog_data.username}`) }
-    if (auth_info.user_id === blog_data.author_user_id) {
-        $("#edit-blog-btn").onclick = () => { change_page_state(`/edit_blog/${blog_data.blog_id}`) };
-    } else {
+    $("#author_hyperlink").onclick = () => {change_page_state(`/profile/${blog_data.username}`)}
+    if (auth_info.user_id === blog_data.author_user_id){
+        $("#edit-blog-btn").onclick = () => {change_page_state(`/edit_blog/${blog_data.blog_id}`)};
+    }else{
+
         //applies the change page state function to the report button which makes the page change to the report page
         $('#report-blog-btn').onclick = () => { show_report_page(blog_data.blog_id) };
     }
@@ -101,7 +102,8 @@ let comments_increment = 4;
 let gl_blog_id;
 let MAX_COMMENT_CHARCOUNT = 2000;
 
-async function submit_blog_rating(rating_data) {
+
+async function submit_blog_rating(rating_data, hcaptcha_response){
     return fetch("/api/blog/submit_rating", {
         method: "POST",
         headers: {
@@ -109,6 +111,7 @@ async function submit_blog_rating(rating_data) {
         },
         body: JSON.stringify({
             rating_data: rating_data,
+            hcaptcha_response: hcaptcha_response
         }),
     })
         .then((result) => result.json())
@@ -219,7 +222,7 @@ async function parse_posted_blog_rating(blog_data) {
        
             <div class="slidecontainer">
                 <div class="flex-vertical align-left" style="float:left;width:60%;">
-                    <strong>Controversy:</strong>
+                    <strong style="font-size: larger">Controversy:</strong>
                 </div>
                 <div class="flex-vertical align-right" style="float:right;width:40%;">
                     <font size="-1.5">How strongly do you feel that anything discussed was controversial?</font>
@@ -230,7 +233,7 @@ async function parse_posted_blog_rating(blog_data) {
             </div>
             <div class="slidecontainer">
                 <div class="flex-vertical align-left" style="float:left;width:60%">
-                    <strong>Relevancy:</strong>
+                    <strong style="font-size: larger">Relevancy:</strong>
                 </div>
                 <div class="flex-vertical align-right" style="float:right,width:40%">
                     <font size="-1.5">How strongly do you feel that everything in the blog was relevant to the title, category or tags?</font>
@@ -241,7 +244,7 @@ async function parse_posted_blog_rating(blog_data) {
             </div>
             <div class="slidecontainer">
                 <div class="flex-vertical align-left" style="float:left;width:60%">
-                    <strong>Impression:</strong>
+                    <strong style="font-size: larger">Impression:</strong>
                 </div>
                 <div class="flex-vertical align-right" style="float:right,width:40%">
                     <font size="-1.5">How likely are you to recommend this blog to others?</font>
@@ -279,7 +282,10 @@ async function on_delete_rating_click(blog_id) {
     location.reload();
 }
 
-async function on_submit_blog_rating_click(blog_id) {
+
+async function on_submit_blog_rating_click(blog_id){
+    $("#rating-container").insertAdjacentHTML('beforebegin', spinner_domstring);
+
     let rating_data = {
         blog_id: blog_id,
         controversy_rating: Number($("#controversyRange").value),
@@ -287,7 +293,15 @@ async function on_submit_blog_rating_click(blog_id) {
         impression_rating: Number($("#impressionRange").value)
 
     }
-    let res_from_submit_rating = await submit_blog_rating(rating_data)
+    let hcaptcha_widget = hcaptcha.render($("body"), {
+        size: "invisible",
+        sitekey: "28dd5d54-e402-445c-ac00-541d3e9cadc3"
+    })
+    let hcaptcha_result = await hcaptcha.execute(hcaptcha_widget, {
+        async: true
+    })
+    let res_from_submit_rating = await submit_blog_rating(rating_data, hcaptcha_result.response)
+    $(".lds-roller").remove();
     // If non valid, then user must have gone out of their way to do this, like use console, no need to show any error
     if (res_from_submit_rating.code != 1) {
         return null
