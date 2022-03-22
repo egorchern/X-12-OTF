@@ -1,4 +1,4 @@
-function insert_top_blog_info(blog_data){
+function insert_top_blog_info(blog_data) {
     blog_data.average_controversial_rating = Number(blog_data.average_controversial_rating.toFixed(1))
     blog_data.average_relevancy_rating = Number(blog_data.average_relevancy_rating.toFixed(1))
     blog_data.average_impression_rating = Number(blog_data.average_impression_rating.toFixed(1))
@@ -91,10 +91,17 @@ function insert_top_blog_info(blog_data){
     if (auth_info.user_id === blog_data.author_user_id){
         $("#edit-blog-btn").onclick = () => {change_page_state(`/edit_blog/${blog_data.blog_id}`)};
     }else{
+
         //applies the change page state function to the report button which makes the page change to the report page
-        $('#report-blog-btn').onclick = () => {show_report_page(blog_data.blog_id)};
+        $('#report-blog-btn').onclick = () => { show_report_page(blog_data.blog_id) };
     }
 }
+let comment_ids = [];
+let comments_currently_showing = 0;
+let comments_increment = 4;
+let gl_blog_id;
+let MAX_COMMENT_CHARCOUNT = 2000;
+
 
 async function submit_blog_rating(rating_data, hcaptcha_response){
     return fetch("/api/blog/submit_rating", {
@@ -113,7 +120,7 @@ async function submit_blog_rating(rating_data, hcaptcha_response){
         });
 }
 
-async function delete_blog_rating(blog_id){
+async function delete_blog_rating(blog_id) {
     return fetch("/api/blog/delete_rating", {
         method: "DELETE",
         headers: {
@@ -122,21 +129,21 @@ async function delete_blog_rating(blog_id){
         body: JSON.stringify({
             blog_id: blog_id
         })
-        
+
     })
-    .then((result) => result.json())
-    .then((result) => {
-        return result
-    })
+        .then((result) => result.json())
+        .then((result) => {
+            return result
+        })
 }
 
-async function get_posted_blog_rating(blog_id){
+async function get_posted_blog_rating(blog_id) {
     return fetch(`/api/blog/${blog_id}/get_posted_rating`, {
         method: "GET",
         headers: {
             "Content-Type": "application/json",
         },
-        
+
     })
         .then((result) => result.json())
         .then((result) => {
@@ -144,10 +151,10 @@ async function get_posted_blog_rating(blog_id){
         });
 }
 
-async function parse_posted_blog_rating(blog_id){
-    let res = await get_posted_blog_rating(blog_id)
+async function parse_posted_blog_rating(blog_data) {
+    let res = await get_posted_blog_rating(blog_data.blog_id)
     console.log(res)
-    switch (res.code){
+    switch (res.code) {
         case 1: {
             let rating_data = res.data
             console.log(rating_data)
@@ -202,7 +209,7 @@ async function parse_posted_blog_rating(blog_id){
             </button>
             `
             $("#rating-container").insertAdjacentHTML("beforeend", domstring)
-            $("#delete-rating-btn").onclick = () => {on_delete_rating_click(blog_id)}
+            $("#delete-rating-btn").onclick = () => { on_delete_rating_click(blog_id) }
             break;
         }
         case 2: {
@@ -252,55 +259,38 @@ async function parse_posted_blog_rating(blog_id){
             </button>
     
     `
-            // Not rated by user
-            // let new_rating_domstring = `
-            // <div class="flex-vertical align-center width-full">
-            //     <label for="customRange1" class="form-label">Controversial cut-off</label>
-            //     <div class="flex-horizontal align-center width-full">
-            //         <input type="range" class="form-range" id="controversial-range" min="0" max="10" step="1">
-            //         <strong style="margin-left: 0.1em; text-align: center"></strong>
-            //     </div>
-            
-            // </div>
-            // <div class="flex-vertical align-center">
-            //     <label for="customRange1" class="form-label">Impression cut-off</label>
-            //     <div class="flex-horizontal align-center width-full">
-            //         <input type="range" class="form-range" id="impression-range" min="0" max="10" step="1">
-            //         <strong style="margin-left: 0.1em; text-align: center"></strong>
-            //     </div>
-                
-            // </div>
-            // <div class="flex-vertical align-center">
-            //     <label for="customRange1" class="form-label">Relevancy cut-off</label>
-            //     <div class="flex-horizontal align-center width-full">
-            //         <input type="range" class="form-range" id="relevancy-range" min="0" max="10" step="1">
-            //         <strong style="margin-left: 0.1em; text-align: center"></strong>
-            //     </div>
-                
-            // </div>
-            // `
-            $("#rating-container").insertAdjacentHTML("beforeend", rateblog)
-            $("#ratingSubmit").onclick = () => {on_submit_blog_rating_click(blog_id)}
+
+            if (auth_info.user_id == blog_data.author_user_id) {
+                $("#rating-container").insertAdjacentHTML("beforeend", `<h3>You can't rate your own blog!</h3>`);
+            }
+            else {
+                $("#rating-container").insertAdjacentHTML("beforeend", rateblog)
+                $("#ratingSubmit").onclick = () => { on_submit_blog_rating_click(blog_data.blog_id) }
+            }
+
+
             break;
         }
     }
 }
 
-async function on_delete_rating_click(blog_id){
+async function on_delete_rating_click(blog_id) {
     let res_from_delete_rating = await delete_blog_rating(blog_id);
-    if (res_from_delete_rating.code != 1){
+    if (res_from_delete_rating.code != 1) {
         return null;
     }
     location.reload();
 }
 
+
 async function on_submit_blog_rating_click(blog_id){
     $("#rating-container").insertAdjacentHTML('beforebegin', spinner_domstring);
+
     let rating_data = {
         blog_id: blog_id,
         controversy_rating: Number($("#controversyRange").value),
-        relevancy_rating:Number($("#relevancyRange").value),
-        impression_rating:Number($("#impressionRange").value)
+        relevancy_rating: Number($("#relevancyRange").value),
+        impression_rating: Number($("#impressionRange").value)
 
     }
     let hcaptcha_widget = hcaptcha.render($("body"), {
@@ -313,11 +303,155 @@ async function on_submit_blog_rating_click(blog_id){
     let res_from_submit_rating = await submit_blog_rating(rating_data, hcaptcha_result.response)
     $(".lds-roller").remove();
     // If non valid, then user must have gone out of their way to do this, like use console, no need to show any error
-    if(res_from_submit_rating.code != 1){
+    if (res_from_submit_rating.code != 1) {
         return null
     }
-    
+
     location.reload();
+}
+
+async function render_comments_prereq(){
+    comments_currently_showing = 0;
+    let page_container = $(".page-container");
+    let dom_template = `
+    <div class="flex-vertical width-full full-comments-container">
+        <h4 style="text-align: center">Comments</h4>
+        
+        <form class="comment flex-vertical" id="new_comment_form" style="align-items: flex-end">
+            <div class="width-full">
+                <h5 style="text-align: start;">
+                    New comment 
+                    
+                </h5>
+                <h6 style="flex-grow:1; text-align: end;">
+                    Character count: 
+                    <strong id="new-comment-charcount">0/${MAX_COMMENT_CHARCOUNT}</strong>
+                </h6>
+                
+            </div>
+            
+            <textarea class="form-control"></textarea>
+            <div class="invalid-feedback">
+                Your comment is too long or empty.
+            </div>
+            <button type="submit" class="flex-horizontal align-center btn 
+            btn-outline-primary" id="post_new_comment_btn">
+                <span class="material-icons">
+                post_add
+                </span>
+                Post
+            </button>
+        </form>
+        <div class="comments-container">
+            
+        </div>
+        <span class="width-full flex-horizontal" style="justify-content:end; text-align:end;">
+            Comments shown:
+            <strong id="comments_shown" style="margin-left:2px"></strong>
+        </span>
+
+    </div>
+    `
+    page_container.insertAdjacentHTML("beforeend", dom_template)
+    if (comments_currently_showing < comment_ids.length) {
+        let show_more_domstring = `
+        <button class="btn btn-outline-primary flex-horizontal align-center" id="comments-show-more-btn"
+        style="max-width: fit-content; margin:auto;">
+            <span class="material-icons">
+                arrow_circle_down
+            </span>
+
+            Show more
+        </button>
+        `;
+        $(".comments-container").insertAdjacentHTML("afterend", show_more_domstring);
+
+        $("#comments-show-more-btn").onclick = () => { fetch_and_render_next_comments() }
+    }
+    $("#new_comment_form").onsubmit = (ev) => {
+        ev.preventDefault();
+        on_new_comment_post_click();
+    }
+    $("#new_comment_form textarea").oninput = (ev) => {
+        
+        let text = ev.target.value;
+        $("#new-comment-charcount").innerHTML = `${text.length}/${MAX_COMMENT_CHARCOUNT}`
+    }
+    fetch_and_render_next_comments()
+}
+
+async function on_new_comment_post_click(){
+    let comment_text = $("#new_comment_form textarea").value;
+    if (comment_text.length < 1 || comment_text.length >= 2000){
+        validate_element("#new_comment_form textarea", "is-invalid")
+        return null;
+    }
+    reset_validation_classes(["#new_comment_form textarea"])
+   
+    let temp = await post_comment(gl_blog_id, comment_text, "")
+    
+    if(temp.code != 1){ return null };
+    location.reload();
+}
+
+async function insert_comment(comment_data){
+    let comment_id = `comment_${comment_data.comment_id}`
+    let comment_template = `
+    <div class="comment flex-horizontal" id="${comment_id}">
+        
+        <img src="/images/avatar_${comment_data.avatar_image_id}.webp" alt="profile avatar">
+        <div class="flex-vertical" style="margin-left: 0.8rem;">
+            <div class="flex-horizontal" style="padding-left: 0.5rem; justify-content: flex-start; align-items:center">
+                <button style="font-weight: bolder" class="comment_author_hyperlink hoverable-text">${comment_data.username}</button>
+                <time datetime=${comment_data.datetime_created}>${new Date(comment_data.datetime_created).toLocaleString()}</time>
+            </div>
+            <p class="comment-body" style="margin-bottom:0"></p>
+        </div>
+        
+    </div>
+    `
+    $(".comments-container").insertAdjacentHTML("beforeend", comment_template)
+    $(`#${comment_id} .comment-body`).insertAdjacentText("beforeend", comment_data.comment_text);
+    $(`#${comment_id} .comment_author_hyperlink`).onclick = () => {change_page_state(`/profile/${comment_data.username}`)}
+    if (comment_data.user_id != auth_info.user_id) {return null}
+    let own_comment_controls = `
+    <div class="flex-horizontal align-items" style="flex-grow:1; justify-content:flex-end">
+        <span class="material-icons comment-control-button delete-comment" style="color:#dc3545">
+        delete
+        </span>
+    </div>
+    `
+    $(`#${comment_id}`).insertAdjacentHTML("beforeend", own_comment_controls)
+    $(`#${comment_id} .delete-comment`).onclick = async function(){
+        let temp = await delete_comment(comment_data.comment_id)
+        if(temp.code != 1){return null}
+        location.reload()
+    }
+    
+}
+
+async function fetch_and_render_next_comments(){
+    if (comments_currently_showing >= comment_ids.length) {
+        $("#comments_shown").innerHTML = `${comments_currently_showing}/${comment_ids.length}`;
+        return null;
+    }
+    let temp = await get_comment_content(comment_ids.slice(comments_currently_showing, comments_currently_showing + comments_increment));
+    if (temp.code != 1) {
+        return null
+    }
+    let comments_data = temp.data;
+    console.log(comments_data)
+    comments_data.forEach((comment_data, index) => {
+        insert_comment(comment_data)
+    })
+    
+    comments_currently_showing = Math.min(comments_currently_showing + comments_increment, comment_ids.length);
+    $("#comments_shown").innerHTML = `${comments_currently_showing}/${comment_ids.length}`;
+    // If all of the authored blogs are shown, then we should remove the "show more" blogs button.
+    temp = $("#comments-show-more-btn")
+    if (temp != null && comments_currently_showing == comment_ids.length) {
+        temp.remove();
+    }
 }
 
 // submit_blog_rating({
@@ -327,13 +461,16 @@ async function on_submit_blog_rating_click(blog_id){
 //     blog_id: 1
 // })
 // delete_blog_rating(1)
-async function render_view_blog(blog_id){
+async function render_view_blog(blog_id) {
     let temp = await get_blog(blog_id)
-    if (temp.code != 1){
+    if (temp.code != 1) {
         return null;
     }
-    
+
     let blog_data = temp.blog_data;
+    gl_blog_id = blog_data.blog_id
+    blog_data.date_created = convert_iso_date(new Date(blog_data.date_created))
+    blog_data.date_modified = convert_iso_date(new Date(blog_data.date_modified))
     let edit_button_domstring = `
         <button id="edit-blog-btn" class="btn btn-outline-primary profile-control-button flex-horizontal align-center">
             <span class="material-icons">
@@ -375,12 +512,104 @@ async function render_view_blog(blog_id){
     </div>
     
     `
-    
+
     $("#view-blog-container").insertAdjacentHTML("beforeend", view_blog_dom_string);
     $("#blog-title").insertAdjacentText("beforeend", blog_data.blog_title)
     $("#blog-body").insertAdjacentText('beforeend', blog_data.blog_body.text)
-    
+
     insert_top_blog_info(blog_data)
-    parse_posted_blog_rating(blog_id)
-    
+    parse_posted_blog_rating(blog_data)
+    temp = await get_comment_ids(blog_id);
+    if (temp.code != 1){
+        return null;
+    }
+    comment_ids = temp.data;
+    render_comments_prereq();
 }
+
+async function post_comment(blog_id, comment_text, hcaptcha_response) {
+    return fetch("/api/blog/post_comment", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            blog_id: blog_id,
+            comment_text: comment_text,
+            hcaptcha_response: hcaptcha_response
+        }),
+    })
+        .then((result) => result.json())
+        .then((result) => {
+            return result
+        });
+}
+
+async function edit_comment(comment_id, comment_text) {
+    return fetch("/api/blog/edit_comment", {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            comment_id: comment_id,
+            comment_text: comment_text,
+
+        }),
+    })
+        .then((result) => result.json())
+        .then((result) => {
+            return result
+        });
+}
+
+async function delete_comment(comment_id) {
+    return fetch("/api/blog/delete_comment", {
+        method: "DELETE",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            comment_id: comment_id,
+
+
+        }),
+    })
+        .then((result) => result.json())
+        .then((result) => {
+            return result
+        });
+}
+
+async function get_comment_ids(blog_id) {
+    return fetch(`/api/blog/${blog_id}/get_comment_ids`, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+        }
+    })
+        .then((result) => result.json())
+        .then((result) => {
+            return result
+        });
+
+}
+
+async function get_comment_content(comment_ids) {
+    return fetch(`/api/blog/get_comments/${JSON.stringify(comment_ids)}`, {
+        method: "GET",
+        headers: {
+
+            "Content-Type": "application/json",
+
+        }
+    })
+    .then((result) => result.json())
+        .then((result) => {
+            return result
+        });
+}
+// post_comment(1, "Yo", "")
+// get_comment_ids(1)
+// edit_comment(2, "This should not be yo now")
+// get_comment_content([2, 1])
