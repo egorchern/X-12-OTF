@@ -402,9 +402,6 @@ async function insert_comment(comment_data){
     if (comment_data.user_id != auth_info.user_id) {return null}
     let own_comment_controls = `
     <div class="flex-horizontal align-items" style="flex-grow:1; justify-content:flex-end">
-        <span class="material-icons comment-control-button" style="color:#0e6ffd">
-        edit
-        </span>
         <span class="material-icons comment-control-button delete-comment" style="color:#dc3545">
         delete
         </span>
