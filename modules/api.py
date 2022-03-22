@@ -363,4 +363,103 @@ class Api:
                 resp["code"] = 3
             return resp
             
+        @self.api.route("/api/blog/post_comment", methods=['POST'])
+        def post_comment():
+            request = req
+            resp = {}
+            referer_info = self.auth.get_username_and_access_level(request)
+            if referer_info.get("username") is None:
+                resp["code"] = 2
+                return resp, 401
+            data = request.json
+            result = self.db.insert_new_comment(
+                referer_info.get("user_id"),
+                data.get("blog_id"),
+                data.get("comment_text")
+            )
+            if result is None:
+                resp["code"] = 1
+                return resp
+            else:
+                resp["code"] = 3
+                return resp, 400
+
+        @self.api.route("/api/blog/<blog_id>/get_comment_ids", methods=["GET"])
+        def get_comment_ids(blog_id: int):
+            resp = {}
+            data = self.db.get_all_comment_ids_for_blog(blog_id)
+            # This means no error occured
+            if not isinstance(data, str):
+                resp["code"] = 1
+                comment_ids = []
+                for entry in data:
+                    comment_ids.append(entry.get("comment_id"))
+                resp["data"] = comment_ids
+            else:
+                resp["code"] = 2
+            
+            return resp
         
+        @self.api.route("/api/blog/edit_comment", methods=["PUT"])
+        def edit_comment():
+            """Edits the comment, comment_id needs to be in body
+            CODES: 1 - success
+            2 - bad blog_id
+            """
+            resp = {}
+            request = req
+            data = request.json
+            comment_data = self.db.get_comment(data.get("comment_id"))
+            if isinstance(comment_data, str) or len(comment_data) == 0:
+                resp["code"] = 2
+                return resp, 400
+            comment_data = comment_data[0]
+            is_authenticated = self.auth.is_authenticated(request, required_user_id = comment_data.get("user_id"))
+            if not is_authenticated:
+                resp["code"] = 3
+                return resp, 401
+
+            edit_result = self.db.edit_comment_text(data.get("comment_id"), data.get("comment_text"))
+            if isinstance(edit_result, str):
+                resp["code"] = 2
+                return resp, 400
+                
+            resp["code"] = 1
+            return resp
+        
+        @self.api.route("/api/blog/delete_comment", methods=["DELETE"])
+        def delete_comment():
+            resp = {}
+            request = req
+            data = request.json
+            comment_data = self.db.get_comment(data.get("comment_id"))
+            if isinstance(comment_data, str) or len(comment_data) == 0:
+                resp["code"] = 2
+                return resp, 400
+            comment_data = comment_data[0]
+            is_authenticated = self.auth.is_authenticated(request, required_user_id = comment_data.get("user_id"))
+            if not is_authenticated:
+                resp["code"] = 3
+                return resp, 401
+            delete_result = self.db.delete_comment(data.get("comment_id"))
+            if isinstance(delete_result, str):
+                resp["code"] = 2
+                return resp, 400
+                
+            resp["code"] = 1
+            return resp
+        
+        @self.api.route("/api/blog/get_comments/<comment_ids>", methods=["GET"])
+        def get_comments(comment_ids):
+            request = req
+            resp = {}
+            comment_ids = json.loads(comment_ids)
+            comments_data = self.db.get_comments_from_ids(tuple(comment_ids))
+            if isinstance(comments_data, str):
+                resp["code"] = 2
+                return resp, 400
+            else:
+                resp["code"] = 1
+                resp["data"] = comments_data
+                
+            return resp

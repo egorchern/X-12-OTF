@@ -21,8 +21,8 @@ class Database:
             for key in temp.keys():
                 value = temp[key]
                 if isinstance(value, datetime.date):
-                    temp[key] = value.strftime('%d/%m/%Y')
-                    
+                    #temp[key] = value.strftime('%d/%m/%Y')
+                    temp[key] = value.isoformat()
             response.append(temp)
         return response
 
@@ -258,6 +258,28 @@ class Database:
             
             self.execute_query(query, read_result = False)
 
+        def create_comments_table():
+            query = """
+            CREATE TABLE IF NOT EXISTS comments(
+                comment_id SERIAL NOT NULL,
+                user_id INTEGER NOT NULL,
+                blog_id INTEGER NOT NULL,
+                comment_text VARCHAR(2000) NOT NULL,
+                datetime_created timestamp with time zone NOT NULL,
+                PRIMARY KEY(comment_id),
+                
+                CONSTRAINT fk_user_id
+                    FOREIGN KEY(user_id)
+                    REFERENCES users(user_id)
+                    ON DELETE CASCADE,
+                CONSTRAINT fk_blog_id
+                    FOREIGN KEY(blog_id)
+                    REFERENCES blogs(blog_id)
+                    ON DELETE CASCADE
+            );
+            """
+            self.execute_query(query, read_result = False)
+
         create_users_table()
         create_categories_table()
         create_auth_tokens_table()
@@ -269,6 +291,7 @@ class Database:
         create_user_blog_algorithm_score_table()
         create_blog_report_table()
         create_user_report_table()
+        create_comments_table()
         # This ensures that at least one category exists
         temp = self.get_all_categories()
         if len(temp) == 0:
@@ -535,6 +558,71 @@ class Database:
 
     
     # Blog functions
+
+    # Comments functions
+
+    def insert_new_comment(self, user_id: int, blog_id: int, comment_text: str):
+        query = """
+        INSERT INTO comments (user_id, blog_id, comment_text, datetime_created)
+        VALUES (:user_id, :blog_id, :comment_text, CURRENT_TIMESTAMP)
+        """
+        params = {
+            "blog_id": blog_id,
+            "user_id": user_id,
+            "comment_text": comment_text
+        }
+        return self.execute_query(query, params, False)
+
+    def delete_comment(self, comment_id: int):
+        query = """
+        DELETE FROM comments
+        WHERE comment_id = :comment_id
+        """
+        params = {"comment_id": comment_id}
+        return self.execute_query(query, params, False)
+    
+    def get_all_comment_ids_for_blog(self, blog_id: int):
+        """Returns all comment ids belonging to a certain blog, sorting by datetime created DESCENDING"""
+        query = """
+        SELECT comment_id
+        FROM comments
+        WHERE blog_id = :blog_id
+        ORDER BY datetime_created DESC
+        """
+        params = {"blog_id": blog_id}
+        return self.execute_query(query, params)
+
+    def get_comments_from_ids(self, comment_ids: list):
+        query = """
+        SELECT comment_id, comments.datetime_created, username, comments.user_id,
+        comment_text, avatar_image_id
+        FROM comments
+        INNER JOIN users ON users.user_id = comments.user_id
+        WHERE comment_id IN :comment_ids
+        ORDER BY datetime_created DESC;
+        """
+        params = {"comment_ids": comment_ids}
+        return self.execute_query(query, params)
+
+    def edit_comment_text(self, comment_id: int, comment_text: str):
+        query = """
+        UPDATE comments
+        SET comment_text = :comment_text
+        WHERE comment_id = :comment_id;
+        """ 
+        params = {"comment_id": comment_id, "comment_text": comment_text}
+        return self.execute_query(query, params, False)
+
+    def get_comment(self, comment_id: int):
+        query = """
+        SELECT *
+        FROM comments 
+        WHERE comment_id = :comment_id
+        """
+        params = {"comment_id": comment_id}
+        return self.execute_query(query, params)
+        
+    # Comments functions
 
     # User functions
 
