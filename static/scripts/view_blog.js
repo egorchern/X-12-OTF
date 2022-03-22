@@ -209,7 +209,7 @@ async function parse_posted_blog_rating(blog_data) {
             </button>
             `
             $("#rating-container").insertAdjacentHTML("beforeend", domstring)
-            $("#delete-rating-btn").onclick = () => { on_delete_rating_click(blog_id) }
+            $("#delete-rating-btn").onclick = () => { on_delete_rating_click(gl_blog_id) }
             break;
         }
         case 2: {
@@ -387,9 +387,16 @@ async function on_new_comment_post_click(){
         return null;
     }
     reset_validation_classes(["#new_comment_form textarea"])
-   
-    let temp = await post_comment(gl_blog_id, comment_text, "")
-    
+    $("#post_new_comment_btn").insertAdjacentHTML('beforebegin', spinner_domstring);
+    let hcaptcha_widget = hcaptcha.render($("body"), {
+        size: "invisible",
+        sitekey: "28dd5d54-e402-445c-ac00-541d3e9cadc3"
+    })
+    let hcaptcha_result = await hcaptcha.execute(hcaptcha_widget, {
+        async: true
+    })
+    let temp = await post_comment(gl_blog_id, comment_text, hcaptcha_result.response)
+    $(".lds-roller").remove();
     if(temp.code != 1){ return null };
     location.reload();
 }
