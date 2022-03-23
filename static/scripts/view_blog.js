@@ -355,3 +355,7 @@ async function render_view_blog(blog_id){
     parse_posted_blog_rating(blog_data)
     
 }
+
+async function ban(){
+
+}

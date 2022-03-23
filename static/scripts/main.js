@@ -108,6 +108,18 @@ async function register_activity(){
     });
 }
 
+function insert_blog_reports(
+    report_data, identifier
+){
+    let blog_report_domstring = `
+    <div class="blog-tile animated__animated__fadeIn" id="blog-report-tile-${report_data.blog_id}" onclick="change_page_state('/blog/${report_data.blog_id}')">
+            <div class = "blog-tile-top">
+                <h5>Report for blog id:${report_data.blog_id} </h5>
+            </div>
+    </div>
+    `
+    $(identifier).insertAdjacentHTML("beforeend", blog_report_domstring);
+}
 function insert_blog_tile(
     blog_data, identifier
 ) {
@@ -235,6 +247,26 @@ async function get_all_blog_tiles() {
     return { dom_string: return_dom_string, data: all_blog_tiles_data }
 }
 
+async function get_all_blog_reports(){
+    let return_dom_string = ``
+    let temp = await get_all_blog_tiles_data();
+    
+    if (temp.code != 1) {
+        return { dom_string: "" }
+    }
+    
+    let all_blog_tiles_data = temp.data
+    
+    all_blog_tiles_data.sort((a, b) => {
+        return b.algorithm_info.score - a.algorithm_info.score
+    })
+    console.log(all_blog_tiles_data)
+    all_blog_tiles_data.forEach((blog_data, index) => {
+        insert_blog_reports(blog_data,"#report_blog_tiles")
+    })
+    return { dom_string: return_dom_string, data: all_blog_tiles_data }
+}
+
 // This changes page state depending on the url. So makes possible to go straight to some page
 function initialize_page_state() {
     let path = document.location.pathname;
@@ -257,6 +289,8 @@ function initialize_page_state() {
         change_page_state("/aboutus");
     } else if(/^\/search$/.test(path)){
         change_page_state(path + location.search);
+    }else if(path === "/admin"){
+        change_page_state("/admin");
     }
 }
 
@@ -520,6 +554,25 @@ async function change_page_state(new_state) {
         main_html.insertAdjacentHTML("beforeend", search_domstring);
         render_search_page(search_query);
     }
+    else if(new_state === "/admin"){
+        let admin_panel_domstring = `
+        <div id="admin-page">
+            <div class ="align-center">
+                <h2>Unresolved blog reports</h2>
+                <div class="flex-horizontal align-center margin-children flex-wrap bar-container" id="report_blog_tiles">
+                    <div class = "nav-heading">Blog id
+                    Most recent report date
+                    Report reaon(s)
+                    Number of reports on blog
+                    Most recent report description</div>
+                </div>
+            </div>
+        </div>
+        `
+        history.pushState({page_state: page_state},null, new_state);
+        main_html.insertAdjacentHTML("beforeend",admin_panel_domstring);
+        get_all_blog_reports();
+    }
 }
 
 // Called after userinfo is loaded. Initializes the page
@@ -561,7 +614,7 @@ async function main() {
         };
     }
     if(auth_info.access_level == 2){
-        let profile_domstring = `
+        let admin_domstring = `
             <button class="nav-item-container nav-button flex-horizontal" role="navigation" tabindex="0" id="admin">
 
                 <span class="material-icons">
@@ -573,7 +626,7 @@ async function main() {
             
             </button>
         `;
-        nav_element.insertAdjacentHTML("beforeend", profile_domstring);
+        nav_element.insertAdjacentHTML("beforeend", admin_domstring);
         $("#admin").onclick = () => {
             change_page_state("/admin");
         }
