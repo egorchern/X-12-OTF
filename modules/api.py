@@ -276,22 +276,22 @@ class Api:
             if auth_info.get("username") is None or author_username == auth_info.get("username"):
                 resp["code"] = 3
                 return resp
-            hcaptcha_response = temp.get("hcaptcha_response")
-            # Hcaptcha verify component
-            hcaptcha_verify_url = "https://hcaptcha.com/siteverify"
-            res = requests.post(
-                hcaptcha_verify_url,
-                data = {
-                    "secret": self.hcaptcha_secret,
-                    "response": hcaptcha_response
-                },
-                timeout = 5
+            # hcaptcha_response = temp.get("hcaptcha_response")
+            # # Hcaptcha verify component
+            # hcaptcha_verify_url = "https://hcaptcha.com/siteverify"
+            # res = requests.post(
+            #     hcaptcha_verify_url,
+            #     data = {
+            #         "secret": self.hcaptcha_secret,
+            #         "response": hcaptcha_response
+            #     },
+            #     timeout = 5
                     
-            )
-            res_json = res.json()
-            if not res_json["success"]:
-                resp["code"] = 5
-                return resp, 400
+            # )
+            # res_json = res.json()
+            # if not res_json["success"]:
+            #     resp["code"] = 5
+            #     return resp, 400
             rating_data["user_id"] = auth_info.get("user_id")
             blog_user_rating_from_db = self.db.get_blog_user_rating(
                 rating_data.get("user_id"),
@@ -355,22 +355,22 @@ class Api:
             if report_data["user_id"] is None:
                 resp["code"] = 2
                 return resp
-            hcaptcha_response = report_data.get("hcaptcha_response")
-            # Hcaptcha verify component
-            hcaptcha_verify_url = "https://hcaptcha.com/siteverify"
-            res = requests.post(
-                hcaptcha_verify_url,
-                data = {
-                    "secret": self.hcaptcha_secret,
-                    "response": hcaptcha_response
-                },
-                timeout = 5
+            # hcaptcha_response = report_data.get("hcaptcha_response")
+            # # Hcaptcha verify component
+            # hcaptcha_verify_url = "https://hcaptcha.com/siteverify"
+            # res = requests.post(
+            #     hcaptcha_verify_url,
+            #     data = {
+            #         "secret": self.hcaptcha_secret,
+            #         "response": hcaptcha_response
+            #     },
+            #     timeout = 5
                     
-            )
-            res_json = res.json()
-            if not res_json["success"]:
-                resp["code"] = 5
-                return resp, 400
+            # )
+            # res_json = res.json()
+            # if not res_json["success"]:
+            #     resp["code"] = 5
+            #     return resp, 400
             result = self.db.insert_blog_report(report_data)
             if result is True:
                 resp["code"] = 1
@@ -388,22 +388,22 @@ class Api:
             if report_data["reporter_user_id"] is None:
                 resp["code"] = 2
                 return resp
-            hcaptcha_response = report_data.get("hcaptcha_response")
-            # Hcaptcha verify component
-            hcaptcha_verify_url = "https://hcaptcha.com/siteverify"
-            res = requests.post(
-                hcaptcha_verify_url,
-                data = {
-                    "secret": self.hcaptcha_secret,
-                    "response": hcaptcha_response
-                },
-                timeout = 5
+            # hcaptcha_response = report_data.get("hcaptcha_response")
+            # # Hcaptcha verify component
+            # hcaptcha_verify_url = "https://hcaptcha.com/siteverify"
+            # res = requests.post(
+            #     hcaptcha_verify_url,
+            #     data = {
+            #         "secret": self.hcaptcha_secret,
+            #         "response": hcaptcha_response
+            #     },
+            #     timeout = 5
                     
-            )
-            res_json = res.json()
-            if not res_json["success"]:
-                resp["code"] = 5
-                return resp, 400
+            # )
+            # res_json = res.json()
+            # if not res_json["success"]:
+            #     resp["code"] = 5
+            #     return resp, 400
             result = self.db.insert_user_report(report_data)
             if result is True:
                 resp["code"] = 1
@@ -421,22 +421,22 @@ class Api:
                 return resp, 401
             
             data = request.json
-            hcaptcha_response = data.get("hcaptcha_response")
-            # Hcaptcha verify component
-            hcaptcha_verify_url = "https://hcaptcha.com/siteverify"
-            res = requests.post(
-                hcaptcha_verify_url,
-                data = {
-                    "secret": self.hcaptcha_secret,
-                    "response": hcaptcha_response
-                },
-                timeout = 5
+            # hcaptcha_response = data.get("hcaptcha_response")
+            # # Hcaptcha verify component
+            # hcaptcha_verify_url = "https://hcaptcha.com/siteverify"
+            # res = requests.post(
+            #     hcaptcha_verify_url,
+            #     data = {
+            #         "secret": self.hcaptcha_secret,
+            #         "response": hcaptcha_response
+            #     },
+            #     timeout = 5
                     
-            )
-            res_json = res.json()
-            if not res_json["success"]:
-                resp["code"] = 5
-                return resp, 400
+            # )
+            # res_json = res.json()
+            # if not res_json["success"]:
+            #     resp["code"] = 5
+            #     return resp, 400
             result = self.db.insert_new_comment(
                 referer_info.get("user_id"),
                 data.get("blog_id"),

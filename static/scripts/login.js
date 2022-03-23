@@ -145,17 +145,11 @@ function change_login_page_state(new_state) {
                     Passwords must match
                 </div>
             </div>
-            <div>
-                <label for="date-of-birth">Date Of Birth</label>
-                <input type="date" class="form-control" id='date-of-birth' required>
-                <div class="invalid-feedback">
-                Please input a valid date of birth date
-                </div>
-            </div>
+            
             <div class="form-check">
                 <input class="form-check-input" type="checkbox" value="" id="terms-agreement" required>
                 <label class="form-check-label" for="terms-agreement">
-                I agree to the <span class="hoverable-text"> Terms of Service </span>
+                I agree to the <a class="hoverable-text" href="/termsandcons"> Terms of Service </a>
                 </label>
                 <div class="invalid-feedback">
                 You must agree to the terms and conditions.
@@ -354,12 +348,12 @@ async function check_username_email(email, username) {
 
 // Event handler for register button click
 async function on_register_click() {
-    reset_validation_classes(["#email", "#password", "#username", "#confirm-password", "#date-of-birth", "#terms-agreement"])
+    reset_validation_classes(["#email", "#password", "#username", "#confirm-password", "#terms-agreement"])
     let email = $("#email").value;
     let username = $("#username").value;
     let password = $("#password").value;
     let confirmPassword = $("#confirm-password").value;
-    let dob = $("#date-of-birth").value;
+    
     let terms_agreement_checked = $("#terms-agreement").checked;
     // Function to remove previous validation classes and assign the new class
 
@@ -374,16 +368,16 @@ async function on_register_click() {
     }
 
 
-    // We will simply check that there is a date of birth and its not in the future
-    const validate_dob = (dob) => {
+    // // We will simply check that there is a date of birth and its not in the future
+    // const validate_dob = (dob) => {
 
-        if (dob.length === 0) {
-            return false;
-        }
-        const today = new Date();
-        const user_dob = new Date(dob);
-        return today > user_dob;
-    }
+    //     if (dob.length === 0) {
+    //         return false;
+    //     }
+    //     const today = new Date();
+    //     const user_dob = new Date(dob);
+    //     return today > user_dob;
+    // }
 
     let email_valid = validate_email(email);
     let email_class = email_valid ? "is-valid" : "is-invalid";
@@ -407,15 +401,15 @@ async function on_register_click() {
     let confirmPassword_class = temp.passwords_match ? "is-valid" : "is-invalid";
     validate_element("#password", password_class);
     validate_element("#confirm-password", confirmPassword_class);
-    // Validate date of birth
-    let dob_valid = validate_dob(dob);
-    let dob_class = dob_valid ? "is-valid" : "is-invalid";
-    validate_element("#date-of-birth", dob_class);
+    // // Validate date of birth
+    // let dob_valid = validate_dob(dob);
+    // let dob_class = dob_valid ? "is-valid" : "is-invalid";
+    // validate_element("#date-of-birth", dob_class);
     let agreements_class = terms_agreement_checked ? "is-valid" : "is-invalid";
     validate_element("#terms-agreement", agreements_class);
     // Guarding clause, to prevent execution of next code if any of inputs are invalid
     if (email_valid === false || username_valid === false || temp.password_valid === false
-        || temp.passwords_match === false || dob_valid === false || terms_agreement_checked === false) {
+        || temp.passwords_match === false || terms_agreement_checked === false) {
         return null;
     }
     

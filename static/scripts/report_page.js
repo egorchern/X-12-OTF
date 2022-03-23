@@ -65,15 +65,15 @@ async function show_report_page(blog_id){
             return null
         }
         $(".modal-body").insertAdjacentHTML('beforeend', spinner_domstring);
-        let hcaptcha_widget = hcaptcha.render($("body"), {
-            size: "invisible",
-            sitekey: "28dd5d54-e402-445c-ac00-541d3e9cadc3"
-        })
-        let hcaptcha_result = await hcaptcha.execute(hcaptcha_widget, {
-            async: true
-        })
+        // let hcaptcha_widget = hcaptcha.render($("body"), {
+        //     size: "invisible",
+        //     sitekey: "28dd5d54-e402-445c-ac00-541d3e9cadc3"
+        // })
+        // let hcaptcha_result = await hcaptcha.execute(hcaptcha_widget, {
+        //     async: true
+        // })
         $(".lds-roller").remove();
-        let temp = await submit_report(blog_id, myModal, hcaptcha_result.response)
+        let temp = await submit_report(blog_id, myModal, /*hcaptcha_result.response*/ "")
     };
 }
 
@@ -188,14 +188,14 @@ async function show_user_report_page(user_id){
             return null;
         }
         $(".modal-body").insertAdjacentHTML('beforeend', spinner_domstring);
-        let hcaptcha_widget = hcaptcha.render($("body"), {
-            size: "invisible",
-            sitekey: "28dd5d54-e402-445c-ac00-541d3e9cadc3"
-        })
-        let hcaptcha_result = await hcaptcha.execute(hcaptcha_widget, {
-            async: true
-        })
+        // let hcaptcha_widget = hcaptcha.render($("body"), {
+        //     size: "invisible",
+        //     sitekey: "28dd5d54-e402-445c-ac00-541d3e9cadc3"
+        // })
+        // let hcaptcha_result = await hcaptcha.execute(hcaptcha_widget, {
+        //     async: true
+        // })
         $(".lds-roller").remove();
-        let temp = await submit_user_report(user_id, myModal, hcaptcha_result.response)
+        let temp = await submit_user_report(user_id, myModal, /*hcaptcha_result.response*/ "")
     }
 }
