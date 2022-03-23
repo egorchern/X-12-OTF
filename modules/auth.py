@@ -149,7 +149,7 @@ class Auth:
                 return resp, 200
             resp["code"] = 2
             return resp, 404
-            
+        
     # Hash password
     def hash(self, text: str) -> str:
         """Returns a hashed text"""
@@ -402,3 +402,5 @@ class Auth:
         else:
             resp["code"] = 4
         return resp
+    
+    

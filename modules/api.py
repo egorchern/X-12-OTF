@@ -1,13 +1,15 @@
 from flask import Blueprint, request as req, make_response
 import json
 import threading
+import flask_mail
 
 class Api:
-    def __init__(self, db, auth, recommend):
+    def __init__(self, db, auth, recommend, mail):
         self.db = db
         self.api = Blueprint("api", __name__)
         self.auth = auth
         self.recommend = recommend
+        self.mail = mail
         @self.api.route("/api/profile/<username>", methods=["GET"])
         def get_profile_public_info(username):
             """
@@ -363,4 +365,27 @@ class Api:
                 resp["code"] = 3
             return resp
             
-        
+        @self.api.route("/api/user/ban",methods=['POST'])
+        def ban_user():
+            request = req
+            resp = {}
+            data = request.json
+            email = self.db.get_user_email(data.get("user_id"))
+            email=email[0].get("email")
+            if email is None:
+                resp["code"] = 2
+                return resp
+            result = self.db.get_user_password_hash(email)
+            if result is None:
+                resp["code"] = 3
+                return resp
+            try:
+                resp["code"] = 1
+                msg = flask_mail.Message("Account ban (OTF)", sender="OTF mailing bot", recipients=[email])
+                msg.body = f"Our admin team have found that your actions have breached our code of misconduct. \nHere at Open Thought Floor we take misbehaviour such as this very seriously and limitations will be placed on your account."
+                
+                self.mail.send(msg)
+            except:
+                resp["code"] = 4
+                return resp
+            return resp

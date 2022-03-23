@@ -661,6 +661,15 @@ class Database:
         params = {"user_id": user_id}
         return self.execute_query(query, params, False)
 
+    def get_user_email(self,user_id:int):
+        query = """
+        SELECT email
+        FROM users
+        WHERE user_id = :user_id
+        LIMIT 1"""
+        params = {"user_id": user_id}
+        return self.execute_query(query, params)
+
     # User functions
 
     # Recovery functions 
@@ -885,6 +894,8 @@ class Database:
 
     # Discover/recommend functions
     
+    #report functions
+
     def insert_blog_report(self, report_data: dict):
         query = """
         INSERT INTO user_blog_reports(reporter_user_id, blog_id, report_reason, report_body, found_harmful, report_date)

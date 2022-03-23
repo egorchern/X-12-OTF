@@ -121,14 +121,16 @@ async function toggle_edit_state() {
 
 
 async function ban() {
-    return fetch(`/api/profile/${profile_info.username}`, {
-        method: "DELETE",
+    console.log("banning")
+    return fetch(`/api/user/ban`, {
+        method: 'POST',
         headers: {
             "Content-Type": "application/json",
         },
         body: JSON.stringify(profile_info)
     }).then((result) => result.json())
         .then((result) => {
+            console.log(result.code)
             return result.code
 
         });

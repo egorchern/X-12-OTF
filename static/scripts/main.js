@@ -560,6 +560,24 @@ async function main() {
             change_page_state("/login");
         };
     }
+    if(auth_info.access_level == 2){
+        let profile_domstring = `
+            <button class="nav-item-container nav-button flex-horizontal" role="navigation" tabindex="0" id="admin">
+
+                <span class="material-icons">
+                    admin_panel_settings
+                </span>
+                <span class="nav-heading">
+                    Admin Panel
+                </span>
+            
+            </button>
+        `;
+        nav_element.insertAdjacentHTML("beforeend", profile_domstring);
+        $("#admin").onclick = () => {
+            change_page_state("/admin");
+        }
+    }
     $("#home-btn").onclick = () => {
         change_page_state("/home");
     };
