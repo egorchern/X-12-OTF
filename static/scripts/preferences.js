@@ -48,8 +48,8 @@ async function parse_preferences() {
 
     if (preferences.ideal_word_count === undefined) { preferences.ideal_word_count = 200 }
     if (preferences.controversial_cutoff === undefined) { preferences.controversial_cutoff = 10 }
-    if (preferences.impression_cutoff === undefined) { preferences.impression_cutoff = 10 }
-    if (preferences.relevancy_cutoff === undefined) { preferences.relevancy_cutoff = 10 }
+    if (preferences.impression_cutoff === undefined) { preferences.impression_cutoff = 0 }
+    if (preferences.relevancy_cutoff === undefined) { preferences.relevancy_cutoff = 0 }
     if (preferences.category_ids === undefined || preferences.category_ids[0] == null) { preferences.category_ids = [] }
 }
 

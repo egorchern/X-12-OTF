@@ -303,8 +303,10 @@ class Api:
                 return resp
 
             result = self.db.insert_blog_user_rating(rating_data)
-            if len(result) > 0:
+            if not isinstance(result, str):
                 resp["code"] = 1
+                x = threading.Thread(target=self.recommend.on_blog_change, args=(rating_data.get("blog_id"), ))
+                x.start()
             else:
                 resp["code"] = 2
             return resp
@@ -321,7 +323,10 @@ class Api:
             inpt = request.json
             result = self.db.delete_blog_user_rating(auth_info.get("user_id"), inpt.get("blog_id"))
             if result is None:
+                
                 resp["code"] = 1
+                x = threading.Thread(target=self.recommend.on_blog_change, args=(inpt.get("blog_id"), ))
+                x.start()
             else:
                 resp["code"] = 2
             return resp

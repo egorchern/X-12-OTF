@@ -2,6 +2,7 @@ let profile_edit_state = false;
 let profile_info = {};
 let blogs_increment = 2;
 let currently_showing = 0;
+let currently_hidden = 0;
 // This indicates what is the biggest avatar num. This is until we manage to make image uploads
 let max_avatar_number = 10;
 let currently_selected_avatar = 0;
@@ -156,12 +157,43 @@ async function fetch_and_render_next_blog_tiles(blog_ids) {
     }
     let blog_tiles = temp.data;
     console.log(blog_tiles)
+    if (preferences != undefined) {
+        
+        let temp = []
+        blog_tiles.forEach((blog_tile) => {
+            let fits_all = true;
+            if(preferences.controversial_cutoff != undefined &&
+                blog_tile.average_controversial_rating > preferences.controversial_cutoff
+            ){
+                fits_all = false;
+                
+            }
+            if(preferences.impression_cutoff != undefined &&
+                blog_tile.average_impression_rating < preferences.impression_cutoff
+                ){
+                    fits_all = false;
+            }
+            if(preferences.relevancy_cutoff != undefined &&
+                blog_tile.average_relevancy_rating < preferences.relevancy_cutoff
+                ){
+                    fits_all = false;
+            }
+            if(fits_all){
+                temp.push(blog_tile)
+            }
+            else{
+                currently_hidden += 1;
+            }
+        })
+        blog_tiles = temp;
+        
+    }
     let authored_blogs_container = $("#authored-blogs-container");
     blog_tiles.forEach((blog_tile_data, index) => {
         insert_blog_tile(blog_tile_data, "#authored-blogs-container")
     })
     currently_showing = Math.min(currently_showing + blogs_increment, blog_ids.length);
-    $("#blogs-shown").innerHTML = `${currently_showing}/${blog_ids.length}`;
+    $("#blogs-shown").innerHTML = `${currently_showing}${currently_hidden != 0 ? " (" + currently_hidden + " hidden)" : ""}/${blog_ids.length}`;
     // If all of the authored blogs are shown, then we should remove the "show more" blogs button.
     temp = $("#authored-blogs-show-more-btn")
     if (temp != null && currently_showing == blog_ids.length) {
