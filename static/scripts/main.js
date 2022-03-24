@@ -530,7 +530,25 @@ async function change_page_state(new_state) {
                      You can refer to our Content Guidelines page:
                         <a href="/contentguidelines" class="hoverable-text">Content Guidelines</a>
                     </p>
+                <div>
+                <h2>Userway</h2>
+                <p>
+                We use Userway software for accessibility improvement. You can refer to Userway's legal documents: 
+                    <a href="https://userway.org/terms/" class="hoverable-text">Terms and Conditions</a>
+                    <a href="https://userway.org/privacy/" class="hoverable-text"> Privacy Policy </a>
+                </p>
+                    
                 </div>
+                <div>
+                <h2>Hcaptcha</h2>
+                <p>
+                This site is protected by hCaptcha and its
+                    <a href="https://hcaptcha.com/privacy" class="hoverable-text">Privacy Policy</a> and
+                    <a href="https://hcaptcha.com/terms" class="hoverable-text">Terms of Service</a> apply.
+                </p>
+                </div>
+                </div>
+                
             </div>
         </div>
 </div>
