@@ -293,14 +293,14 @@ async function on_submit_blog_rating_click(blog_id){
         impression_rating: Number($("#impressionRange").value)
 
     }
-    let hcaptcha_widget = hcaptcha.render($("body"), {
-        size: "invisible",
-        sitekey: "28dd5d54-e402-445c-ac00-541d3e9cadc3"
-    })
-    let hcaptcha_result = await hcaptcha.execute(hcaptcha_widget, {
-        async: true
-    })
-    let res_from_submit_rating = await submit_blog_rating(rating_data, hcaptcha_result.response)
+    // let hcaptcha_widget = hcaptcha.render($("body"), {
+    //     size: "invisible",
+    //     sitekey: "28dd5d54-e402-445c-ac00-541d3e9cadc3"
+    // })
+    // let hcaptcha_result = await hcaptcha.execute(hcaptcha_widget, {
+    //     async: true
+    // })
+    let res_from_submit_rating = await submit_blog_rating(rating_data, /*hcaptcha_result.response*/ "")
     $(".lds-roller").remove();
     // If non valid, then user must have gone out of their way to do this, like use console, no need to show any error
     if (res_from_submit_rating.code != 1) {
@@ -388,14 +388,14 @@ async function on_new_comment_post_click(){
     }
     reset_validation_classes(["#new_comment_form textarea"])
     $("#post_new_comment_btn").insertAdjacentHTML('beforebegin', spinner_domstring);
-    let hcaptcha_widget = hcaptcha.render($("body"), {
-        size: "invisible",
-        sitekey: "28dd5d54-e402-445c-ac00-541d3e9cadc3"
-    })
-    let hcaptcha_result = await hcaptcha.execute(hcaptcha_widget, {
-        async: true
-    })
-    let temp = await post_comment(gl_blog_id, comment_text, hcaptcha_result.response)
+    // let hcaptcha_widget = hcaptcha.render($("body"), {
+    //     size: "invisible",
+    //     sitekey: "28dd5d54-e402-445c-ac00-541d3e9cadc3"
+    // })
+    // let hcaptcha_result = await hcaptcha.execute(hcaptcha_widget, {
+    //     async: true
+    // })
+    let temp = await post_comment(gl_blog_id, comment_text, /*hcaptcha_result.response*/ "")
     $(".lds-roller").remove();
     if(temp.code != 1){ return null };
     location.reload();

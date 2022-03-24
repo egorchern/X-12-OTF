@@ -48,8 +48,8 @@ async function parse_preferences() {
 
     if (preferences.ideal_word_count === undefined) { preferences.ideal_word_count = 200 }
     if (preferences.controversial_cutoff === undefined) { preferences.controversial_cutoff = 10 }
-    if (preferences.impression_cutoff === undefined) { preferences.impression_cutoff = 10 }
-    if (preferences.relevancy_cutoff === undefined) { preferences.relevancy_cutoff = 10 }
+    if (preferences.impression_cutoff === undefined) { preferences.impression_cutoff = 0 }
+    if (preferences.relevancy_cutoff === undefined) { preferences.relevancy_cutoff = 0 }
     if (preferences.category_ids === undefined || preferences.category_ids[0] == null) { preferences.category_ids = [] }
 }
 
@@ -86,11 +86,8 @@ let preferences_modal_domstring = `
             </div>
             <div class="modal-body">
                 <div class="flex-vertical align-center">
-                    <h4 style="text-align:center">Accessibility</h4>
-                    <div class="width-full" style="margin-top:1em">
-                        <h5 style="text-align:center">Font-size</h5>
-                    </div>
-                    <h4 style="margin-top:2em" style="text-align:center">Content</h4>
+                    
+                    <h4 style="text-align:center">Content</h4>
                     <div style="margin-top:1em">
                         <h5 style="text-align:center">Ideal word count</h5>
                         <div class="flex-horizontal flex-wrap align-center">

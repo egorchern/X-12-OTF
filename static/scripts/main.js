@@ -316,7 +316,7 @@ async function change_page_state(new_state) {
         let home_domstring = `
         <div id="home-container">
             ${(auth_info.username != null) ? create_blog_dom_string : ""}
-            <h2 style="text-align:center">All blogs sorted by recommendation strength</h2>
+            
             <div class="flex-horizontal align-center margin-children flex-wrap" id="blog_tiles">
                 
             </div>
@@ -342,7 +342,7 @@ async function change_page_state(new_state) {
 
             }
         }
-        get_all_blog_tiles();
+        // get_all_blog_tiles();
 
 
 
@@ -530,7 +530,25 @@ async function change_page_state(new_state) {
                      You can refer to our Content Guidelines page:
                         <a href="/contentguidelines" class="hoverable-text">Content Guidelines</a>
                     </p>
+                <div>
+                <h2>Userway</h2>
+                <p>
+                We use Userway software for accessibility improvement. You can refer to Userway's legal documents: 
+                    <a href="https://userway.org/terms/" class="hoverable-text">Terms and Conditions</a>
+                    <a href="https://userway.org/privacy/" class="hoverable-text"> Privacy Policy </a>
+                </p>
+                    
                 </div>
+                <div>
+                <h2>Hcaptcha</h2>
+                <p>
+                This site is protected by hCaptcha and its
+                    <a href="https://hcaptcha.com/privacy" class="hoverable-text">Privacy Policy</a> and
+                    <a href="https://hcaptcha.com/terms" class="hoverable-text">Terms of Service</a> apply.
+                </p>
+                </div>
+                </div>
+                
             </div>
         </div>
 </div>
