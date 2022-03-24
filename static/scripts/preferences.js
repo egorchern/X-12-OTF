@@ -86,11 +86,8 @@ let preferences_modal_domstring = `
             </div>
             <div class="modal-body">
                 <div class="flex-vertical align-center">
-                    <h4 style="text-align:center">Accessibility</h4>
-                    <div class="width-full" style="margin-top:1em">
-                        <h5 style="text-align:center">Font-size</h5>
-                    </div>
-                    <h4 style="margin-top:2em" style="text-align:center">Content</h4>
+                    
+                    <h4 style="text-align:center">Content</h4>
                     <div style="margin-top:1em">
                         <h5 style="text-align:center">Ideal word count</h5>
                         <div class="flex-horizontal flex-wrap align-center">
