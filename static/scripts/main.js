@@ -41,6 +41,9 @@ function $(selector) {
 // Deletes all children from element
 function delete_dom_children(identifier) {
     let element = $(identifier);
+    if (element == null){
+        return null;
+    }
     while (element.firstChild) {
         element.removeChild(element.firstChild);
     }
@@ -316,10 +319,19 @@ async function change_page_state(new_state) {
         let home_domstring = `
         <div id="home-container">
             ${(auth_info.username != null) ? create_blog_dom_string : ""}
-            
-            <div class="flex-horizontal align-center margin-children flex-wrap" id="blog_tiles">
-                
+            <div id="random-blog" style="width:fit-content" class="flex-vertical align-center">
+                <div class="flex-horizontal align-center">
+                    <h4>Random blog, discover something new!</h4>
+                    <button class="flex-horizontal align-center btn btn-outline-primary" id="new-random-blog-btn" style="margin-left: 1rem; font-size: 0.8em;">
+                        <span class="material-icons">
+                        refresh
+                        </span>
+                        New
+                    </button>
+                </div>
+    
             </div>
+            
         </div>
         `;
 
@@ -342,7 +354,7 @@ async function change_page_state(new_state) {
 
             }
         }
-        // get_all_blog_tiles();
+        render_all_recommends();
 
 
 

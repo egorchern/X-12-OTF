@@ -230,6 +230,19 @@ class Api:
            
             return resp
 
+        @self.api.route("/api/blog/get_all_blog_ids", methods=["GET"])
+        def get_all_blog_ids():
+            resp = {}
+            request = req
+            referer_info = self.auth.get_username_and_access_level(request)
+            blog_ids = self.db.get_all_blog_ids(referer_info.get("user_id"))
+            if isinstance(blog_ids, str):
+                resp["code"] = 2
+                return resp, 400
+            resp["code"] = 1
+            resp["data"] = blog_ids
+            return resp
+
         @self.api.route("/api/profile/<username>",methods=["DELETE"])
         def delete_user(username):
             request = req

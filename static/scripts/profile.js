@@ -161,23 +161,7 @@ async function fetch_and_render_next_blog_tiles(blog_ids) {
         
         let temp = []
         blog_tiles.forEach((blog_tile) => {
-            let fits_all = true;
-            if(preferences.controversial_cutoff != undefined &&
-                blog_tile.average_controversial_rating > preferences.controversial_cutoff
-            ){
-                fits_all = false;
-                
-            }
-            if(preferences.impression_cutoff != undefined &&
-                blog_tile.average_impression_rating < preferences.impression_cutoff
-                ){
-                    fits_all = false;
-            }
-            if(preferences.relevancy_cutoff != undefined &&
-                blog_tile.average_relevancy_rating < preferences.relevancy_cutoff
-                ){
-                    fits_all = false;
-            }
+            let fits_all = fits_preferences(blog_tile)
             if(fits_all){
                 temp.push(blog_tile)
             }

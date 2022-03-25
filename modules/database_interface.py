@@ -336,7 +336,10 @@ class Database:
         params = {"author_user_id": author_user_id}
         return self.execute_query(query, params)
 
-    def get_all_blog_ids(self):
+    def get_all_blog_ids(self, user_id = None):
+        if (user_id is not None):
+            return self.get_all_blog_ids_score_sorted(user_id)
+
         """Fetches all existing blog ids"""
         query = """
         SELECT blog_id
@@ -344,6 +347,15 @@ class Database:
         """
         return self.execute_query(query)
     
+    def get_all_blog_ids_score_sorted(self, user_id):
+        query = """
+        SELECT blog_id, score
+        FROM user_blog_algorithm_score
+        WHERE user_blog_algorithm_score.user_id = :user_id
+        """
+        params = {"user_id": user_id}
+        return self.execute_query(query, params)
+
     def get_all_blog_tile_data(self, blog_ids: tuple):
         """Returns information required for the blog tile for particular blog"""
         query = """
