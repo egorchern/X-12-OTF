@@ -193,10 +193,15 @@ class Api:
             """
             Returns all of the existing blog tiles data in the array.
             """
+            resp = {}
+            blog_ids = json.loads(blog_ids)
+            if not isinstance(blog_ids, list) or len(blog_ids) == 0 or not isinstance(blog_ids[0], int):
+                resp["code"] = 2
+                return resp, 400
             request = req
             referer_info = self.auth.get_username_and_access_level(request)
-            blog_ids = json.loads(blog_ids)
-            resp = {}
+            
+            
             result = self.db.get_all_blog_tile_data(tuple(blog_ids))
             for i in range(len(result)):
                 result[i] = self.recommend.inject_algo_info(referer_info.get("user_id"), result[i])

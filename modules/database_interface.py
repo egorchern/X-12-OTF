@@ -352,6 +352,7 @@ class Database:
         SELECT blog_id, score
         FROM user_blog_algorithm_score
         WHERE user_blog_algorithm_score.user_id = :user_id
+        ORDER BY score DESC
         """
         params = {"user_id": user_id}
         return self.execute_query(query, params)
