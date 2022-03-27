@@ -909,3 +909,11 @@ class Database:
         VALUES(:reporter_user_id, :user_id, :report_reason, :report_body, False, CURRENT_TIMESTAMP)
         """
         self.execute_query(query, report_data, False)
+
+    def return_user_reports(self):
+        query = """ Select * from user_profile_reports """
+        self.execute_query(query, False)
+
+    def return_blog_reports(self):
+        query = """ Select * from user_blog_reports """
+        self.execute_query(query, False)
