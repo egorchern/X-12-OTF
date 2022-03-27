@@ -213,9 +213,9 @@ function insert_blog_tile(
     </div>
     `;
     $(identifier).insertAdjacentHTML("beforeend", blog_tile_dom_string);
-    $(`#blog-tile-${blog_data.blog_id} .username`).insertAdjacentText("beforeend", blog_data.username)
-    $(`#blog-tile-${blog_data.blog_id} .category`).insertAdjacentText("beforeend", categories_hashmap[blog_data.category_id])
-    $(`#blog-tile-${blog_data.blog_id} .blog-title`).insertAdjacentText("beforeend", blog_data.blog_title)
+    $(`${identifier} #blog-tile-${blog_data.blog_id} .username`).insertAdjacentText("beforeend", blog_data.username)
+    $(`${identifier}  #blog-tile-${blog_data.blog_id} .category`).insertAdjacentText("beforeend", categories_hashmap[blog_data.category_id])
+    $(`${identifier}  #blog-tile-${blog_data.blog_id} .blog-title`).insertAdjacentText("beforeend", blog_data.blog_title)
 }
 
 async function get_all_blog_tiles() {

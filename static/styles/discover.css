@@ -1,4 +1,10 @@
 #recommend-carousel{
-    min-height: 400px;
-    border: 1px solid hsla(0, 0%, 10%, 0.3);
+    
+}
+#recommend-carousel .carousel-item{
+    display: none !important;
+}
+
+#recommend-carousel .carousel-item.active{
+    display: flex !important;
 }

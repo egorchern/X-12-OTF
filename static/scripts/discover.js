@@ -1,5 +1,6 @@
 let blog_ids = []
 let blog_scores = []
+let current_slide_index = 1;
 const random = (min, max) => {
     let num = Math.random() * (max - min) + min;
 
@@ -60,8 +61,18 @@ async function parse_all_blog_ids(){
         return null;
     }
     res_temp.data.forEach((blog_element) => {
-        blog_ids.push(blog_element.blog_id)
-        blog_scores.push(blog_element.score)
+        // Ensures that only blogs that fit preferences will be displayed
+        if(fits_preferences(blog_element)){
+            blog_ids.push(blog_element.blog_id)
+            blog_scores.push(blog_element.score)
+        }
+        
+    })
+}
+
+const reset_actives = () => {
+    document.querySelectorAll("#recommend-carousel .carousel-item").forEach((item) => {
+        item.classList.remove("active");
     })
 }
 
@@ -69,16 +80,12 @@ async function fetch_next_carousel_item(){
     if (currently_showing >= blog_ids.length) {
         return null;
     }
-    const reset_actives = () => {
-        document.querySelectorAll("#recommend-carousel .carousel-item").forEach((item) => {
-            item.classList.remove("active");
-        })
-    }
+    
 
     let temp = await get_certain_blog_tiles_data(blog_ids.slice(currently_showing, currently_showing + blogs_increment));
     reset_actives()
     let domstring = `
-    <div class="carousel-item flex-horizontal align-center active" id="carousel-item-${currently_showing}" data-bs-interval="2000">
+    <div class="carousel-item flex-horizontal align-center active" id="carousel-item-${currently_showing}">
 
     </div>
     `
@@ -98,7 +105,7 @@ async function fetch_next_carousel_item(){
 
 async function render_recommend_carousel(){
     currently_showing = 0;
-    
+    current_slide_index = 1;
     // score_sorted_blog_ids = blog_ids.sort(function(a, b) {
         
     //     return b.score - a.score
@@ -106,14 +113,14 @@ async function render_recommend_carousel(){
     let domstring = `
     <div style="grid-column: 1 / 3">
         <h3 style="text-align: center">Recommendation queue</h3>
-        <div id="recommend-carousel" class="carousel carousel-dark slide" data-bs-ride="carousel">
+        <div id="recommend-carousel" class="carousel carousel-dark slide" data-bs-interval="false">
             <div class="carousel-inner">
             </div>
-            <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleDark" data-bs-slide="prev">
+            <button class="carousel-control-prev" type="button"  data-bs-slide="prev">
                 <span class="carousel-control-prev-icon" aria-hidden="true"></span>
                 <span class="visually-hidden">Previous</span>
             </button>
-            <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleDark" data-bs-slide="next">
+            <button class="carousel-control-next" type="button"  data-bs-slide="next">
                 <span class="carousel-control-next-icon" aria-hidden="true"></span>
                 <span class="visually-hidden">Next</span>
             </button>
@@ -122,9 +129,30 @@ async function render_recommend_carousel(){
     
     `
     $("#home-container").insertAdjacentHTML("beforeend", domstring)
-    $("#recommend-carousel .carousel-control-next").addEventListener("click", () => {
-        fetch_next_carousel_item()
-    })
+    $("#recommend-carousel .carousel-control-next").onclick = () => {
+        console.log(current_slide_index)
+        if(current_slide_index * blogs_increment >= blog_ids.length){
+            return null
+        }
+        if (current_slide_index * blogs_increment === currently_showing){
+            current_slide_index += 1
+            fetch_next_carousel_item()
+            return null
+        }
+        current_slide_index += 1
+        reset_actives()
+        $(`#carousel-item-${(current_slide_index - 1) * blogs_increment}`).classList.add("active")
+        
+    }
+    $("#recommend-carousel .carousel-control-prev").onclick = () => {
+        console.log(current_slide_index)
+        if (current_slide_index === 1){
+            return null;
+        }
+        current_slide_index -= 1;
+        reset_actives()
+        $(`#carousel-item-${(current_slide_index - 1) * blogs_increment}`).classList.add("active")
+    }
     fetch_next_carousel_item()
 }
 
@@ -136,8 +164,11 @@ async function render_author_stats(){
     $("#home-container").insertAdjacentHTML("beforeend", domstring)
 }
 
-async function render_all_recommends(){ 
-    await parse_all_blog_ids()
+async function render_all_recommends(){
+    if (blog_ids.length === 0){
+        await parse_all_blog_ids()
+    }
+    
     render_random_blog_recommend();
     render_author_stats();
     render_recommend_carousel();

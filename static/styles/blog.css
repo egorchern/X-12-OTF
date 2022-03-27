@@ -58,6 +58,9 @@
     /*font-size: calc(1.3rem + 0.6vw);*/
     word-break: break-all;
 }
+#blog-title{
+    font-size: calc(1.3rem + 0.6vw); 
+}
 .blog-container > div {
     margin-top: 2rem;
 }
