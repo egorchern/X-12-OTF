@@ -1,11 +1,23 @@
+async function get_all_report_blogs_data(){
+    return fetch("/api/blogs/report_get_reports",{
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+        }
+    })
+        .then((result) => request.json())
+        .then((result) =>{
+            return result
+        });
+}
 function insert_blog_reports(
     report_data, identifier
 ){
     let blog_report_domstring = `
     <div class="report-tile animated__animated__fadeIn" id="blog-report-tile-${report_data.blog_id}" onclick="change_page_state('/blog/${report_data.blog_id}')">
             <div class = "report-tile-top">
-                <div class = "report-text">${report_data.blog_id}
-                01/01/2021</div>
+                <div class = "report-text">${report_data.blog_id}</div>
+                <div class = "report-text">${report_data.report_date}</div>
                 <div class = "report-text">Encouraging violence</div>
                 <div class = "report-text">4</div>
                 <div class = "report-description-text">Made violent remarks towards ducks</div>
@@ -17,7 +29,7 @@ function insert_blog_reports(
 
 async function get_all_blog_reports(){
     let return_dom_string = ``
-    let temp = await get_all_blog_tiles_data();
+    let temp = await get_all_report_blogs_data();
     
     if (temp.code != 1) {
         return { dom_string: "" }
