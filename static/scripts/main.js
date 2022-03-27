@@ -108,18 +108,6 @@ async function register_activity(){
     });
 }
 
-function insert_blog_reports(
-    report_data, identifier
-){
-    let blog_report_domstring = `
-    <div class="blog-tile animated__animated__fadeIn" id="blog-report-tile-${report_data.blog_id}" onclick="change_page_state('/blog/${report_data.blog_id}')">
-            <div class = "blog-tile-top">
-                <h5>Report for blog id:${report_data.blog_id} </h5>
-            </div>
-    </div>
-    `
-    $(identifier).insertAdjacentHTML("beforeend", blog_report_domstring);
-}
 function insert_blog_tile(
     blog_data, identifier
 ) {
@@ -247,25 +235,6 @@ async function get_all_blog_tiles() {
     return { dom_string: return_dom_string, data: all_blog_tiles_data }
 }
 
-async function get_all_blog_reports(){
-    let return_dom_string = ``
-    let temp = await get_all_blog_tiles_data();
-    
-    if (temp.code != 1) {
-        return { dom_string: "" }
-    }
-    
-    let all_blog_tiles_data = temp.data
-    
-    all_blog_tiles_data.sort((a, b) => {
-        return b.algorithm_info.score - a.algorithm_info.score
-    })
-    console.log(all_blog_tiles_data)
-    all_blog_tiles_data.forEach((blog_data, index) => {
-        insert_blog_reports(blog_data,"#report_blog_tiles")
-    })
-    return { dom_string: return_dom_string, data: all_blog_tiles_data }
-}
 
 // This changes page state depending on the url. So makes possible to go straight to some page
 function initialize_page_state() {
@@ -558,13 +527,23 @@ async function change_page_state(new_state) {
         let admin_panel_domstring = `
         <div id="admin-page">
             <div class ="align-center">
-                <h2>Unresolved blog reports</h2>
-                <div class="flex-horizontal align-center margin-children flex-wrap bar-container" id="report_blog_tiles">
-                    <div class = "nav-heading">Blog id
-                    Most recent report date
-                    Report reaon(s)
-                    Number of reports on blog
-                    Most recent report description</div>
+                <div class = "container-head">Unresolved blog reports</div>
+                <div class="flex-horizontal align-center margin-children flex-wrap reports-container" id="report_blog_tiles">
+                    <div class = "reports-header">Blog id</div>
+                    <div class = "reports-header">Most recent report date</div>
+                    <div class = "reports-header">Report reaon(s)</div>
+                    <div class = "reports-header">Number of reports on blog</div>
+                    <div class = "reports-header">Most recent report description</div>
+                </div>
+            </div>
+            <div class ="align-center">
+                <div class = "container-head">Unresolved user reports</div>
+                <div class="flex-horizontal align-center margin-children flex-wrap reports-container" id="report_blog_tiles">
+                    <div class = "reports-header">User id</div>
+                    <div class = "reports-header">Most recent report date</div>
+                    <div class = "reports-header">Report reaon(s)</div>
+                    <div class = "reports-header">Number of reports on user</div>
+                    <div class = "reports-header">Most recent report description</div>
                 </div>
             </div>
         </div>
