@@ -5,7 +5,7 @@ async function get_all_report_blogs_data(){
             "Content-Type": "application/json",
         }
     })
-        .then((result) => request.json())
+        .then((result) => result.json())
         .then((result) =>{
             return result
         });
@@ -18,13 +18,37 @@ function insert_blog_reports(
             <div class = "report-tile-top">
                 <div class = "report-text">${report_data.blog_id}</div>
                 <div class = "report-text">${report_data.report_date}</div>
-                <div class = "report-text">Encouraging violence</div>
-                <div class = "report-text">4</div>
-                <div class = "report-description-text">Made violent remarks towards ducks</div>
+                <div class = "report-text">${report_data.report_reason}</div>
+                <div class = "report-text">${report_data.report_count}</div>
+                <div class = "report-description-text">${report_data.report_body}</div>
             </div>
     </div>
     `
     $(identifier).insertAdjacentHTML("beforeend", blog_report_domstring);
+}
+
+function get_nearest_date(OldDate, NewDate){
+    if(parseInt(OldDate.slice(6,10))<parseInt(NewDate.slice(6,10))){
+        return true
+    }
+    if(parseInt(OldDate.slice(6,10))>parseInt(NewDate.slice(6,10))){
+        return false
+    }
+    else{
+        if(parseInt(OldDate.slice(3,5))<parseInt(NewDate.slice(3,5))){
+            return true
+        }if(parseInt(OldDate.slice(3,5))>parseInt(NewDate.slice(3,5))){
+            return false
+        }else{
+            if(parseInt(OldDate.slice(0,2))<parseInt(NewDate.slice(0,2))){
+                return true
+            }if(parseInt(OldDate.slice(0,2))>parseInt(NewDate.slice(0,2))){
+                return false
+            }else{
+                return true
+            }
+        }
+    }
 }
 
 async function get_all_blog_reports(){
@@ -34,14 +58,33 @@ async function get_all_blog_reports(){
     if (temp.code != 1) {
         return { dom_string: "" }
     }
-    
+    let report_tiles_data = []
     let all_blog_tiles_data = temp.data
-    
-    all_blog_tiles_data.sort((a, b) => {
-        return b.algorithm_info.score - a.algorithm_info.score
-    })
-    console.log(all_blog_tiles_data)
-    all_blog_tiles_data.forEach((blog_data, index) => {
+    for(let i=0; i<all_blog_tiles_data.length; i++){
+        let found = false
+        for(let j=0; j<report_tiles_data.length;j++){
+            if(report_tiles_data[j].blog_id === all_blog_tiles_data[i].blog_id){
+                if(get_nearest_date(report_tiles_data[j].report_date,all_blog_tiles_data[i].report_date)){
+                    report_tiles_data[j].report_date = all_blog_tiles_data[i].report_date
+                    report_tiles_data[j].report_body = all_blog_tiles_data[i].report_body
+                }
+                report_tiles_data[j].report_reason+=", "+all_blog_tiles_data[i].report_reason
+                report_tiles_data[j].report_count++
+                found = true
+            }
+        }
+        if(found == false){
+            let report_data = {
+                blog_id: all_blog_tiles_data[i].blog_id,
+                report_date: all_blog_tiles_data[i].report_date,
+                report_reason: all_blog_tiles_data[i].report_reason,
+                report_count: 1,
+                report_body: all_blog_tiles_data[i].report_body
+            }
+            report_tiles_data.push(report_data)
+        }
+    }
+    report_tiles_data.forEach((blog_data, index) => {
         insert_blog_reports(blog_data,"#report_blog_tiles")
     })
     return { dom_string: return_dom_string, data: all_blog_tiles_data }
