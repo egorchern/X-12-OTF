@@ -389,3 +389,41 @@ class Api:
                 resp["code"] = 4
                 return resp
             return resp
+
+        @self.api.route("/api/user/report_get_reports",methods=['GET'])
+        def get_user_reports():
+            request = req
+            resp = {}
+            result = self.db.return_user_reports()
+            if len(result) == 0:
+                resp["code"] = 2
+                resp["data"] = []
+                return resp
+
+            resp["code"] = 1
+            resp["data"] = result
+            return resp
+
+        @self.api.route("/api/blogs/report_get_reports",methods=['GET'])
+        def get_blog_reports():
+            request = req
+            resp = {}
+            result = self.db.return_blog_reports()
+            if len(result) == 0:
+                resp["code"] = 2
+                resp["data"] = []
+                return resp
+
+            resp["code"] = 1
+            resp["data"] = result
+            return resp
+
+        
+
+
+            
+            
+
+
+
+        
