@@ -912,8 +912,8 @@ class Database:
 
     def return_user_reports(self):
         query = """ Select * from user_profile_reports """
-        self.execute_query(query, False)
+        return self.execute_query(query, False)
 
     def return_blog_reports(self):
         query = """ Select * from user_blog_reports """
-        self.execute_query(query, False)
+        return self.execute_query(query, False)
