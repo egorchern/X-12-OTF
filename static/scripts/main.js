@@ -538,7 +538,7 @@ async function change_page_state(new_state) {
             </div>
             <div class ="align-center">
                 <div class = "container-head">Unresolved user reports</div>
-                <div class="flex-horizontal align-center margin-children flex-wrap reports-container" id="report_blog_tiles">
+                <div class="flex-horizontal align-center margin-children flex-wrap reports-container" id="report_user_tiles">
                     <div class = "reports-header">User id</div>
                     <div class = "reports-header">Most recent report date</div>
                     <div class = "reports-header">Report reaon(s)</div>
@@ -551,6 +551,7 @@ async function change_page_state(new_state) {
         history.pushState({page_state: page_state},null, new_state);
         main_html.insertAdjacentHTML("beforeend",admin_panel_domstring);
         get_all_blog_reports();
+        get_all_user_reports();
     }
 }
 

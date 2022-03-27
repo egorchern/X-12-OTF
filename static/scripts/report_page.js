@@ -36,7 +36,7 @@ async function show_report_page(blog_id){
                     </p>
                 
                     <h4>Please select why do you think this blog is harmful:</h4>
-                    <select class="form-select" id="report-category">
+                    <select class="form-select" id="blog-report-category">
                         ${report_category_options_dom_string}
                     </select>
                     <h4>Please provide more details (such as a specific sentence that you find harmful):</h4>
@@ -68,7 +68,7 @@ async function submit_report(blog_id, myModal){
     }else{
         let report_data = {
             blog_id: blog_id,
-            report_reason: reporting_catergories[$("#report-category").selectedIndex],
+            report_reason: reporting_catergories[$("#blog-report-category").selectedIndex],
             report_body: $("#edit-report-body").value
         }
         $("#edit-report-body").value = "";
@@ -96,7 +96,7 @@ async function submit_user_report(user_id, myModal){
     }else{
         let report_data = {
             user_id: user_id,
-            report_reason: reporting_catergories[$("#report-category").selectedIndex],
+            report_reason: user_reporting_catergories[$("#user-report-category").selectedIndex],
             report_body: $("#edit-report-body").value
         }
         $("#edit-report-body").value = "";
@@ -147,7 +147,7 @@ async function show_user_report_page(user_id){
                     </p>
                 
                     <h4>Please select why do you think this user is harmful:</h4>
-                    <select class="form-select" id="report-category">
+                    <select class="form-select" id="user-report-category">
                         ${user_report_category_options_dom_string}
                     </select>
                     <h4>Please provide more details (what specifically about the user in harmful):</h4>

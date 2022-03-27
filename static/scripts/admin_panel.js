@@ -10,6 +10,18 @@ async function get_all_report_blogs_data(){
             return result
         });
 }
+async function get_all_report_users_data(){
+    return fetch("/api/user/report_get_reports",{
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+        }
+    })
+        .then((result) => result.json())
+        .then((result) =>{
+            return result
+        });
+}
 function insert_blog_reports(
     report_data, identifier
 ){
@@ -25,6 +37,22 @@ function insert_blog_reports(
     </div>
     `
     $(identifier).insertAdjacentHTML("beforeend", blog_report_domstring);
+}
+function insert_user_reports(
+    report_data, identifier
+){
+    let user_report_domstring = `
+    <div class="report-tile animated__animated__fadeIn" id="user-report-tile-${report_data.user_id}" onclick="change_page_state('/blog/${report_data.blog_id}')">
+            <div class = "report-tile-top">
+                <div class = "report-text">${report_data.user_id}</div>
+                <div class = "report-text">${report_data.report_date}</div>
+                <div class = "report-text">${report_data.report_reason}</div>
+                <div class = "report-text">${report_data.report_count}</div>
+                <div class = "report-description-text">${report_data.report_body}</div>
+            </div>
+    </div>
+    `
+    $(identifier).insertAdjacentHTML("beforeend", user_report_domstring);
 }
 
 function get_nearest_date(OldDate, NewDate){
@@ -68,7 +96,9 @@ async function get_all_blog_reports(){
                     report_tiles_data[j].report_date = all_blog_tiles_data[i].report_date
                     report_tiles_data[j].report_body = all_blog_tiles_data[i].report_body
                 }
-                report_tiles_data[j].report_reason+=", "+all_blog_tiles_data[i].report_reason
+                if(!report_tiles_data[j].report_reason.includes(all_blog_tiles_data[i].report_reason)){
+                    report_tiles_data[j].report_reason+=", "+all_blog_tiles_data[i].report_reason
+                }
                 report_tiles_data[j].report_count++
                 found = true
             }
@@ -88,4 +118,45 @@ async function get_all_blog_reports(){
         insert_blog_reports(blog_data,"#report_blog_tiles")
     })
     return { dom_string: return_dom_string, data: all_blog_tiles_data }
+}
+
+async function get_all_user_reports(){
+    let return_dom_string = ``
+    let temp = await get_all_report_users_data();
+    
+    if (temp.code != 1) {
+        return { dom_string: "" }
+    }
+    let report_tiles_data = []
+    let all_user_tiles_data = temp.data
+    for(let i=0; i<all_user_tiles_data.length; i++){
+        let found = false
+        for(let j=0; j<report_tiles_data.length;j++){
+            if(report_tiles_data[j].user_id === all_user_tiles_data[i].user_id){
+                if(get_nearest_date(report_tiles_data[j].report_date,all_user_tiles_data[i].report_date)){
+                    report_tiles_data[j].report_date = all_user_tiles_data[i].report_date
+                    report_tiles_data[j].report_body = all_user_tiles_data[i].report_body
+                }
+                if(!report_tiles_data[j].report_reason.includes(all_user_tiles_data[i].report_reason)){
+                    report_tiles_data[j].report_reason+=", "+all_user_tiles_data[i].report_reason
+                }
+                report_tiles_data[j].report_count++
+                found = true
+            }
+        }
+        if(found == false){
+            let report_data = {
+                user_id: all_user_tiles_data[i].user_id,
+                report_date: all_user_tiles_data[i].report_date,
+                report_reason: all_user_tiles_data[i].report_reason,
+                report_count: 1,
+                report_body: all_user_tiles_data[i].report_body
+            }
+            report_tiles_data.push(report_data)
+        }
+    }
+    report_tiles_data.forEach((user_data, index) => {
+        insert_user_reports(user_data,"#report_user_tiles")
+    })
+    return { dom_string: return_dom_string, data: all_user_tiles_data }
 }

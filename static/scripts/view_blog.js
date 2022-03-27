@@ -90,10 +90,25 @@ function insert_top_blog_info(blog_data){
     $("#author_hyperlink").onclick = () => {change_page_state(`/profile/${blog_data.username}`)}
     if (auth_info.user_id === blog_data.author_user_id){
         $("#edit-blog-btn").onclick = () => {change_page_state(`/edit_blog/${blog_id}`)};
+    }else if(auth_info.access_level === 2){
+        $('#ban-btn').onclick = () => {ban_blog(blog_data)};
     }else{
         //applies the change page state function to the report button which makes the page change to the report page
         $('#report-blog-btn').onclick = () => {show_report_page(blog_data.blog_id)};
     }
+}
+
+async function ban_blog(blog_data) {
+    return fetch(`/api/blog/ban`, {
+        method: 'POST',
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(blog_data)
+    }).then((result) => result.json())
+        .then((result) => {
+            return result.code
+        });
 }
 
 async function submit_blog_rating(rating_data){
@@ -321,10 +336,19 @@ async function render_view_blog(blog_id){
             Report
         </button>
     `;
+    let ban_button_domstring = `
+            <button class="btn btn-outline-danger profile-control-button flex-horizontal align-center" id="ban-btn" type="button" tabindex="0">
+                <span class="material-icons">
+                    dangerous
+                </span>
+                Ban
+            </button>
+            `;
     let view_blog_dom_string = `
     <div id="blog-buttons-container" class="flex-horizontal align-end width-full">
        ${auth_info.user_id === blog_data.author_user_id ? edit_button_domstring : ""}
-       ${auth_info.user_id != blog_data.author_user_id ? report_button_domstring : ""}
+       ${auth_info.access_level==2 ? ban_button_domstring : ""}
+       ${auth_info.user_id != blog_data.author_user_id && auth_info.access_level==1 ? report_button_domstring : ""}
     </div>
     <div id="top-blog-info-container">
         

@@ -121,7 +121,6 @@ async function toggle_edit_state() {
 
 
 async function ban() {
-    console.log("banning")
     return fetch(`/api/user/ban`, {
         method: 'POST',
         headers: {
@@ -130,7 +129,6 @@ async function ban() {
         body: JSON.stringify(profile_info)
     }).then((result) => result.json())
         .then((result) => {
-            console.log(result.code)
             return result.code
 
         });
@@ -229,7 +227,7 @@ async function insert_profile_info() {
             let ban_button_domstring = `
             <button class="btn btn-outline-danger profile-control-button flex-horizontal align-center" id="ban-btn" type="button" tabindex="0">
                 <span class="material-icons">
-                    delete
+                    dangerous
                 </span>
                 Ban
             </button>

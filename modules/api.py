@@ -390,6 +390,32 @@ class Api:
                 return resp
             return resp
 
+        @self.api.route("/api/blog/ban", methods=['POST'])
+        def ban_blog():
+            request = req
+            resp = {}
+            data = request.json
+            email = self.db.get_user_email(data.get("author_user_id"))
+            email = email[0].get("email")
+            if email is None:
+                resp["code"] = 2
+                return resp
+            result = self.db.get_user_password_hash(email)
+            if result is None:
+                resp["code"] = 3
+                return resp
+            try:
+                resp["code"] = 1
+                msg = flask_mail.Message("Blog ban (OTF)", sender="OTF mailing bot", recipients=[email])
+                msg.body = f"Our admin team have found that one of your blogs named"+data.get("blog_title")+"has breached our code of misconduct. \nHere at Open Thought Floor we take misbehaviour such as this very seriously and limitations will be placed on this blog."
+                
+                self.mail.send(msg)
+            except:
+                resp["code"] = 4
+                return resp
+            return resp
+
+
         @self.api.route("/api/user/report_get_reports",methods=['GET'])
         def get_user_reports():
             request = req
