@@ -147,16 +147,16 @@ function insert_blog_tile(
             <div>
                 <div class="flex-vertical align-center blog-tile-right height-full">
                     <div class="flex-horizontal align-center width-full">
-                        <h5 style="flex-grow:1; text-align:center;" class="category">
+                        <h6 style="flex-grow:1; text-align:center;" class="category">
                             
-                        </h5>
+                        </h6>
                         
                         <img src="/images/flag.png" class="controversy-flag" style="opacity: ${controversial_percentage}">
                     </div>
                     <div class="flex-horizontal align-center width-full">
-                        <h4 style="text-align: center; flex-grow: 1" class="blog-title">
+                        <h5 style="text-align: center; flex-grow: 1" class="blog-title">
                             
-                        </h4>
+                        </h5>
                         <span style="font-size: 0.9em; text-align: center">
                             (№ ratings: <strong>${blog_data.number_ratings}</strong>)
                         </span>

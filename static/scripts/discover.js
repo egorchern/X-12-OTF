@@ -62,7 +62,7 @@ async function parse_all_blog_ids(){
     }
     res_temp.data.forEach((blog_element) => {
         // Ensures that only blogs that fit preferences will be displayed
-        if(fits_preferences(blog_element)){
+        if(fits_preferences(blog_element) && auth_info.user_id != blog_element.author_user_id){
             blog_ids.push(blog_element.blog_id)
             blog_scores.push(blog_element.score)
         }
