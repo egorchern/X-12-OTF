@@ -551,3 +551,16 @@ class Api:
                 resp["data"] = comments_data
                 
             return resp
+        
+        @self.api.route("/api/user/get_stats", methods=["GET"])
+        def get_stats():
+            request = req
+            resp = {}
+            referer_info = self.auth.get_username_and_access_level(request)
+            if referer_info.get("user_id") is None:
+                resp["code"] = 2
+                return resp, 401
+            result = self.db.get_user_stats(referer_info.get("user_id"))
+            resp["data"] = result
+            resp["code"] = 1
+            return resp

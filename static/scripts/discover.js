@@ -60,14 +60,17 @@ async function parse_all_blog_ids(){
     if (res_temp.code != 1){
         return null;
     }
+    console.log( res_temp.data)
     res_temp.data.forEach((blog_element) => {
         // Ensures that only blogs that fit preferences will be displayed
+        
         if(fits_preferences(blog_element) && auth_info.user_id != blog_element.author_user_id){
             blog_ids.push(blog_element.blog_id)
             blog_scores.push(blog_element.score)
         }
         
     })
+    console.log(blog_ids)
 }
 
 const reset_actives = () => {
@@ -137,6 +140,7 @@ async function render_recommend_carousel(){
         if (current_slide_index * blogs_increment === currently_showing){
             current_slide_index += 1
             fetch_next_carousel_item()
+            
             return null
         }
         current_slide_index += 1
@@ -146,7 +150,9 @@ async function render_recommend_carousel(){
     }
     $("#recommend-carousel .carousel-control-prev").onclick = () => {
         console.log(current_slide_index)
+       
         if (current_slide_index === 1){
+            
             return null;
         }
         current_slide_index -= 1;
@@ -156,12 +162,66 @@ async function render_recommend_carousel(){
     fetch_next_carousel_item()
 }
 
-async function render_author_stats(){
+async function get_user_stats(){
+    return fetch(`/api/user/get_stats`, {
+        method: 'GET',
+        headers: {
+            "Content-Type": "application/json"
+        }
+    })
+    .then((result) => result.json())
+        .then((result) => {
+            return result;
+        });
+}
+
+async function render_stats(){
+    let stats_promise = get_user_stats();
+    
     let domstring = `
-    <div class="">
+    <div id="stats-container" class="flex-vertical align-center">
+        <h3>Your creator statistics</h3>
+        
     </div>
     `
     $("#home-container").insertAdjacentHTML("beforeend", domstring)
+    stats_promise.then((res) => {
+        console.log(res);
+        if(res.code != 1){
+        
+            let domstring = `<h5>You are not logged in. Can't display any statistics</h5>`
+            $("#stats-container").insertAdjacentHTML("beforeend", domstring)
+            return null;
+        }
+        let stats = res.data
+        domstring = `
+        <div class="flex-horizontal align-center" style="margin-top: 1.5rem;">
+            <span class="material-icons">
+                people_alt
+            </span>
+            <h5 style="margin-bottom:0">Total blog views: <strong>${stats.total_views}</strong><h5>
+            
+        </div>
+        <div class="flex-horizontal align-center" style="margin-top: 1rem;">
+            <span class="material-icons">
+            feedback
+            </span>
+            <h5 style="margin-bottom:0">Total comments: <strong>${stats.total_comments}</strong><h5>
+            
+        </div>
+        <div class="flex-horizontal align-center" style="margin-top: 1rem;">
+            <span class="material-icons">
+            how_to_vote
+            </span>
+            <h5 style="margin-bottom:0">Total ratings: <strong>${stats.total_ratings}</strong><h5>
+            
+        </div>
+        
+        `
+        $("#stats-container").insertAdjacentHTML("beforeend", domstring)
+    })
+    
+    
 }
 
 async function render_all_recommends(){
@@ -170,6 +230,6 @@ async function render_all_recommends(){
     }
     
     render_random_blog_recommend();
-    render_author_stats();
+    render_stats();
     render_recommend_carousel();
 }

@@ -379,7 +379,7 @@ class Auth:
             return {
                 "username": None,
                 "access_level": 1,
-                "user_id": -1
+                "user_id": None
             }
 
     def get_recovery_link_status(self, user_id: int, recovery_token: str):

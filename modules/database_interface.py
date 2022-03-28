@@ -342,7 +342,7 @@ class Database:
 
         """Fetches all existing blog ids"""
         query = """
-        SELECT blog_id
+        SELECT blog_id, average_relevancy_rating, average_impression_rating, average_controversial_rating, author_user_id
         FROM blogs
         """
         return self.execute_query(query)
@@ -785,6 +785,43 @@ class Database:
         params = {"username": username}
         return self.execute_query(query, params)
 
+    def get_user_stats(self, user_id: int):
+        def get_total_blog_views(user_id: int):
+            query = """
+            SELECT sum(views)
+            FROM blogs 
+            WHERE author_user_id = :user_id
+            """
+            params = {"user_id": user_id}
+            return self.execute_query(query, params)
+
+        def get_total_comments(user_id: int):
+            query = """
+            SELECT count(*)
+            FROM comments
+            WHERE blog_id IN (SELECT blog_id FROM blogs WHERE author_user_id = :user_id)
+            """
+            params = {"user_id": user_id}
+            return self.execute_query(query, params)
+
+        def get_total_ratings(user_id: int):
+            query = """
+            SELECT count(*)
+            FROM blog_user_ratings
+            WHERE blog_id IN (SELECT blog_id FROM blogs WHERE author_user_id = :user_id)
+            """
+            params = {"user_id": user_id}
+            return self.execute_query(query, params)
+
+        output_obj = {}
+        res = get_total_blog_views(user_id)
+        output_obj["total_views"] = res[0]["sum"]
+        res = get_total_comments(user_id)
+        output_obj["total_comments"] = res[0]["count"]
+        res = get_total_ratings(user_id)
+        output_obj["total_ratings"] = res[0]["count"]
+        return output_obj
+    
     # User functions
 
     # Recovery functions 
