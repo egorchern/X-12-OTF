@@ -13,6 +13,7 @@ class Auth:
 
         self.db = db
         self.mail = mail
+        
         self.hcaptcha_secret = hcaptcha_secret
         self.hcaptcha_site_key = "28dd5d54-e402-445c-ac00-541d3e9cadc3"
         self.token_length = 48
@@ -321,9 +322,11 @@ class Auth:
         )
         
         # if just successfully registered then retun 1
-        if result is None:
+        if len(result) == 1 and isinstance(result[0], dict):
             print(f"User registered: {username}, {email}")
+            self.recommend.on_user_preferences_change(result[0].get("user_id"))
             resp["code"] = 1
+            
             return resp
 
         # If some error occured, find the error, whether email or the username already exists

@@ -41,7 +41,7 @@ db = Database(app)
 auth = Auth(db, mail, hcaptcha_secret)
 recommend = Recommend(db, auth)
 api = Api(db, auth, recommend, hcaptcha_secret)
-
+auth.recommend = recommend
 
 # This registers routes from external modules
 app.register_blueprint(auth.auth_api)

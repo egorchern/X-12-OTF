@@ -142,10 +142,10 @@ class Database:
             CREATE TABLE IF NOT EXISTS user_preferences
             (
                 user_id integer NOT NULL,
-                ideal_word_count integer,
-                controversial_cutoff real,
-                impression_cutoff real,
-                relevancy_cutoff real,
+                ideal_word_count integer DEFAULT 10,
+                controversial_cutoff real DEFAULT 10,
+                impression_cutoff real DEFAULT 0,
+                relevancy_cutoff real DEFAULT 0,
                 CONSTRAINT user_preferences_pkey PRIMARY KEY (user_id),
                 CONSTRAINT fk_user_id 
                     FOREIGN KEY (user_id)
@@ -706,6 +706,7 @@ class Database:
         query = """
         INSERT INTO users(username, email, password_hash, date_created, date_last_accessed, avatar_image_id, access_level)
                 VALUES(:username, :email, :password_hash, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, :avatar_image_id, :access_level)
+                RETURNING user_id
         """
         default_avatar_image_id = 1
         params = {
@@ -715,7 +716,15 @@ class Database:
             'avatar_image_id': default_avatar_image_id,
             'access_level': 1
         }
-        return self.execute_query(query, params, False)    
+        res = self.execute_query(query, params) 
+        self.insert_user_preferences(res[0].get("user_id"), {
+            "ideal_word_count": 200,
+            "controversial_cutoff": 10,
+            "impression_cutoff": 0,
+            "relevancy_cutoff": 0
+        })
+        return res
+        
     
     def insert_auth_token(self, user_id: int, auth_token: str, client_identifier: str):
         """Deletes old auth token with same identifier and inserts new auth_token"""

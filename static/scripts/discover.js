@@ -20,7 +20,7 @@ async function render_random_blog_recommend(){
     }
     let blog_tile = res_temp.data[0];
     used_blog_ids_count++;
-    console.log(blog_tile, random_blog_id)
+    
     // Loop until the blog fits user's preference or until we exhaust the list of possible blogs
     while(!fits_preferences(blog_tile) && used_blog_ids_count < blog_ids.length){
         let random_blog_id = blog_ids[random(0, blog_ids.length - 1)];
