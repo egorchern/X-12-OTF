@@ -142,10 +142,10 @@ class Database:
             CREATE TABLE IF NOT EXISTS user_preferences
             (
                 user_id integer NOT NULL,
-                ideal_word_count integer,
-                controversial_cutoff real,
-                impression_cutoff real,
-                relevancy_cutoff real,
+                ideal_word_count integer DEFAULT 10,
+                controversial_cutoff real DEFAULT 10,
+                impression_cutoff real DEFAULT 0,
+                relevancy_cutoff real DEFAULT 0,
                 CONSTRAINT user_preferences_pkey PRIMARY KEY (user_id),
                 CONSTRAINT fk_user_id 
                     FOREIGN KEY (user_id)
@@ -336,14 +336,28 @@ class Database:
         params = {"author_user_id": author_user_id}
         return self.execute_query(query, params)
 
-    def get_all_blog_ids(self):
+    def get_all_blog_ids(self, user_id = None):
+        if (user_id is not None):
+            return self.get_all_blog_ids_score_sorted(user_id)
+
         """Fetches all existing blog ids"""
         query = """
-        SELECT blog_id
+        SELECT blog_id, average_relevancy_rating, average_impression_rating, average_controversial_rating, author_user_id
         FROM blogs
         """
         return self.execute_query(query)
     
+    def get_all_blog_ids_score_sorted(self, user_id):
+        query = """
+        SELECT blogs.blog_id, score, average_relevancy_rating, average_impression_rating, average_controversial_rating, author_user_id
+        FROM user_blog_algorithm_score
+        INNER JOIN blogs on blogs.blog_id = user_blog_algorithm_score.blog_id
+        WHERE user_blog_algorithm_score.user_id = :user_id
+        ORDER BY score DESC
+        """
+        params = {"user_id": user_id}
+        return self.execute_query(query, params)
+
     def get_all_blog_tile_data(self, blog_ids: tuple):
         """Returns information required for the blog tile for particular blog"""
         query = """
@@ -692,6 +706,7 @@ class Database:
         query = """
         INSERT INTO users(username, email, password_hash, date_created, date_last_accessed, avatar_image_id, access_level)
                 VALUES(:username, :email, :password_hash, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, :avatar_image_id, :access_level)
+                RETURNING user_id
         """
         default_avatar_image_id = 1
         params = {
@@ -701,7 +716,15 @@ class Database:
             'avatar_image_id': default_avatar_image_id,
             'access_level': 1
         }
-        return self.execute_query(query, params, False)    
+        res = self.execute_query(query, params) 
+        self.insert_user_preferences(res[0].get("user_id"), {
+            "ideal_word_count": 200,
+            "controversial_cutoff": 10,
+            "impression_cutoff": 0,
+            "relevancy_cutoff": 0
+        })
+        return res
+        
     
     def insert_auth_token(self, user_id: int, auth_token: str, client_identifier: str):
         """Deletes old auth token with same identifier and inserts new auth_token"""
@@ -771,6 +794,43 @@ class Database:
         params = {"username": username}
         return self.execute_query(query, params)
 
+    def get_user_stats(self, user_id: int):
+        def get_total_blog_views(user_id: int):
+            query = """
+            SELECT sum(views)
+            FROM blogs 
+            WHERE author_user_id = :user_id
+            """
+            params = {"user_id": user_id}
+            return self.execute_query(query, params)
+
+        def get_total_comments(user_id: int):
+            query = """
+            SELECT count(*)
+            FROM comments
+            WHERE blog_id IN (SELECT blog_id FROM blogs WHERE author_user_id = :user_id)
+            """
+            params = {"user_id": user_id}
+            return self.execute_query(query, params)
+
+        def get_total_ratings(user_id: int):
+            query = """
+            SELECT count(*)
+            FROM blog_user_ratings
+            WHERE blog_id IN (SELECT blog_id FROM blogs WHERE author_user_id = :user_id)
+            """
+            params = {"user_id": user_id}
+            return self.execute_query(query, params)
+
+        output_obj = {}
+        res = get_total_blog_views(user_id)
+        output_obj["total_views"] = res[0]["sum"]
+        res = get_total_comments(user_id)
+        output_obj["total_comments"] = res[0]["count"]
+        res = get_total_ratings(user_id)
+        output_obj["total_ratings"] = res[0]["count"]
+        return output_obj
+    
     # User functions
 
     # Recovery functions 

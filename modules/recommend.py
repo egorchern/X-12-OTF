@@ -133,6 +133,8 @@ class Recommend:
         return user_customized_rating
 
     def inject_algo_info(self, user_id: int, blog_info: dict):
+        if isinstance(blog_info, str):
+            return -1
         temp = self.db.get_algo_info(user_id, blog_info.get("blog_id"))
         ret = blog_info
         algo_info = {}

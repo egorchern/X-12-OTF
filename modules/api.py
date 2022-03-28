@@ -193,10 +193,15 @@ class Api:
             """
             Returns all of the existing blog tiles data in the array.
             """
+            resp = {}
+            blog_ids = json.loads(blog_ids)
+            if not isinstance(blog_ids, list) or len(blog_ids) == 0 or not isinstance(blog_ids[0], int):
+                resp["code"] = 2
+                return resp, 400
             request = req
             referer_info = self.auth.get_username_and_access_level(request)
-            blog_ids = json.loads(blog_ids)
-            resp = {}
+            
+            
             result = self.db.get_all_blog_tile_data(tuple(blog_ids))
             for i in range(len(result)):
                 result[i] = self.recommend.inject_algo_info(referer_info.get("user_id"), result[i])
@@ -228,6 +233,19 @@ class Api:
             resp["code"] = 1
             resp["data"] = result
            
+            return resp
+
+        @self.api.route("/api/blog/get_all_blog_ids", methods=["GET"])
+        def get_all_blog_ids():
+            resp = {}
+            request = req
+            referer_info = self.auth.get_username_and_access_level(request)
+            blog_ids = self.db.get_all_blog_ids(referer_info.get("user_id"))
+            if isinstance(blog_ids, str):
+                resp["code"] = 2
+                return resp, 400
+            resp["code"] = 1
+            resp["data"] = blog_ids
             return resp
 
         @self.api.route("/api/profile/<username>",methods=["DELETE"])
@@ -532,4 +550,17 @@ class Api:
                 resp["code"] = 1
                 resp["data"] = comments_data
                 
+            return resp
+        
+        @self.api.route("/api/user/get_stats", methods=["GET"])
+        def get_stats():
+            request = req
+            resp = {}
+            referer_info = self.auth.get_username_and_access_level(request)
+            if referer_info.get("user_id") is None:
+                resp["code"] = 2
+                return resp, 401
+            result = self.db.get_user_stats(referer_info.get("user_id"))
+            resp["data"] = result
+            resp["code"] = 1
             return resp

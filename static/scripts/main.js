@@ -41,6 +41,9 @@ function $(selector) {
 // Deletes all children from element
 function delete_dom_children(identifier) {
     let element = $(identifier);
+    if (element == null){
+        return null;
+    }
     while (element.firstChild) {
         element.removeChild(element.firstChild);
     }
@@ -144,16 +147,16 @@ function insert_blog_tile(
             <div>
                 <div class="flex-vertical align-center blog-tile-right height-full">
                     <div class="flex-horizontal align-center width-full">
-                        <h5 style="flex-grow:1; text-align:center;" class="category">
+                        <h6 style="flex-grow:1; text-align:center;" class="category">
                             
-                        </h5>
+                        </h6>
                         
                         <img src="/images/flag.png" class="controversy-flag" style="opacity: ${controversial_percentage}">
                     </div>
                     <div class="flex-horizontal align-center width-full">
-                        <h4 style="text-align: center; flex-grow: 1" class="blog-title">
+                        <h5 style="text-align: center; flex-grow: 1" class="blog-title">
                             
-                        </h4>
+                        </h5>
                         <span style="font-size: 0.9em; text-align: center">
                             (№ ratings: <strong>${blog_data.number_ratings}</strong>)
                         </span>
@@ -210,9 +213,9 @@ function insert_blog_tile(
     </div>
     `;
     $(identifier).insertAdjacentHTML("beforeend", blog_tile_dom_string);
-    $(`#blog-tile-${blog_data.blog_id} .username`).insertAdjacentText("beforeend", blog_data.username)
-    $(`#blog-tile-${blog_data.blog_id} .category`).insertAdjacentText("beforeend", categories_hashmap[blog_data.category_id])
-    $(`#blog-tile-${blog_data.blog_id} .blog-title`).insertAdjacentText("beforeend", blog_data.blog_title)
+    $(`${identifier} #blog-tile-${blog_data.blog_id} .username`).insertAdjacentText("beforeend", blog_data.username)
+    $(`${identifier}  #blog-tile-${blog_data.blog_id} .category`).insertAdjacentText("beforeend", categories_hashmap[blog_data.category_id])
+    $(`${identifier}  #blog-tile-${blog_data.blog_id} .blog-title`).insertAdjacentText("beforeend", blog_data.blog_title)
 }
 
 async function get_all_blog_tiles() {
@@ -316,10 +319,19 @@ async function change_page_state(new_state) {
         let home_domstring = `
         <div id="home-container">
             ${(auth_info.username != null) ? create_blog_dom_string : ""}
-            
-            <div class="flex-horizontal align-center margin-children flex-wrap" id="blog_tiles">
-                
+            <div id="random-blog" class="flex-vertical align-center">
+                <div class="flex-horizontal align-center">
+                    <h4>Random blog, discover something new!</h4>
+                    <button class="flex-horizontal align-center btn btn-outline-primary" id="new-random-blog-btn" style="margin-left: 1rem; font-size: 0.8em;">
+                        <span class="material-icons">
+                        refresh
+                        </span>
+                        New
+                    </button>
+                </div>
+    
             </div>
+            
         </div>
         `;
 
@@ -342,7 +354,7 @@ async function change_page_state(new_state) {
 
             }
         }
-        // get_all_blog_tiles();
+        render_all_recommends();
 
 
 

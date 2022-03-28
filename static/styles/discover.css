@@ -1,0 +1,10 @@
+#recommend-carousel{
+    
+}
+#recommend-carousel .carousel-item{
+    display: none !important;
+}
+
+#recommend-carousel .carousel-item.active{
+    display: flex !important;
+}
