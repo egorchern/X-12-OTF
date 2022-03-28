@@ -382,12 +382,13 @@ class Api:
             try:
                 resp["code"] = 1
                 msg = flask_mail.Message("Account ban (OTF)", sender="OTF mailing bot", recipients=[email])
-                msg.body = f"Our admin team have found that your actions have breached our code of misconduct. \nHere at Open Thought Floor we take misbehaviour such as this very seriously and limitations will be placed on your account."
+                msg.body = f"Our admin team have found that your actions have breached our code of misconduct. \nHere at Open Thought Floor we take misbehaviour such as this very seriously and limitations will be placed on your account meaning you will not be able to create any new blogs."
                 
                 self.mail.send(msg)
             except:
                 resp["code"] = 4
                 return resp
+            self.db.ban_user(data.get("user_id"))
             return resp
 
         @self.api.route("/api/blog/ban", methods=['POST'])
@@ -413,6 +414,7 @@ class Api:
             except:
                 resp["code"] = 4
                 return resp
+            self.db.delete_blog(data.get("blog_id"))
             return resp
 
 
@@ -444,7 +446,18 @@ class Api:
             resp["data"] = result
             return resp
 
-        
+        @self.api.route("/api/users/get_banned/<user_id>", methods=['GET'])
+        def get_user_banned(user_id):
+            request = req
+            resp = {}
+            result = self.db.get_user_banned(user_id)
+            if(len(result)>0):
+                resp["code"] = 1
+                resp["data"] = result[0]
+                return resp
+            resp["code"] = 2
+            return resp
+
 
 
             

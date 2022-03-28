@@ -120,7 +120,7 @@ async function toggle_edit_state() {
 }
 
 
-async function ban() {
+async function ban_user() {
     return fetch(`/api/user/ban`, {
         method: 'POST',
         headers: {
@@ -233,7 +233,7 @@ async function insert_profile_info() {
             </button>
             `;
             profile_control_container.insertAdjacentHTML("beforeend", ban_button_domstring);
-            $('#ban-btn').onclick = ban;
+            $('#ban-btn').onclick = ban_user;
         }
     }
     // Profile text field initialization

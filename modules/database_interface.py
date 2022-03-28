@@ -43,6 +43,7 @@ class Database:
                 access_level integer NOT NULL DEFAULT 0,
                 personal_description VARCHAR(1000),
                 date_created date NOT NULL,
+                user_banned BOOL,
                 PRIMARY KEY (user_id),
                 UNIQUE(username),
                 UNIQUE(email)
@@ -602,8 +603,8 @@ class Database:
         """Insert new user into database
         """
         query = """
-        INSERT INTO users(username, email, password_hash, date_created, date_last_accessed, avatar_image_id, access_level)
-                VALUES(:username, :email, :password_hash, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, :avatar_image_id, :access_level)
+        INSERT INTO users(username, email, password_hash, date_created,user_banned ,date_last_accessed, avatar_image_id, access_level)
+                VALUES(:username, :email, :password_hash, CURRENT_TIMESTAMP, False ,CURRENT_TIMESTAMP, :avatar_image_id, :access_level)
         """
         default_avatar_image_id = 1
         params = {
@@ -917,3 +918,19 @@ class Database:
     def return_blog_reports(self):
         query = """ Select * from user_blog_reports """
         return self.execute_query(query, False)
+    
+    def ban_user(self,user_id: int):
+        query = """ 
+        UPDATE users
+        SET user_banned = true
+        WHERE user_id = :user_id
+        """
+        params = {"user_id": user_id}
+        return self.execute_query(query,params,False)
+    
+    def get_user_banned(self,user_id: int):
+        query = """
+        SELECT user_banned from users
+        WHERE user_id = :user_id"""
+        params = {"user_id": user_id}
+        return self.execute_query(query, params)

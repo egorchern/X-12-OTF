@@ -7,6 +7,7 @@ window.onpopstate = (ev) => {
     change_page_state(state.page_state);
 };
 
+
 async function get_all_blog_tiles_data(){
     return fetch("/api/blog/get_all_blog_tiles_data", {
         method: "GET",
@@ -31,6 +32,18 @@ async function get_certain_blog_tiles_data(blog_ids){
         .then((result) => {
             return result
         });
+}
+async function check_user_banned(user_id){
+    return fetch(`/api/users/get_banned/${user_id}`,{
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+        }
+    })
+        .then((result) => result.json())
+        .then((result) => {
+            return result
+        })
 }
 
 // Jquery like selection, because I like it
@@ -324,19 +337,22 @@ async function change_page_state(new_state) {
         main_html.insertAdjacentHTML("beforeend", home_domstring);
         if (auth_info.username != null) {
             $("#create-blog-btn").onclick = async function () {
-                let result = await create_blog(
-                    {
-                        blog_body: { text: "Default" },
-                        blog_title: "Default",
-                        category_id: categories_object[0].category_id,
-                        word_count: 1
+                let banned = await(check_user_banned(auth_info.user_id))
+                if(banned){
+                    alert("You are banned, you cannot create new blogs.");
+                }else{
+                    let result = await create_blog(
+                        {
+                           blog_body: { text: "Default" },
+                            blog_title: "Default",
+                            category_id: categories_object[0].category_id,
+                            word_count: 1
+                        }
+                    )
+                    if (result.code === 1) {
+                        change_page_state(`/edit_blog/${result.blog_id}`);
                     }
-                )
-                if (result.code === 1) {
-                    change_page_state(`/edit_blog/${result.blog_id}`);
                 }
-
-
             }
         }
         get_all_blog_tiles();
