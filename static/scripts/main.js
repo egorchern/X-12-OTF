@@ -541,25 +541,31 @@ async function change_page_state(new_state) {
     }
     else if(new_state === "/admin"){
         let admin_panel_domstring = `
-        <div id="admin-page">
-            <div class ="align-center">
+        <div id="admin-page" class="flex-vertical align-center">
+            <div class ="align-center flex-vertical">
                 <div class = "container-head">Unresolved blog reports</div>
-                <div class="flex-horizontal align-center margin-children flex-wrap reports-container" id="report_blog_tiles">
-                    <div class = "reports-header">Blog id</div>
-                    <div class = "reports-header">Most recent report date</div>
-                    <div class = "reports-header">Report reaon(s)</div>
-                    <div class = "reports-header">Number of reports on blog</div>
-                    <div class = "reports-header">Most recent report description</div>
+                <div style="margin-top: 1rem;" class="grid-5-cols margin-children flex-wrap reports-container">
+                    <h5 class="flex-horizontal align-center" style="text-align: center">Blog id</h5>
+                    <h5 class="flex-horizontal align-center" style="text-align: center">Most recent report date</h5>
+                    <h5 class="flex-horizontal align-center" style="text-align: center">Report reaon(s)</h5>
+                    <h5 class="flex-horizontal align-center" style="text-align: center">Number of reports on blog</h5>
+                    <h5 class="flex-horizontal align-center" style="text-align: center">Most recent report description</h5>
+                </div>
+                <div id="report_blog_tiles" class="flex-vertical align-center width-full">
+                    
                 </div>
             </div>
-            <div class ="align-center">
+            <div class ="flex-vertical align-center" style="margin-top: 3.5rem;">
                 <div class = "container-head">Unresolved user reports</div>
-                <div class="flex-horizontal align-center margin-children flex-wrap reports-container" id="report_user_tiles">
-                    <div class = "reports-header">User id</div>
-                    <div class = "reports-header">Most recent report date</div>
-                    <div class = "reports-header">Report reaon(s)</div>
-                    <div class = "reports-header">Number of reports on user</div>
-                    <div class = "reports-header">Most recent report description</div>
+                <div style="margin-top: 1rem;" class="grid-5-cols margin-children flex-wrap reports-container width-full">
+                    <h5 class="flex-horizontal align-center" style="text-align: center">User id</h5>
+                    <h5 class="flex-horizontal align-center" style="text-align: center">Most recent report date</h5>
+                    <h5 class="flex-horizontal align-center" style="text-align: center">Report reaon(s)</h5>
+                    <h5 class="flex-horizontal align-center" style="text-align: center">Number of reports on user</h5>
+                    <h5 class="flex-horizontal align-center" style="text-align: center">Most recent report description</h5>
+                </div>
+                <div id="report_user_tiles" class="flex-vertical align-center width-full">
+                    
                 </div>
             </div>
         </div>
