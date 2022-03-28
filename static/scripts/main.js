@@ -338,7 +338,7 @@ async function change_page_state(new_state) {
         if (auth_info.username != null) {
             $("#create-blog-btn").onclick = async function () {
                 let banned = await(check_user_banned(auth_info.user_id))
-                if(banned){
+                if(banned.data["user_banned"]){
                     alert("You are banned, you cannot create new blogs.");
                 }else{
                     let result = await create_blog(

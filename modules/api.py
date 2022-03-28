@@ -92,6 +92,7 @@ class Api:
             CODES: 1 - successfully created the blog
             2 - Not logged in
             3 - invalid input
+            4 - User is banned
             """
             
             request = req
@@ -103,6 +104,9 @@ class Api:
             # This happens when user is not logged in and attempts to create a blog.
             if temp is None:
                 resp["code"] = 2
+                return resp
+            if(get_user_banned(temp).get("user_banned")):
+                resp["code"] = 4
                 return resp
             blog_data["author_user_id"] = temp
             # Need to JSON the blog body
@@ -265,6 +269,7 @@ class Api:
             2 - Blog does not exist
             3 - Not logged in or author
             4 - Already rated that blog
+            5 - User is banned
             """
             request = req
             resp = {}
@@ -276,7 +281,9 @@ class Api:
             if auth_info.get("username") is None or author_username == auth_info.get("username"):
                 resp["code"] = 3
                 return resp
-            
+            if(get_user_banned(auth_info.user_id).get("user_banned")):
+                resp["code"] = 5
+                return resp
             
             rating_data["user_id"] = auth_info.get("user_id")
             blog_user_rating_from_db = self.db.get_blog_user_rating(
@@ -321,7 +328,10 @@ class Api:
             if referrer_info.get("user_id") is None:
                 resp["code"] = 2
                 return resp, 401
-            
+            user_banned = get_user_banned(referrer_info.get("user_id")).get("data")
+            if(user_banned.get("user_banned")):
+                resp["code"] = 4
+                return resp
             rating_data = self.db.get_blog_user_rating(referrer_info.get("user_id"), blog_id)
             if len(rating_data) == 0:
                 resp["code"] = 3

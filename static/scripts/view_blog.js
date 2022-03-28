@@ -278,6 +278,13 @@ async function parse_posted_blog_rating(blog_data){
             
             break;
         }
+        case 4: {
+            let domstring = `
+            <h4>You cannot rate blogs if you are banned</h4>
+            `
+            $("#rating-container").insertAdjacentHTML("beforeend", domstring)
+            break;
+        }
     }
 }
 
