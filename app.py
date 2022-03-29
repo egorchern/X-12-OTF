@@ -115,14 +115,10 @@ def recover_password(user_id, recovery_token):
 def search():
     return flask.render_template('index.html')
 
-<<<<<<< HEAD
 @app.route("/admin", methods=['GET'])
 def admin():
     return flask.render_template('index.html')
     
-=======
-
->>>>>>> 68a94a2429dbdfb6c76657f6c8d43ef80ee77227
 @app.route('/advancedsearch', methods=['GET'])
 def advancedsearch():
     return flask.render_template('index.html')

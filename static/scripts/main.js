@@ -281,11 +281,8 @@ function initialize_page_state() {
         change_page_state("/contentguidelines");
     } else if (/^\/search$/.test(path)) {
         change_page_state(path + location.search);
-<<<<<<< HEAD
     }else if(path === "/admin"){
         change_page_state("/admin");
-=======
->>>>>>> 68a94a2429dbdfb6c76657f6c8d43ef80ee77227
     } else if (path === "/advancedsearch") {
         change_page_state("advancedsearch");
     }
@@ -883,7 +880,6 @@ allowed, but sharing pictures is prohibited.
         main_html.insertAdjacentHTML("beforeend", search_domstring);
         render_search_page(search_query);
     }
-<<<<<<< HEAD
     else if(new_state === "/admin"){
         let admin_panel_domstring = `
         <div id="admin-page" class="flex-vertical align-center">
@@ -921,8 +917,6 @@ allowed, but sharing pictures is prohibited.
             get_all_blog_reports();
             get_all_user_reports();
         }
-=======
->>>>>>> 68a94a2429dbdfb6c76657f6c8d43ef80ee77227
     else if (new_state === "advancedsearch") {
         let advancedsearch = `
         <div class="flex-vertical align-center" id="advancedpagecontainer">
@@ -1018,10 +1012,7 @@ allowed, but sharing pictures is prohibited.
         history.pushState({ page_state: page_state }, null, "/advancedsearch");
         main_html.insertAdjacentHTML("beforeend", advancedsearch);
     }
-<<<<<<< HEAD
     }
-=======
->>>>>>> 68a94a2429dbdfb6c76657f6c8d43ef80ee77227
 }
 
 // Called after userinfo is loaded. Initializes the page
