@@ -96,8 +96,12 @@ async function fetch_next_carousel_item(){
     if (temp.code != 1){
         return null;
     }
-    let blog_tiles_data = temp.data
+    let blog_tiles_data = temp.data.sort(function(a, b){
+        return b.algorithm_info.score - a.algorithm_info.score
+    })
+    console.log(blog_tiles_data)
     blog_tiles_data.forEach((blog_tile) => {
+        console.log(blog_tile)
         insert_blog_tile(blog_tile, `#carousel-item-${currently_showing}`)
     })
     

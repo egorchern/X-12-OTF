@@ -282,8 +282,9 @@ async function parse_posted_blog_rating(blog_data) {
             if(auth_info.user_id == blog_data.author_user_id){
 
                 $("#rating-container").insertAdjacentHTML("beforeend", `<h3>You can't rate your own blog!</h3>`);
-            }else if(banned.data["user_banned"] == true){
-                $("#rating-container").insertAdjacentHTML("beforeend", `<h3>You can't rate blogs if your'e banned!</h3>`);
+            } else if(auth_info.user_banned === true){
+                $("#rating-container").insertAdjacentHTML("beforeend", `<h3>You are banned from rating any blogs!</h3>`);
+                
             }
             else {
                 $("#rating-container").insertAdjacentHTML("beforeend", rateblog)
@@ -403,11 +404,16 @@ async function render_comments_prereq(){
 }
 
 async function on_new_comment_post_click(){
+    if(auth_info.user_banned === true){
+        alert("You are banned from creating any content.")
+        return null
+    }
     let comment_text = $("#new_comment_form textarea").value;
     if (comment_text.length < 1 || comment_text.length >= 2000){
         validate_element("#new_comment_form textarea", "is-invalid")
         return null;
     }
+    
     reset_validation_classes(["#new_comment_form textarea"])
     $("#post_new_comment_btn").insertAdjacentHTML('beforebegin', spinner_domstring);
     // let hcaptcha_widget = hcaptcha.render($("body"), {
@@ -417,6 +423,7 @@ async function on_new_comment_post_click(){
     // let hcaptcha_result = await hcaptcha.execute(hcaptcha_widget, {
     //     async: true
     // })
+    
     let temp = await post_comment(gl_blog_id, comment_text, /*hcaptcha_result.response*/ "")
     $(".lds-roller").remove();
     if(temp.code != 1){ return null };

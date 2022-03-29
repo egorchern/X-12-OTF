@@ -359,9 +359,11 @@ async function change_page_state(new_state) {
         if (auth_info.username != null) {
             $("#create-blog-btn").onclick = async function () {
                 let banned = await(check_user_banned(auth_info.user_id))
-                if(banned.data["user_banned"]){
-                    alert("You are banned, you cannot create new blogs.");
-                }else{
+                if(auth_info.user_banned === true){
+                    alert("You are banned from creating any content.")
+                    return null
+                }
+                else{
                     let result = await create_blog(
                         {
                            blog_body: { text: "Default" },
