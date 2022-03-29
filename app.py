@@ -41,7 +41,7 @@ db = Database(app)
 auth = Auth(db, mail, hcaptcha_secret)
 recommend = Recommend(db, auth)
 
-api = Api(db, auth, recommend, hcaptcha_secret)
+api = Api(db, auth, recommend, mail, hcaptcha_secret)
 auth.recommend = recommend
 
 

@@ -9,6 +9,10 @@ const valid_element = (identifier, cls) => {
 
 //puts all the html elements onto the page
 async function show_report_page(blog_id){
+    if(auth_info.user_banned === true){
+        alert("You are banned from reporting")
+        return null;
+    }
     //html stuff for displaying the catergories for the drop down menu
     let report_category_options_dom_string = ``
     reporting_catergories.forEach((category, index) => {
@@ -58,10 +62,11 @@ async function show_report_page(blog_id){
     myModal.show();
     const submitBtn = document.querySelector(".modal-footer button");
 
-    submitBtn.onclick = () => {submit_report(blog_id, myModal)};
+    submitBtn.onclick = () => {submit_inter_report(blog_id, myModal)};
 }
 
-async function submit_report(blog_id, myModal){
+async function submit_inter_report(blog_id, myModal){
+    console.log(blog_id);
     let identifier_class = $("#edit-report-body").value != "" ? "is-valid" : "is-invalid";
     if (identifier_class === "is-invalid"){
         $("#invalid-details").innerHTML = "Please give some details";
@@ -82,19 +87,13 @@ async function submit_report(blog_id, myModal){
         //     async: true
         // })
         $(".lds-roller").remove();
-        let temp = await submit_report(blog_id, myModal, /*hcaptcha_result.response*/ "")
+        let temp = await submit_report(report_data, myModal, /*hcaptcha_result.response*/ "")
     };
 }
 
-async function submit_report(blog_id, myModal, hcaptcha_response){
+async function submit_report(report_data,  myModal, hcaptcha_response){
     
-    
-    let report_data = {
-        blog_id: blog_id,
-        report_reason: reporting_catergories[$("#report-category").selectedIndex],
-        report_body: $("#edit-report-body").value,
-        hcaptcha_response: hcaptcha_response
-    }
+    report_data.hcaptcha_response = hcaptcha_response;
     $("#edit-report-body").value = "";
     valid_element("#edit-report-body", null);
     myModal.hide();
@@ -113,12 +112,15 @@ async function submit_report(blog_id, myModal, hcaptcha_response){
 }
 
 async function submit_user_report(user_id, myModal, hcaptcha_response){
-    
+        if(auth_info.user_banned === true){
+        alert("You are banned from reporting")
+        return null;
+    }
         let report_data = {
             user_id: user_id,
 
             report_reason: user_reporting_catergories[$("#user-report-category").selectedIndex],
-            report_body: $("#edit-report-body").value
+            report_body: $("#edit-report-body").value,
 
             hcaptcha_response: hcaptcha_response
 
@@ -145,6 +147,10 @@ let user_reporting_catergories = ["Numerous hateful blogs", "Inappropriate descr
 
 async function show_user_report_page(user_id){
     //html stuff for displaying the catergories for the drop down menu
+    if(auth_info.user_banned === true){
+        alert("You are banned from reporting")
+        return null;
+    }
     let user_report_category_options_dom_string = ``
     user_reporting_catergories.forEach((category, index) => {
         user_report_category_options_dom_string += `

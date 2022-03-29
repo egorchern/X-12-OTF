@@ -674,7 +674,7 @@ class Database:
     def get_user_auth_info(self, auth_token: str) -> dict:
         """Returns user auth information given a token"""
         query = """
-        SELECT username, access_level, users.user_id
+        SELECT username, access_level, users.user_id, user_banned
         FROM users
         INNER JOIN auth_tokens on users.user_id = auth_tokens.user_id
         WHERE auth_token=:auth_token
