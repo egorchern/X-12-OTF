@@ -429,7 +429,7 @@ class Api:
             request = req
             resp = {}
             result = self.db.return_user_reports()
-            if len(result) == 0:
+            if isinstance(result, str):
                 resp["code"] = 2
                 resp["data"] = []
                 return resp
@@ -443,7 +443,7 @@ class Api:
             request = req
             resp = {}
             result = self.db.return_blog_reports()
-            if len(result) == 0:
+            if isinstance(result, str):
                 resp["code"] = 2
                 resp["data"] = []
                 return resp

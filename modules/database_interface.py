@@ -912,12 +912,17 @@ class Database:
         self.execute_query(query, report_data, False)
 
     def return_user_reports(self):
-        query = """ Select * from user_profile_reports """
-        return self.execute_query(query, False)
+        query = """
+        SELECT report_id, reporter_user_id, user_profile_reports.user_id, report_reason, 
+        report_body, found_harmful, report_date, username
+        FROM user_profile_reports
+        INNER JOIN users ON user_profile_reports.user_id = users.user_id
+        """
+        return self.execute_query(query)
 
     def return_blog_reports(self):
         query = """ Select * from user_blog_reports """
-        return self.execute_query(query, False)
+        return self.execute_query(query)
     
     def ban_user(self,user_id: int):
         query = """ 

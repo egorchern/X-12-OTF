@@ -26,30 +26,30 @@ function insert_blog_reports(
     report_data, identifier
 ){
     let blog_report_domstring = `
-    <div class="report-tile animated__animated__fadeIn" id="blog-report-tile-${report_data.blog_id}" onclick="change_page_state('/blog/${report_data.blog_id}')">
-            <div class = "report-tile-top">
-                <div class = "report-text">${report_data.blog_id}</div>
-                <div class = "report-text">${report_data.report_date}</div>
-                <div class = "report-text">${report_data.report_reason}</div>
-                <div class = "report-text">${report_data.report_count}</div>
-                <div class = "report-description-text">${report_data.report_body}</div>
-            </div>
+    <div class="report-tile animated__animated animated__fadeIn width-full grid-5-cols" id="blog-report-tile-${report_data.blog_id}" onclick="change_page_state('/blog/${report_data.blog_id}')">
+            
+    <span class="flex-horizontal align-center" style="text-align: center">${report_data.blog_id}</span>
+    <span class="flex-horizontal align-center" style="text-align: center">${report_data.report_date}</span>
+    <span class="flex-horizontal align-center" style="text-align: center">${report_data.report_reason}</span>
+    <span class="flex-horizontal align-center" style="text-align: center">${report_data.report_count}</span>
+    <span class="flex-horizontal align-center" style="text-align: center">${report_data.report_body}</span>
+            
     </div>
     `
     $(identifier).insertAdjacentHTML("beforeend", blog_report_domstring);
 }
+
 function insert_user_reports(
     report_data, identifier
 ){
     let user_report_domstring = `
-    <div class="report-tile animated__animated__fadeIn" id="user-report-tile-${report_data.user_id}" onclick="change_page_state('/blog/${report_data.blog_id}')">
-            <div class = "report-tile-top">
-                <div class = "report-text">${report_data.user_id}</div>
-                <div class = "report-text">${report_data.report_date}</div>
-                <div class = "report-text">${report_data.report_reason}</div>
-                <div class = "report-text">${report_data.report_count}</div>
-                <div class = "report-description-text">${report_data.report_body}</div>
-            </div>
+    <div class="report-tile animated__animated animated__fadeIn width-full grid-5-cols" id="user-report-tile-${report_data.user_id}" onclick="change_page_state('/profile/${report_data.username}')">
+        <span class="flex-horizontal align-center" style="text-align: center">${report_data.user_id}</span>
+        <span class="flex-horizontal align-center" style="text-align: center">${report_data.report_date}</span>
+        <span class="flex-horizontal align-center" style="text-align: center">${report_data.report_reason}</span>
+        <span class="flex-horizontal align-center" style="text-align: center">${report_data.report_count}</span>
+        <span class="flex-horizontal align-center" style="text-align: center">${report_data.report_body}</span>
+            
     </div>
     `
     $(identifier).insertAdjacentHTML("beforeend", user_report_domstring);
@@ -123,7 +123,7 @@ async function get_all_blog_reports(){
 async function get_all_user_reports(){
     let return_dom_string = ``
     let temp = await get_all_report_users_data();
-    
+    console.log(temp)
     if (temp.code != 1) {
         return { dom_string: "" }
     }
@@ -150,11 +150,13 @@ async function get_all_user_reports(){
                 report_date: all_user_tiles_data[i].report_date,
                 report_reason: all_user_tiles_data[i].report_reason,
                 report_count: 1,
-                report_body: all_user_tiles_data[i].report_body
+                report_body: all_user_tiles_data[i].report_body,
+                username: all_user_tiles_data[i].username
             }
             report_tiles_data.push(report_data)
         }
     }
+    console.log(report_tiles_data)
     report_tiles_data.forEach((user_data, index) => {
         insert_user_reports(user_data,"#report_user_tiles")
     })
