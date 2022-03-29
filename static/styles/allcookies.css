@@ -270,3 +270,23 @@ input:checked + .slider:before {
 .link{
     font-size: 0.5em;
 }
+
+
+@media screen and (max-width: 768px) {
+    .popup-box-small{
+        max-width:650px;
+        margin:10px;
+        padding:1.2rem;
+    }
+    .popup-box-small h2{
+        font-size:2.5em;
+        font-weight:700;
+        margin-bottom:10px;
+        color:white;
+    }
+  }
+@media screen and (max-width: 500px) {
+.switch-big {
+    margin-left: 50px;
+    }
+}

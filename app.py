@@ -127,7 +127,7 @@ def get_all_users():
     else:
         return "You don't have permission to access this page"
 
-
 # Run the flask server
 if __name__ == '__main__':
     app.run(debug=True, threaded=True)
+
