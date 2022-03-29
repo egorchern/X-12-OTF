@@ -117,4 +117,9 @@ hr.rounded {
     line-height: 1.8;
 }
 
+@media screen and (max-width: 768px) {
+    .about-us, .team-members {
+      width: 100%; /* The width is 100%, when the viewport is 800px or smaller */
+    }
+  }
 
