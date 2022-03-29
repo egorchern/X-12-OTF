@@ -16,9 +16,58 @@ async function on_simple_search_click() {
 
 async function on_advanced_search_click(){
     let query_dict = {
-
+        
     }
-    $("#title")
+    let cur = $("#title").value
+    if (cur != ""){
+        query_dict.blog_title = cur
+    }
+    cur = $("#keywords").value.replaceAll(" ", "")
+    if (cur != ""){
+        query_dict.keywords = cur
+    }
+    cur = $("#date-min").value
+    if (cur != ""){
+        query_dict.date_min = cur
+    }
+    cur = $("#date-max").value
+    if (cur != ""){
+        query_dict.date_max = cur
+    }
+    cur = $("#category").selectedOptions[0].innerHTML
+    if (cur != "Any"){
+        query_dict.category_id = objectFlip(categories_hashmap)[cur]
+    }
+    cur = $("#controversial-min").value
+    if (cur != ""){
+        query_dict.controversial_min = cur
+    }
+    cur = $("#controversial-max").value
+    if (cur != ""){
+        query_dict.controversial_max = cur
+    }
+    cur = $("#relevancy-min").value
+    if (cur != ""){
+        query_dict.relevancy_min = cur
+    }
+    cur = $("#relevancy-max").value
+    if (cur != ""){
+        query_dict.relevancy_max = cur
+    }
+    cur = $("#impression-min").value
+    if (cur != ""){
+        query_dict.impression_min = cur
+    }
+    cur = $("#impression-max").value
+    if (cur != ""){
+        query_dict.impression_max = cur
+    }
+    cur = $("#username").value
+    if (cur != ""){
+        query_dict.username = cur
+    }
+    let url_encoded = `/search?${urlencode(query_dict)}`
+    change_page_state(url_encoded)
 }
 
 async function search_blogs(search_query) {
@@ -38,6 +87,7 @@ async function search_blogs(search_query) {
 }
 
 async function render_search_page(search_query) {
+    console.log(search_query)
     categories_promise.then(async function(result){
 
 
@@ -145,7 +195,7 @@ async function render_search_page(search_query) {
         $("#search-page").insertAdjacentHTML("beforeend", advancedsearch)
         $("#advancedpagecontainer").onsubmit = (ev) => { ev.preventDefault(); on_advanced_search_click(); }
         $("#search-page").insertAdjacentHTML("beforeend", serach_results)
-        console.log(search_query)
+        
         // Need to reset this variable to prevent pages from affecting each other, like profile authored blogs affect this variable
         currently_showing = 0;
         currently_hidden = 0;

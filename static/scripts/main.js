@@ -280,7 +280,9 @@ function initialize_page_state() {
     } else if (path === "/contentguidelines") {
         change_page_state("/contentguidelines");
     } else if (/^\/search$/.test(path)) {
-        change_page_state(path + location.search);
+        let postfix = location.search != "" ? location.search : "?"
+        
+        change_page_state(path + postfix);
     }else if(path === "/admin"){
         change_page_state("/admin");
     }
@@ -862,6 +864,7 @@ allowed, but sharing pictures is prohibited.
 
     else if (/^\/search\?(?<search_query>.*)$/.test(new_state)) {
         let temp = /^\/search\?(?<search_query>.*)$/.exec(new_state)
+        console.log(temp);
         if (temp === null) {
             return null;
         }
@@ -984,7 +987,7 @@ async function main() {
         change_page_state("/legalpage");
     };
     $("#advancedsearch").onclick = () => {
-        change_page_state("/advancedsearch")
+        change_page_state("/search?")
     }
     $("#search-bar").onsubmit = (ev) => {
         ev.preventDefault();
