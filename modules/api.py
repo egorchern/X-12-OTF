@@ -328,10 +328,6 @@ class Api:
             if referrer_info.get("user_id") is None:
                 resp["code"] = 2
                 return resp, 401
-            user_banned = get_user_banned(referrer_info.get("user_id")).get("data")
-            if(user_banned.get("user_banned")):
-                resp["code"] = 4
-                return resp
             rating_data = self.db.get_blog_user_rating(referrer_info.get("user_id"), blog_id)
             if len(rating_data) == 0:
                 resp["code"] = 3

@@ -565,9 +565,11 @@ async function change_page_state(new_state) {
         </div>
         `
         history.pushState({page_state: page_state},null, new_state);
-        main_html.insertAdjacentHTML("beforeend",admin_panel_domstring);
-        get_all_blog_reports();
-        get_all_user_reports();
+        if(auth_info.access_level === 2){
+            main_html.insertAdjacentHTML("beforeend",admin_panel_domstring);
+            get_all_blog_reports();
+            get_all_user_reports();
+        }
     }
 }
 

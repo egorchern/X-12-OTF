@@ -17,6 +17,18 @@ async function get_public_profile_info(username) {
         });
 }
 
+async function check_user_banned(user_id){
+    return fetch(`/api/users/get_banned/${user_id}`,{
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+        }
+    })
+        .then((result) => result.json())
+        .then((result) => {
+            return result
+        })
+}
 
 function on_edit_avatar_click(avatar_id) {
     if (avatar_id === currently_selected_avatar || avatar_id > max_avatar_number) {
@@ -237,6 +249,10 @@ async function insert_profile_info() {
         }
     }
     // Profile text field initialization
+    let banned = await(check_user_banned(profile_info.user_id))
+    if(banned.data["user_banned"] == true){
+        $("#username-text").style = "color:red"
+    }
     $("#username-text").textContent = `Username: ${profile_info.username}`
     $("#date-created").textContent = `Date created: ${profile_info.date_created}`
     $("#date-last-accessed").textContent = `Date last accessed: ${profile_info.date_last_accessed}`

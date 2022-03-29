@@ -265,10 +265,12 @@ async function parse_posted_blog_rating(blog_data){
                 Submit
             </button>
     
-    `
-            
+    `       
+            let banned = await(check_user_banned(auth_info.user_id))
             if(auth_info.user_id == blog_data.author_user_id){
                 $("#rating-container").insertAdjacentHTML("beforeend", `<h3>You can't rate your own blog!</h3>`);
+            }else if(banned.data["user_banned"] == true){
+                $("#rating-container").insertAdjacentHTML("beforeend", `<h3>You can't rate blogs if your'e banned!</h3>`);
             }
             else{
                 $("#rating-container").insertAdjacentHTML("beforeend", rateblog)
@@ -276,13 +278,6 @@ async function parse_posted_blog_rating(blog_data){
             }
             
             
-            break;
-        }
-        case 4: {
-            let domstring = `
-            <h4>You cannot rate blogs if you are banned</h4>
-            `
-            $("#rating-container").insertAdjacentHTML("beforeend", domstring)
             break;
         }
     }
