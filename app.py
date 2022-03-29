@@ -118,6 +118,10 @@ def search():
 @app.route("/admin", methods=['GET'])
 def admin():
     return flask.render_template('index.html')
+    
+@app.route('/advancedsearch', methods=['GET'])
+def advancedsearch():
+    return flask.render_template('index.html')
 
 # Just a test route, to test whether access levels and authentication is working
 
