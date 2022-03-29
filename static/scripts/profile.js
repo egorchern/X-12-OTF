@@ -30,7 +30,7 @@ async function check_user_banned(user_id){
         .then((result) => {
             return result
         })
-
+}
 function convert_iso_date(dt){
     // var _dd = "";
     // var _mm="";
@@ -280,7 +280,7 @@ async function insert_profile_info() {
     // Profile text field initialization
     let banned = await(check_user_banned(profile_info.user_id))
     if(banned.data["user_banned"] == true){
-        $("#username-text").style = "color:red"
+        $("#username-text").insertAdjacentHTML("afterend", `<h4 style="color: red">This user is banned</h4>`)
     }
     $("#username-text").textContent = `Username: ${profile_info.username}`
     $("#date-created").textContent = `Date created: ${profile_info.date_created}`

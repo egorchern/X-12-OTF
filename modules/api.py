@@ -7,7 +7,7 @@ import flask_mail
 import requests
 
 class Api:
-    def __init__(self, db, auth, recommend, hcaptcha_secret):
+    def __init__(self, db, auth, recommend, mail, hcaptcha_secret):
         self.db = db
         self.api = Blueprint("api", __name__)
         self.auth = auth
@@ -555,7 +555,10 @@ class Api:
             if referer_info.get("username") is None:
                 resp["code"] = 2
                 return resp, 401
-            
+            is_banned = self.db.get_banned(referer_info.get("user_id"))
+            if isinstance(is_banned, str):
+                resp["code"] = 7
+                return resp, 401
             data = request.json
             # hcaptcha_response = data.get("hcaptcha_response")
             # # Hcaptcha verify component
