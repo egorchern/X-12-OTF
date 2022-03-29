@@ -40,8 +40,10 @@ mail = flask_mail.Mail(app)
 db = Database(app)
 auth = Auth(db, mail, hcaptcha_secret)
 recommend = Recommend(db, auth)
+
 api = Api(db, auth, recommend, hcaptcha_secret)
 auth.recommend = recommend
+
 
 # This registers routes from external modules
 app.register_blueprint(auth.auth_api)
@@ -111,6 +113,10 @@ def recover_password(user_id, recovery_token):
 
 @app.route("/search", methods=['GET'])
 def search():
+    return flask.render_template('index.html')
+
+@app.route("/admin", methods=['GET'])
+def admin():
     return flask.render_template('index.html')
 
 # Just a test route, to test whether access levels and authentication is working

@@ -43,6 +43,7 @@ class Database:
                 access_level integer NOT NULL DEFAULT 0,
                 personal_description VARCHAR(1000),
                 date_created date NOT NULL,
+                user_banned BOOL,
                 PRIMARY KEY (user_id),
                 UNIQUE(username),
                 UNIQUE(email)
@@ -704,9 +705,11 @@ class Database:
         """Insert new user into database
         """
         query = """
+
         INSERT INTO users(username, email, password_hash, date_created, date_last_accessed, avatar_image_id, access_level)
                 VALUES(:username, :email, :password_hash, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, :avatar_image_id, :access_level)
                 RETURNING user_id
+
         """
         default_avatar_image_id = 1
         params = {
@@ -770,6 +773,17 @@ class Database:
         params = {"user_id": user_id}
         return self.execute_query(query, params, False)
 
+
+    def get_user_email(self,user_id:int):
+        query = """
+        SELECT email
+        FROM users
+        WHERE user_id = :user_id
+        LIMIT 1"""
+        params = {"user_id": user_id}
+        return self.execute_query(query, params)
+
+
     def get_email_exists(self, email: str):
         query = """
         SELECT 
@@ -830,7 +844,7 @@ class Database:
         res = get_total_ratings(user_id)
         output_obj["total_ratings"] = res[0]["count"]
         return output_obj
-    
+
     # User functions
 
     # Recovery functions 
@@ -1055,6 +1069,8 @@ class Database:
 
     # Discover/recommend functions
     
+    #report functions
+
     def insert_blog_report(self, report_data: dict):
         query = """
         INSERT INTO user_blog_reports(reporter_user_id, blog_id, report_reason, report_body, found_harmful, report_date)
@@ -1068,3 +1084,32 @@ class Database:
         VALUES(:reporter_user_id, :user_id, :report_reason, :report_body, False, CURRENT_TIMESTAMP)
         """
         self.execute_query(query, report_data, False)
+
+    def return_user_reports(self):
+        query = """
+        SELECT report_id, reporter_user_id, user_profile_reports.user_id, report_reason, 
+        report_body, found_harmful, report_date, username
+        FROM user_profile_reports
+        INNER JOIN users ON user_profile_reports.user_id = users.user_id
+        """
+        return self.execute_query(query)
+
+    def return_blog_reports(self):
+        query = """ Select * from user_blog_reports """
+        return self.execute_query(query)
+    
+    def ban_user(self,user_id: int):
+        query = """ 
+        UPDATE users
+        SET user_banned = true
+        WHERE user_id = :user_id
+        """
+        params = {"user_id": user_id}
+        return self.execute_query(query,params,False)
+    
+    def get_user_banned(self,user_id: int):
+        query = """
+        SELECT user_banned from users
+        WHERE user_id = :user_id"""
+        params = {"user_id": user_id}
+        return self.execute_query(query, params)

@@ -90,6 +90,10 @@ function insert_top_blog_info(blog_data) {
     $("#author_hyperlink").onclick = () => {change_page_state(`/profile/${blog_data.username}`)}
     if (auth_info.user_id === blog_data.author_user_id){
         $("#edit-blog-btn").onclick = () => {change_page_state(`/edit_blog/${blog_data.blog_id}`)};
+    }else if(auth_info.access_level === 2){
+        $('#ban-btn').onclick = () => {ban_blog(blog_data)};
+
+
     }else{
 
         //applies the change page state function to the report button which makes the page change to the report page
@@ -103,7 +107,22 @@ let gl_blog_id;
 let MAX_COMMENT_CHARCOUNT = 2000;
 
 
+
+async function ban_blog(blog_data) {
+    return fetch(`/api/blog/ban`, {
+        method: 'POST',
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(blog_data)
+    }).then((result) => result.json())
+        .then((result) => {
+            return result.code
+        });
+}
+
 async function submit_blog_rating(rating_data, hcaptcha_response){
+
     return fetch("/api/blog/submit_rating", {
         method: "POST",
         headers: {
@@ -257,11 +276,14 @@ async function parse_posted_blog_rating(blog_data) {
             <button id="ratingSubmit" style="margin-top: 0.8em" class="btn btn-outline-primary profile-control-button flex-horizontal align-center">
                 Submit
             </button>
-    
-    `
+            `
+     
+            let banned = await(check_user_banned(auth_info.user_id))
+            if(auth_info.user_id == blog_data.author_user_id){
 
-            if (auth_info.user_id == blog_data.author_user_id) {
                 $("#rating-container").insertAdjacentHTML("beforeend", `<h3>You can't rate your own blog!</h3>`);
+            }else if(banned.data["user_banned"] == true){
+                $("#rating-container").insertAdjacentHTML("beforeend", `<h3>You can't rate blogs if your'e banned!</h3>`);
             }
             else {
                 $("#rating-container").insertAdjacentHTML("beforeend", rateblog)
@@ -494,10 +516,19 @@ async function render_view_blog(blog_id) {
             Report
         </button>
     `;
+    let ban_button_domstring = `
+            <button class="btn btn-outline-danger profile-control-button flex-horizontal align-center" id="ban-btn" type="button" tabindex="0">
+                <span class="material-icons">
+                    dangerous
+                </span>
+                Ban
+            </button>
+            `;
     let view_blog_dom_string = `
     <div id="blog-buttons-container" class="flex-horizontal align-end width-full">
        ${auth_info.user_id === blog_data.author_user_id ? edit_button_domstring : ""}
-       ${auth_info.user_id != blog_data.author_user_id ? report_button_domstring : ""}
+       ${auth_info.access_level==2 ? ban_button_domstring : ""}
+       ${auth_info.user_id != blog_data.author_user_id && auth_info.access_level==1 ? report_button_domstring : ""}
     </div>
     <div id="top-blog-info-container">
         
@@ -526,6 +557,7 @@ async function render_view_blog(blog_id) {
 
     insert_top_blog_info(blog_data)
     parse_posted_blog_rating(blog_data)
+
     temp = await get_comment_ids(blog_id);
     if (temp.code != 1){
         return null;
@@ -616,7 +648,4 @@ async function get_comment_content(comment_ids) {
             return result
         });
 }
-// post_comment(1, "Yo", "")
-// get_comment_ids(1)
-// edit_comment(2, "This should not be yo now")
-// get_comment_content([2, 1])
+

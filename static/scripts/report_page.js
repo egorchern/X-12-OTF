@@ -36,7 +36,7 @@ async function show_report_page(blog_id){
                     </p>
                 
                     <h4>Please select why do you think this blog is harmful:</h4>
-                    <select class="form-select" id="report-category">
+                    <select class="form-select" id="blog-report-category">
                         ${report_category_options_dom_string}
                     </select>
                     <h4 style="margin-top:0.8rem;"> Please provide more details (such as a specific sentence that you find harmful):</h4>
@@ -57,12 +57,21 @@ async function show_report_page(blog_id){
     var myModal = new bootstrap.Modal($("#bigReport"), {})
     myModal.show();
     const submitBtn = document.querySelector(".modal-footer button");
-    submitBtn.onclick = async function (){
-        let identifier_class = $("#edit-report-body").value != "" ? "is-valid" : "is-invalid";
-        if (identifier_class === "is-invalid"){
-            $("#invalid-details").innerHTML = "Please give some details";
-            valid_element("#edit-report-body", identifier_class);
-            return null
+
+    submitBtn.onclick = () => {submit_report(blog_id, myModal)};
+}
+
+async function submit_report(blog_id, myModal){
+    let identifier_class = $("#edit-report-body").value != "" ? "is-valid" : "is-invalid";
+    if (identifier_class === "is-invalid"){
+        $("#invalid-details").innerHTML = "Please give some details";
+        valid_element("#edit-report-body", identifier_class);
+    }else{
+        let report_data = {
+            blog_id: blog_id,
+            report_reason: reporting_catergories[$("#blog-report-category").selectedIndex],
+            report_body: $("#edit-report-body").value
+
         }
         $(".modal-body").insertAdjacentHTML('beforeend', spinner_domstring);
         // let hcaptcha_widget = hcaptcha.render($("body"), {
@@ -107,9 +116,12 @@ async function submit_user_report(user_id, myModal, hcaptcha_response){
     
         let report_data = {
             user_id: user_id,
-            report_reason: reporting_catergories[$("#report-category").selectedIndex],
-            report_body: $("#edit-report-body").value,
+
+            report_reason: user_reporting_catergories[$("#user-report-category").selectedIndex],
+            report_body: $("#edit-report-body").value
+
             hcaptcha_response: hcaptcha_response
+
         }
         $("#edit-report-body").value = "";
         valid_element("#edit-report-body", null);
@@ -159,7 +171,7 @@ async function show_user_report_page(user_id){
                     </p>
                 
                     <h4>Please select why do you think this user is harmful:</h4>
-                    <select class="form-select" id="report-category">
+                    <select class="form-select" id="user-report-category">
                         ${user_report_category_options_dom_string}
                     </select>
                     <h4>Please provide more details (what specifically about the user in harmful):</h4>

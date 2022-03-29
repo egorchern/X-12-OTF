@@ -7,7 +7,9 @@ window.onpopstate = (ev) => {
     change_page_state(state.page_state);
 };
 
+
 async function get_all_blog_tiles_data() {
+
     return fetch("/api/blog/get_all_blog_tiles_data", {
         method: "GET",
         headers: {
@@ -31,6 +33,18 @@ async function get_certain_blog_tiles_data(blog_ids) {
         .then((result) => {
             return result
         });
+}
+async function check_user_banned(user_id){
+    return fetch(`/api/users/get_banned/${user_id}`,{
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+        }
+    })
+        .then((result) => result.json())
+        .then((result) => {
+            return result
+        })
 }
 
 // Jquery like selection, because I like it
@@ -238,6 +252,7 @@ async function get_all_blog_tiles() {
     return { dom_string: return_dom_string, data: all_blog_tiles_data }
 }
 
+
 // This changes page state depending on the url. So makes possible to go straight to some page
 function initialize_page_state() {
     let path = document.location.pathname;
@@ -266,6 +281,8 @@ function initialize_page_state() {
         change_page_state("/contentguidelines");
     } else if (/^\/search$/.test(path)) {
         change_page_state(path + location.search);
+    }else if(path === "/admin"){
+        change_page_state("/admin");
     }
 }
 
@@ -339,19 +356,22 @@ async function change_page_state(new_state) {
         main_html.insertAdjacentHTML("beforeend", home_domstring);
         if (auth_info.username != null) {
             $("#create-blog-btn").onclick = async function () {
-                let result = await create_blog(
-                    {
-                        blog_body: { text: "Default" },
-                        blog_title: "Default",
-                        category_id: categories_object[0].category_id,
-                        word_count: 1
+                let banned = await(check_user_banned(auth_info.user_id))
+                if(banned.data["user_banned"]){
+                    alert("You are banned, you cannot create new blogs.");
+                }else{
+                    let result = await create_blog(
+                        {
+                           blog_body: { text: "Default" },
+                            blog_title: "Default",
+                            category_id: categories_object[0].category_id,
+                            word_count: 1
+                        }
+                    )
+                    if (result.code === 1) {
+                        change_page_state(`/edit_blog/${result.blog_id}`);
                     }
-                )
-                if (result.code === 1) {
-                    change_page_state(`/edit_blog/${result.blog_id}`);
                 }
-
-
             }
         }
         render_all_recommends();
@@ -858,6 +878,44 @@ allowed, but sharing pictures is prohibited.
         main_html.insertAdjacentHTML("beforeend", search_domstring);
         render_search_page(search_query);
     }
+    else if(new_state === "/admin"){
+        let admin_panel_domstring = `
+        <div id="admin-page" class="flex-vertical align-center">
+            <div class ="align-center flex-vertical">
+                <div class = "container-head">Unresolved blog reports</div>
+                <div style="margin-top: 1rem;" class="grid-5-cols margin-children flex-wrap reports-container">
+                    <h5 class="flex-horizontal align-center" style="text-align: center">Blog id</h5>
+                    <h5 class="flex-horizontal align-center" style="text-align: center">Most recent report date</h5>
+                    <h5 class="flex-horizontal align-center" style="text-align: center">Report reaon(s)</h5>
+                    <h5 class="flex-horizontal align-center" style="text-align: center">Number of reports on blog</h5>
+                    <h5 class="flex-horizontal align-center" style="text-align: center">Most recent report description</h5>
+                </div>
+                <div id="report_blog_tiles" class="flex-vertical align-center width-full">
+                    
+                </div>
+            </div>
+            <div class ="flex-vertical align-center" style="margin-top: 3.5rem;">
+                <div class = "container-head">Unresolved user reports</div>
+                <div style="margin-top: 1rem;" class="grid-5-cols margin-children flex-wrap reports-container width-full">
+                    <h5 class="flex-horizontal align-center" style="text-align: center">User id</h5>
+                    <h5 class="flex-horizontal align-center" style="text-align: center">Most recent report date</h5>
+                    <h5 class="flex-horizontal align-center" style="text-align: center">Report reaon(s)</h5>
+                    <h5 class="flex-horizontal align-center" style="text-align: center">Number of reports on user</h5>
+                    <h5 class="flex-horizontal align-center" style="text-align: center">Most recent report description</h5>
+                </div>
+                <div id="report_user_tiles" class="flex-vertical align-center width-full">
+                    
+                </div>
+            </div>
+        </div>
+        `
+        history.pushState({page_state: page_state},null, new_state);
+        if(auth_info.access_level === 2){
+            main_html.insertAdjacentHTML("beforeend",admin_panel_domstring);
+            get_all_blog_reports();
+            get_all_user_reports();
+        }
+    }
 }
 
 // Called after userinfo is loaded. Initializes the page
@@ -897,6 +955,24 @@ async function main() {
         $("#login").onclick = () => {
             change_page_state("/login");
         };
+    }
+    if(auth_info.access_level == 2){
+        let admin_domstring = `
+            <button class="nav-item-container nav-button flex-horizontal" role="navigation" tabindex="0" id="admin">
+
+                <span class="material-icons">
+                    admin_panel_settings
+                </span>
+                <span class="nav-heading">
+                    Admin Panel
+                </span>
+            
+            </button>
+        `;
+        nav_element.insertAdjacentHTML("beforeend", admin_domstring);
+        $("#admin").onclick = () => {
+            change_page_state("/admin");
+        }
     }
     $("#home-btn").onclick = () => {
         change_page_state("/home");

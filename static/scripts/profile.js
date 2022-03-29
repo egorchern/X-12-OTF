@@ -18,6 +18,19 @@ async function get_public_profile_info(username) {
         });
 }
 
+
+async function check_user_banned(user_id){
+    return fetch(`/api/users/get_banned/${user_id}`,{
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+        }
+    })
+        .then((result) => result.json())
+        .then((result) => {
+            return result
+        })
+
 function convert_iso_date(dt){
     // var _dd = "";
     // var _mm="";
@@ -28,6 +41,7 @@ function convert_iso_date(dt){
     // return out_dt
     return dt.toLocaleDateString()
     
+
 }
 
 function on_edit_avatar_click(avatar_id) {
@@ -132,9 +146,9 @@ async function toggle_edit_state() {
 }
 
 
-async function ban() {
-    return fetch(`/api/profile/${profile_info.username}`, {
-        method: "DELETE",
+async function ban_user() {
+    return fetch(`/api/user/ban`, {
+        method: 'POST',
         headers: {
             "Content-Type": "application/json",
         },
@@ -254,16 +268,20 @@ async function insert_profile_info() {
             let ban_button_domstring = `
             <button class="btn btn-outline-danger profile-control-button flex-horizontal align-center" id="ban-btn" type="button" tabindex="0">
                 <span class="material-icons">
-                    delete
+                    dangerous
                 </span>
                 Ban
             </button>
             `;
             profile_control_container.insertAdjacentHTML("beforeend", ban_button_domstring);
-            $('#ban-btn').onclick = ban;
+            $('#ban-btn').onclick = ban_user;
         }
     }
     // Profile text field initialization
+    let banned = await(check_user_banned(profile_info.user_id))
+    if(banned.data["user_banned"] == true){
+        $("#username-text").style = "color:red"
+    }
     $("#username-text").textContent = `Username: ${profile_info.username}`
     $("#date-created").textContent = `Date created: ${profile_info.date_created}`
     $("#date-last-accessed").textContent = `Date last accessed: ${profile_info.date_last_accessed}`
