@@ -1,15 +1,19 @@
 from flask import Blueprint, request as req, make_response
 import json
 import threading
+
 import flask_mail
 
+import requests
+
 class Api:
-    def __init__(self, db, auth, recommend, mail):
+    def __init__(self, db, auth, recommend, hcaptcha_secret):
         self.db = db
         self.api = Blueprint("api", __name__)
         self.auth = auth
         self.recommend = recommend
         self.mail = mail
+        self.hcaptcha_secret = hcaptcha_secret
         @self.api.route("/api/profile/<username>", methods=["GET"])
         def get_profile_public_info(username):
             """
@@ -197,10 +201,15 @@ class Api:
             """
             Returns all of the existing blog tiles data in the array.
             """
+            resp = {}
+            blog_ids = json.loads(blog_ids)
+            if not isinstance(blog_ids, list) or len(blog_ids) == 0 or not isinstance(blog_ids[0], int):
+                resp["code"] = 2
+                return resp, 400
             request = req
             referer_info = self.auth.get_username_and_access_level(request)
-            blog_ids = json.loads(blog_ids)
-            resp = {}
+            
+            
             result = self.db.get_all_blog_tile_data(tuple(blog_ids))
             for i in range(len(result)):
                 result[i] = self.recommend.inject_algo_info(referer_info.get("user_id"), result[i])
@@ -232,6 +241,19 @@ class Api:
             resp["code"] = 1
             resp["data"] = result
            
+            return resp
+
+        @self.api.route("/api/blog/get_all_blog_ids", methods=["GET"])
+        def get_all_blog_ids():
+            resp = {}
+            request = req
+            referer_info = self.auth.get_username_and_access_level(request)
+            blog_ids = self.db.get_all_blog_ids(referer_info.get("user_id"))
+            if isinstance(blog_ids, str):
+                resp["code"] = 2
+                return resp, 400
+            resp["code"] = 1
+            resp["data"] = blog_ids
             return resp
 
         @self.api.route("/api/profile/<username>",methods=["DELETE"])
@@ -281,10 +303,28 @@ class Api:
             if auth_info.get("username") is None or author_username == auth_info.get("username"):
                 resp["code"] = 3
                 return resp
+
             if(get_user_banned(auth_info.user_id).get("user_banned")):
                 resp["code"] = 5
                 return resp
-            
+
+            # hcaptcha_response = temp.get("hcaptcha_response")
+            # # Hcaptcha verify component
+            # hcaptcha_verify_url = "https://hcaptcha.com/siteverify"
+            # res = requests.post(
+            #     hcaptcha_verify_url,
+            #     data = {
+            #         "secret": self.hcaptcha_secret,
+            #         "response": hcaptcha_response
+            #     },
+            #     timeout = 5
+                    
+            # )
+            # res_json = res.json()
+            # if not res_json["success"]:
+            #     resp["code"] = 5
+            #     return resp, 400
+
             rating_data["user_id"] = auth_info.get("user_id")
             blog_user_rating_from_db = self.db.get_blog_user_rating(
                 rating_data.get("user_id"),
@@ -296,8 +336,10 @@ class Api:
                 return resp
 
             result = self.db.insert_blog_user_rating(rating_data)
-            if len(result) > 0:
+            if not isinstance(result, str):
                 resp["code"] = 1
+                x = threading.Thread(target=self.recommend.on_blog_change, args=(rating_data.get("blog_id"), ))
+                x.start()
             else:
                 resp["code"] = 2
             return resp
@@ -314,7 +356,10 @@ class Api:
             inpt = request.json
             result = self.db.delete_blog_user_rating(auth_info.get("user_id"), inpt.get("blog_id"))
             if result is None:
+                
                 resp["code"] = 1
+                x = threading.Thread(target=self.recommend.on_blog_change, args=(inpt.get("blog_id"), ))
+                x.start()
             else:
                 resp["code"] = 2
             return resp
@@ -347,6 +392,22 @@ class Api:
             if report_data["user_id"] is None:
                 resp["code"] = 2
                 return resp
+            # hcaptcha_response = report_data.get("hcaptcha_response")
+            # # Hcaptcha verify component
+            # hcaptcha_verify_url = "https://hcaptcha.com/siteverify"
+            # res = requests.post(
+            #     hcaptcha_verify_url,
+            #     data = {
+            #         "secret": self.hcaptcha_secret,
+            #         "response": hcaptcha_response
+            #     },
+            #     timeout = 5
+                    
+            # )
+            # res_json = res.json()
+            # if not res_json["success"]:
+            #     resp["code"] = 5
+            #     return resp, 400
             result = self.db.insert_blog_report(report_data)
             if result is True:
                 resp["code"] = 1
@@ -364,6 +425,22 @@ class Api:
             if report_data["reporter_user_id"] is None:
                 resp["code"] = 2
                 return resp
+            # hcaptcha_response = report_data.get("hcaptcha_response")
+            # # Hcaptcha verify component
+            # hcaptcha_verify_url = "https://hcaptcha.com/siteverify"
+            # res = requests.post(
+            #     hcaptcha_verify_url,
+            #     data = {
+            #         "secret": self.hcaptcha_secret,
+            #         "response": hcaptcha_response
+            #     },
+            #     timeout = 5
+                    
+            # )
+            # res_json = res.json()
+            # if not res_json["success"]:
+            #     resp["code"] = 5
+            #     return resp, 400
             result = self.db.insert_user_report(report_data)
             if result is True:
                 resp["code"] = 1
@@ -371,6 +448,7 @@ class Api:
                 resp["code"] = 3
             return resp
             
+
         @self.api.route("/api/user/ban",methods=['POST'])
         def ban_user():
             request = req
@@ -469,6 +547,134 @@ class Api:
             
             
 
+        @self.api.route("/api/blog/post_comment", methods=['POST'])
+        def post_comment():
+            request = req
+            resp = {}
+            referer_info = self.auth.get_username_and_access_level(request)
+            if referer_info.get("username") is None:
+                resp["code"] = 2
+                return resp, 401
+            
+            data = request.json
+            # hcaptcha_response = data.get("hcaptcha_response")
+            # # Hcaptcha verify component
+            # hcaptcha_verify_url = "https://hcaptcha.com/siteverify"
+            # res = requests.post(
+            #     hcaptcha_verify_url,
+            #     data = {
+            #         "secret": self.hcaptcha_secret,
+            #         "response": hcaptcha_response
+            #     },
+            #     timeout = 5
+                    
+            # )
+            # res_json = res.json()
+            # if not res_json["success"]:
+            #     resp["code"] = 5
+            #     return resp, 400
+            result = self.db.insert_new_comment(
+                referer_info.get("user_id"),
+                data.get("blog_id"),
+                data.get("comment_text")
+            )
+            if result is None:
+                resp["code"] = 1
+                return resp
+            else:
+                resp["code"] = 3
+                return resp, 400
 
-
+        @self.api.route("/api/blog/<blog_id>/get_comment_ids", methods=["GET"])
+        def get_comment_ids(blog_id: int):
+            resp = {}
+            data = self.db.get_all_comment_ids_for_blog(blog_id)
+            # This means no error occured
+            if not isinstance(data, str):
+                resp["code"] = 1
+                comment_ids = []
+                for entry in data:
+                    comment_ids.append(entry.get("comment_id"))
+                resp["data"] = comment_ids
+            else:
+                resp["code"] = 2
+            
+            return resp
         
+        @self.api.route("/api/blog/edit_comment", methods=["PUT"])
+        def edit_comment():
+            """Edits the comment, comment_id needs to be in body
+            CODES: 1 - success
+            2 - bad blog_id
+            """
+            resp = {}
+            request = req
+            data = request.json
+            comment_data = self.db.get_comment(data.get("comment_id"))
+            if isinstance(comment_data, str) or len(comment_data) == 0:
+                resp["code"] = 2
+                return resp, 400
+            comment_data = comment_data[0]
+            is_authenticated = self.auth.is_authenticated(request, required_user_id = comment_data.get("user_id"))
+            if not is_authenticated:
+                resp["code"] = 3
+                return resp, 401
+
+            edit_result = self.db.edit_comment_text(data.get("comment_id"), data.get("comment_text"))
+            if isinstance(edit_result, str):
+                resp["code"] = 2
+                return resp, 400
+                
+            resp["code"] = 1
+            return resp
+        
+        @self.api.route("/api/blog/delete_comment", methods=["DELETE"])
+        def delete_comment():
+            resp = {}
+            request = req
+            data = request.json
+            comment_data = self.db.get_comment(data.get("comment_id"))
+            if isinstance(comment_data, str) or len(comment_data) == 0:
+                resp["code"] = 2
+                return resp, 400
+            comment_data = comment_data[0]
+            is_authenticated = self.auth.is_authenticated(request, required_user_id = comment_data.get("user_id"))
+            if not is_authenticated:
+                resp["code"] = 3
+                return resp, 401
+            delete_result = self.db.delete_comment(data.get("comment_id"))
+            if isinstance(delete_result, str):
+                resp["code"] = 2
+                return resp, 400
+                
+            resp["code"] = 1
+            return resp
+        
+        @self.api.route("/api/blog/get_comments/<comment_ids>", methods=["GET"])
+        def get_comments(comment_ids):
+            request = req
+            resp = {}
+            comment_ids = json.loads(comment_ids)
+            comments_data = self.db.get_comments_from_ids(tuple(comment_ids))
+            if isinstance(comments_data, str):
+                resp["code"] = 2
+                return resp, 400
+            else:
+                resp["code"] = 1
+                resp["data"] = comments_data
+                
+            return resp
+        
+        @self.api.route("/api/user/get_stats", methods=["GET"])
+        def get_stats():
+            request = req
+            resp = {}
+            referer_info = self.auth.get_username_and_access_level(request)
+            if referer_info.get("user_id") is None:
+                resp["code"] = 2
+                return resp, 401
+            result = self.db.get_user_stats(referer_info.get("user_id"))
+            resp["data"] = result
+            resp["code"] = 1
+            return resp
+

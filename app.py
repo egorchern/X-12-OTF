@@ -7,6 +7,7 @@ from modules.auth import Auth
 from modules.api import Api
 from modules.recommend import Recommend
 
+
 # Get database url
 database_uri = os.environ.get('DATABASE_URL')
 
@@ -18,6 +19,8 @@ if database_uri.startswith("postgres://"):
 mailing_email = os.environ.get('MAILING_EMAIL')
 mailing_password = os.environ.get('MAILING_PASSWORD')
 
+#Hcaptcha secret key
+hcaptcha_secret = os.environ.get('HCAPTCHA_SECRET')
 # Initialize flask app
 app = flask.Flask(__name__, static_url_path='',
                   static_folder='static', template_folder='static')
@@ -31,12 +34,15 @@ app.config['MAIL_USE_TLS'] = False
 app.config['MAIL_USE_SSL'] = True
 mail = flask_mail.Mail(app)
 
+
 # Initialize component classes
 
 db = Database(app)
-auth = Auth(db, mail)
+auth = Auth(db, mail, hcaptcha_secret)
 recommend = Recommend(db, auth)
-api = Api(db, auth, recommend, mail)
+
+api = Api(db, auth, recommend, hcaptcha_secret)
+auth.recommend = recommend
 
 
 # This registers routes from external modules
@@ -67,6 +73,18 @@ def aboutus():
     return flask.render_template('index.html')
 
 # Routes for internal page states
+
+@app.route('/legalpage', methods=['GET'])
+def legalpage():
+    return flask.render_template('index.html')
+
+@app.route('/termsandcons', methods=['GET'])
+def termsandcons():
+    return flask.render_template('index.html')
+
+@app.route('/contentguidelines', methods=['GET'])
+def acontentguidelines():
+    return flask.render_template('index.html')
 
 
 @app.route('/login-register', methods=['GET'])

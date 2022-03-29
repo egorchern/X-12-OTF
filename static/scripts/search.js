@@ -33,10 +33,12 @@ async function search_blogs(search_query) {
 async function render_search_page(search_query) {
     console.log(search_query)
     // Need to reset this variable to prevent pages from affecting each other, like profile authored blogs affect this variable
-    currently_showing = 0
+    currently_showing = 0;
+    currently_hidden = 0;
     let temp = await search_blogs(search_query)
     search_result_blog_ids = temp.data
-    console.log(search_result_blog_ids)
+    // TEMPORARY
+    
     initialize_show_more_blogs_btn(search_result_blog_ids)
     fetch_and_render_next_blog_tiles(search_result_blog_ids)
 }

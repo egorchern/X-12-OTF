@@ -21,8 +21,8 @@ class Database:
             for key in temp.keys():
                 value = temp[key]
                 if isinstance(value, datetime.date):
-                    temp[key] = value.strftime('%d/%m/%Y')
-                    
+                    #temp[key] = value.strftime('%d/%m/%Y')
+                    temp[key] = value.isoformat()
             response.append(temp)
         return response
 
@@ -143,10 +143,10 @@ class Database:
             CREATE TABLE IF NOT EXISTS user_preferences
             (
                 user_id integer NOT NULL,
-                ideal_word_count integer,
-                controversial_cutoff real,
-                impression_cutoff real,
-                relevancy_cutoff real,
+                ideal_word_count integer DEFAULT 10,
+                controversial_cutoff real DEFAULT 10,
+                impression_cutoff real DEFAULT 0,
+                relevancy_cutoff real DEFAULT 0,
                 CONSTRAINT user_preferences_pkey PRIMARY KEY (user_id),
                 CONSTRAINT fk_user_id 
                     FOREIGN KEY (user_id)
@@ -259,6 +259,28 @@ class Database:
             
             self.execute_query(query, read_result = False)
 
+        def create_comments_table():
+            query = """
+            CREATE TABLE IF NOT EXISTS comments(
+                comment_id SERIAL NOT NULL,
+                user_id INTEGER NOT NULL,
+                blog_id INTEGER NOT NULL,
+                comment_text VARCHAR(2000) NOT NULL,
+                datetime_created timestamp with time zone NOT NULL,
+                PRIMARY KEY(comment_id),
+                
+                CONSTRAINT fk_user_id
+                    FOREIGN KEY(user_id)
+                    REFERENCES users(user_id)
+                    ON DELETE CASCADE,
+                CONSTRAINT fk_blog_id
+                    FOREIGN KEY(blog_id)
+                    REFERENCES blogs(blog_id)
+                    ON DELETE CASCADE
+            );
+            """
+            self.execute_query(query, read_result = False)
+
         create_users_table()
         create_categories_table()
         create_auth_tokens_table()
@@ -270,6 +292,7 @@ class Database:
         create_user_blog_algorithm_score_table()
         create_blog_report_table()
         create_user_report_table()
+        create_comments_table()
         # This ensures that at least one category exists
         temp = self.get_all_categories()
         if len(temp) == 0:
@@ -314,14 +337,28 @@ class Database:
         params = {"author_user_id": author_user_id}
         return self.execute_query(query, params)
 
-    def get_all_blog_ids(self):
+    def get_all_blog_ids(self, user_id = None):
+        if (user_id is not None):
+            return self.get_all_blog_ids_score_sorted(user_id)
+
         """Fetches all existing blog ids"""
         query = """
-        SELECT blog_id
+        SELECT blog_id, average_relevancy_rating, average_impression_rating, average_controversial_rating, author_user_id
         FROM blogs
         """
         return self.execute_query(query)
     
+    def get_all_blog_ids_score_sorted(self, user_id):
+        query = """
+        SELECT blogs.blog_id, score, average_relevancy_rating, average_impression_rating, average_controversial_rating, author_user_id
+        FROM user_blog_algorithm_score
+        INNER JOIN blogs on blogs.blog_id = user_blog_algorithm_score.blog_id
+        WHERE user_blog_algorithm_score.user_id = :user_id
+        ORDER BY score DESC
+        """
+        params = {"user_id": user_id}
+        return self.execute_query(query, params)
+
     def get_all_blog_tile_data(self, blog_ids: tuple):
         """Returns information required for the blog tile for particular blog"""
         query = """
@@ -537,6 +574,71 @@ class Database:
     
     # Blog functions
 
+    # Comments functions
+
+    def insert_new_comment(self, user_id: int, blog_id: int, comment_text: str):
+        query = """
+        INSERT INTO comments (user_id, blog_id, comment_text, datetime_created)
+        VALUES (:user_id, :blog_id, :comment_text, CURRENT_TIMESTAMP)
+        """
+        params = {
+            "blog_id": blog_id,
+            "user_id": user_id,
+            "comment_text": comment_text
+        }
+        return self.execute_query(query, params, False)
+
+    def delete_comment(self, comment_id: int):
+        query = """
+        DELETE FROM comments
+        WHERE comment_id = :comment_id
+        """
+        params = {"comment_id": comment_id}
+        return self.execute_query(query, params, False)
+    
+    def get_all_comment_ids_for_blog(self, blog_id: int):
+        """Returns all comment ids belonging to a certain blog, sorting by datetime created DESCENDING"""
+        query = """
+        SELECT comment_id
+        FROM comments
+        WHERE blog_id = :blog_id
+        ORDER BY datetime_created DESC
+        """
+        params = {"blog_id": blog_id}
+        return self.execute_query(query, params)
+
+    def get_comments_from_ids(self, comment_ids: list):
+        query = """
+        SELECT comment_id, comments.datetime_created, username, comments.user_id,
+        comment_text, avatar_image_id
+        FROM comments
+        INNER JOIN users ON users.user_id = comments.user_id
+        WHERE comment_id IN :comment_ids
+        ORDER BY datetime_created DESC;
+        """
+        params = {"comment_ids": comment_ids}
+        return self.execute_query(query, params)
+
+    def edit_comment_text(self, comment_id: int, comment_text: str):
+        query = """
+        UPDATE comments
+        SET comment_text = :comment_text
+        WHERE comment_id = :comment_id;
+        """ 
+        params = {"comment_id": comment_id, "comment_text": comment_text}
+        return self.execute_query(query, params, False)
+
+    def get_comment(self, comment_id: int):
+        query = """
+        SELECT *
+        FROM comments 
+        WHERE comment_id = :comment_id
+        """
+        params = {"comment_id": comment_id}
+        return self.execute_query(query, params)
+        
+    # Comments functions
+
     # User functions
 
     def delete_user(self, username: str):
@@ -599,23 +701,32 @@ class Database:
         """
         return self.execute_query(query)
     
-    def insert_new_user(self, username: str, email: str, password_hash: str, date_of_birth: str):
+    def insert_new_user(self, username: str, email: str, password_hash: str):
         """Insert new user into database
         """
         query = """
-        INSERT INTO users(username, email, password_hash, date_created,user_banned ,date_last_accessed, avatar_image_id, access_level)
-                VALUES(:username, :email, :password_hash, CURRENT_TIMESTAMP, False ,CURRENT_TIMESTAMP, :avatar_image_id, :access_level)
+
+        INSERT INTO users(username, email, password_hash, date_created, date_last_accessed, avatar_image_id, access_level)
+                VALUES(:username, :email, :password_hash, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, :avatar_image_id, :access_level)
+                RETURNING user_id
+
         """
         default_avatar_image_id = 1
         params = {
             'username': username,
             'email': email,
             'password_hash': password_hash,
-            'date_of_birth': date_of_birth,
             'avatar_image_id': default_avatar_image_id,
             'access_level': 1
         }
-        return self.execute_query(query, params, False)    
+        res = self.execute_query(query, params) 
+        self.insert_user_preferences(res[0].get("user_id"), {
+            "ideal_word_count": 200,
+            "controversial_cutoff": 10,
+            "impression_cutoff": 0,
+            "relevancy_cutoff": 0
+        })
+        return res
         
     
     def insert_auth_token(self, user_id: int, auth_token: str, client_identifier: str):
@@ -662,6 +773,7 @@ class Database:
         params = {"user_id": user_id}
         return self.execute_query(query, params, False)
 
+
     def get_user_email(self,user_id:int):
         query = """
         SELECT email
@@ -670,6 +782,68 @@ class Database:
         LIMIT 1"""
         params = {"user_id": user_id}
         return self.execute_query(query, params)
+
+
+    def get_email_exists(self, email: str):
+        query = """
+        SELECT 
+        EXISTS(
+            SELECT 1
+            FROM users
+            WHERE email = :email
+        )
+        """
+        params = {"email": email}
+        return self.execute_query(query, params)
+    
+    def get_username_exists(self, username: str):
+        query = """
+        SELECT 
+        EXISTS(
+            SELECT 1
+            FROM users
+            WHERE username = :username
+        )
+        """
+        params = {"username": username}
+        return self.execute_query(query, params)
+
+    def get_user_stats(self, user_id: int):
+        def get_total_blog_views(user_id: int):
+            query = """
+            SELECT sum(views)
+            FROM blogs 
+            WHERE author_user_id = :user_id
+            """
+            params = {"user_id": user_id}
+            return self.execute_query(query, params)
+
+        def get_total_comments(user_id: int):
+            query = """
+            SELECT count(*)
+            FROM comments
+            WHERE blog_id IN (SELECT blog_id FROM blogs WHERE author_user_id = :user_id)
+            """
+            params = {"user_id": user_id}
+            return self.execute_query(query, params)
+
+        def get_total_ratings(user_id: int):
+            query = """
+            SELECT count(*)
+            FROM blog_user_ratings
+            WHERE blog_id IN (SELECT blog_id FROM blogs WHERE author_user_id = :user_id)
+            """
+            params = {"user_id": user_id}
+            return self.execute_query(query, params)
+
+        output_obj = {}
+        res = get_total_blog_views(user_id)
+        output_obj["total_views"] = res[0]["sum"]
+        res = get_total_comments(user_id)
+        output_obj["total_comments"] = res[0]["count"]
+        res = get_total_ratings(user_id)
+        output_obj["total_ratings"] = res[0]["count"]
+        return output_obj
 
     # User functions
 

@@ -1,3 +1,4 @@
+from socket import timeout
 import bcrypt
 import re
 from secrets import token_urlsafe
@@ -5,12 +6,16 @@ from flask import Blueprint, request as req, make_response
 import json
 from datetime import datetime
 import flask_mail
+import requests
 # TODO server-side verification for registering
 class Auth:
-    def __init__(self, db, mail):
+    def __init__(self, db, mail, hcaptcha_secret):
 
         self.db = db
         self.mail = mail
+        
+        self.hcaptcha_secret = hcaptcha_secret
+        self.hcaptcha_site_key = "28dd5d54-e402-445c-ac00-541d3e9cadc3"
         self.token_length = 48
         self.client_identifier_length = 48
         # For how long the users will be authenticated for
@@ -38,6 +43,28 @@ class Auth:
             
             resp.set_data(json.dumps({"code": result.get("code")}))
             return resp
+        
+        @self.auth_api.route("/auth/check_username_email", methods=['POST'])
+        def check_username_email():
+            """Returns whether the given username and email are taken
+            CODES:
+            1 - okay request, uniqueness sent in data
+            5 - invalid input
+            """
+            request = req
+            resp = {}
+            data = request.json
+            if data is None or data.get("email") is None or data.get("username") is None:
+                resp["code"] = 2
+                return resp, 400
+            email_exists = self.db.get_email_exists(data.get("email"))[0].get("exists")
+            username_exists =self.db.get_username_exists(data.get("username"))[0].get("exists")
+            resp["data"] = {
+                "email_exists": email_exists,
+                "username_exists": username_exists
+            }
+            resp["code"] = 1
+            return resp, 200
 
         # Logout endpoint
         @self.auth_api.route("/auth/logout", methods=['POST'])
@@ -187,12 +214,27 @@ class Auth:
         identifier = user_data.get("identifier")
         password = user_data.get("password")
         client_identifier = user_data.get("client_identifier")
+        hcaptcha_response = user_data.get("hcaptcha_response")
         # Check that all parameters are of right format 
-        if not isinstance(identifier, str) or not isinstance(password, str) or not isinstance(client_identifier, str):
+        if not isinstance(identifier, str) or not isinstance(password, str) or not isinstance(client_identifier, str) or not isinstance(hcaptcha_response, str):
             return {
                 "code": 4
             }
-        
+        # Hcaptcha verify component
+        hcaptcha_verify_url = "https://hcaptcha.com/siteverify"
+        res = requests.post(
+            hcaptcha_verify_url,
+            data = {
+                "secret": self.hcaptcha_secret,
+                "response": hcaptcha_response
+            },
+            timeout = 5
+                
+        )
+        res_json = res.json()
+        if not res_json["success"]:
+            resp["code"] = 5
+            return resp, 400
         user_id, credentials_matching = self.credentials_matching(identifier, password)
         resp = {}
         if user_id is not None:
@@ -224,9 +266,10 @@ class Auth:
         2 - username already exists,
         3 - email already exists,
         4 - invalid input,
+        5 - captcha not provided or invalid
         """
         
-        def validate_inputs(username, password, date_of_birth, email):
+        def validate_inputs(username, password, email):
             # Validates register input, need to do this to confirm to don't trust client security.
             temp = re.match("^\w{1,30}$", username)
             if not temp:
@@ -235,12 +278,7 @@ class Auth:
             if not temp:
                 return False
             temp = datetime.now()
-            try:
-                converted_date = datetime.strptime(date_of_birth, "%Y-%m-%d")
-                if converted_date >= temp:
-                    return False
-            except:
-                return False
+            
             temp = re.match('(?:[a-z0-9!#$%&\'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&\'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])', email)
             if not temp:
                 return False
@@ -250,13 +288,29 @@ class Auth:
         # Get parameters from request
         username = user_data.get("username")
         password = user_data.get("password")
-        date_of_birth = user_data.get("date_of_birth")
+        
         email = user_data.get("email")
+        hcaptcha_response = user_data.get("hcaptcha_response")
         resp = {}
-        temp = validate_inputs(username, password, date_of_birth, email)
+        temp = validate_inputs(username, password, email)
         if not temp:
             resp["code"] = 4
             return resp
+        hcaptcha_verify_url = "https://hcaptcha.com/siteverify"
+        res = requests.post(
+            hcaptcha_verify_url,
+            data = {
+                "secret": self.hcaptcha_secret,
+                "response": hcaptcha_response
+            },
+            timeout = 5
+                
+        )
+        res_json = res.json()
+        if not res_json["success"]:
+            resp["code"] = 5
+            return resp, 400
+
         # hash password using bcrypt
         hashed_password = self.hash(password).decode("utf-8")
         # Call insert into database
@@ -264,13 +318,15 @@ class Auth:
             username,
             email,
             hashed_password,
-            date_of_birth
+           
         )
         
         # if just successfully registered then retun 1
-        if result is None:
+        if len(result) == 1 and isinstance(result[0], dict):
             print(f"User registered: {username}, {email}")
+            self.recommend.on_user_preferences_change(result[0].get("user_id"))
             resp["code"] = 1
+            
             return resp
 
         # If some error occured, find the error, whether email or the username already exists
@@ -286,9 +342,9 @@ class Auth:
             resp["code"] = 5
 
 
-        return resp
+        return resp, 400
    
-    def is_authenticated(self, request, required_username: str = None, required_access_level: int = 1, required_user_id: int = None) -> bool:
+    def is_authenticated(self, request, required_username: str = None, required_access_level: int = None, required_user_id: int = None) -> bool:
         """
         Returns bool indicating whether the user is authenticated to do something given the requirements:
         required_username, default is None
@@ -300,16 +356,17 @@ class Auth:
                 return True
             else:
                 return False
-        elif required_access_level is not None:
-            if auth_info.get("access_level") >= required_access_level:
-                return True
-            else:
-                return False
         elif required_user_id is not None:
             if auth_info.get("user_id") == required_user_id:
                 return True
             else:
                 return False
+        elif required_access_level is not None:
+            if auth_info.get("access_level") >= required_access_level:
+                return True
+            else:
+                return False
+        
         return True
 
     def get_username_and_access_level(self, request) -> list:
@@ -325,7 +382,7 @@ class Auth:
             return {
                 "username": None,
                 "access_level": 1,
-                "user_id": -1
+                "user_id": None
             }
 
     def get_recovery_link_status(self, user_id: int, recovery_token: str):

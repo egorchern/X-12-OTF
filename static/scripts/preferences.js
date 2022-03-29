@@ -25,12 +25,12 @@ async function on_save_preferences() {
     // reverse look category ids
     preferences.category_ids = []
     let reversed_categories = objectFlip(categories_hashmap);
-    
+
     document.querySelectorAll("#category-rankings .draggable .category-text").forEach((category, index) => {
         let category_id = reversed_categories[category.textContent]
-        
+
         preferences.category_ids.push(category_id)
-        
+
     })
     preferences.controversial_cutoff = $("#controversial-range").value;
     preferences.impression_cutoff = $("#impression-range").value;
@@ -48,8 +48,8 @@ async function parse_preferences() {
 
     if (preferences.ideal_word_count === undefined) { preferences.ideal_word_count = 200 }
     if (preferences.controversial_cutoff === undefined) { preferences.controversial_cutoff = 10 }
-    if (preferences.impression_cutoff === undefined) { preferences.impression_cutoff = 10 }
-    if (preferences.relevancy_cutoff === undefined) { preferences.relevancy_cutoff = 10 }
+    if (preferences.impression_cutoff === undefined) { preferences.impression_cutoff = 0 }
+    if (preferences.relevancy_cutoff === undefined) { preferences.relevancy_cutoff = 0 }
     if (preferences.category_ids === undefined || preferences.category_ids[0] == null) { preferences.category_ids = [] }
 }
 
@@ -86,11 +86,8 @@ let preferences_modal_domstring = `
             </div>
             <div class="modal-body">
                 <div class="flex-vertical align-center">
-                    <h4 style="text-align:center">Accessibility</h4>
-                    <div class="width-full" style="margin-top:1em">
-                        <h5 style="text-align:center">Font-size</h5>
-                    </div>
-                    <h4 style="margin-top:2em" style="text-align:center">Content</h4>
+                    
+                    <h4 style="text-align:center">Content</h4>
                     <div style="margin-top:1em">
                         <h5 style="text-align:center">Ideal word count</h5>
                         <div class="flex-horizontal flex-wrap align-center">
@@ -276,7 +273,7 @@ async function toggle_preferences_modal() {
             addEventsDragAndDrop(item);
         });
 
-        function removeItem(event){
+        function removeItem(event) {
             let element = event.target.parentNode;
             element.remove();
             let newCategory = `
@@ -315,10 +312,10 @@ async function toggle_preferences_modal() {
                 delete
                 </span>
                 `)
-                
+
                 ul.appendChild(li);
                 addEventsDragAndDrop(li);
-                
+
                 li.childNodes[2].onclick = removeItem
                 document.querySelectorAll("#newCategory-select option").forEach((element, index) => {
                     if (element.value === newItem) {
@@ -336,9 +333,9 @@ async function toggle_preferences_modal() {
     const initialize_cutoffs = () => {
         const rangeOnInput = (event) => {
             let target = event.target
-            
+
             let element = target.parentNode.childNodes[3].textContent = target.value
-            
+
         }
         let current = $("#controversial-range")
         current.value = preferences.controversial_cutoff
@@ -352,10 +349,10 @@ async function toggle_preferences_modal() {
         current.value = preferences.relevancy_cutoff
         current.parentNode.childNodes[3].textContent = current.value
         current.oninput = rangeOnInput
-        
+
     }
     let temp = $("#preferences-modal")
-    if (temp != undefined){
+    if (temp != undefined) {
         temp.remove();
     }
     $("body").insertAdjacentHTML("beforeend", preferences_modal_domstring)
@@ -369,4 +366,28 @@ async function toggle_preferences_modal() {
         on_save_preferences()
     };
 
+}
+
+function fits_preferences(blog_tile) {
+    // @returns boolean whether blog fitst the user's cutoff preference values
+    if (preferences === undefined){
+        return true;
+    }
+    if (preferences.controversial_cutoff != undefined &&
+        blog_tile.average_controversial_rating > preferences.controversial_cutoff
+    ) {
+        return false
+
+    }
+    if (preferences.impression_cutoff != undefined &&
+        blog_tile.average_impression_rating < preferences.impression_cutoff
+    ) {
+        return false
+    }
+    if (preferences.relevancy_cutoff != undefined &&
+        blog_tile.average_relevancy_rating < preferences.relevancy_cutoff
+    ) {
+        return false
+    }
+    return true;
 }

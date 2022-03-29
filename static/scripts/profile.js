@@ -2,6 +2,7 @@ let profile_edit_state = false;
 let profile_info = {};
 let blogs_increment = 2;
 let currently_showing = 0;
+let currently_hidden = 0;
 // This indicates what is the biggest avatar num. This is until we manage to make image uploads
 let max_avatar_number = 10;
 let currently_selected_avatar = 0;
@@ -17,6 +18,7 @@ async function get_public_profile_info(username) {
         });
 }
 
+
 async function check_user_banned(user_id){
     return fetch(`/api/users/get_banned/${user_id}`,{
         method: "GET",
@@ -28,6 +30,18 @@ async function check_user_banned(user_id){
         .then((result) => {
             return result
         })
+
+function convert_iso_date(dt){
+    // var _dd = "";
+    // var _mm="";
+    // var _yy = dt.getFullYear();
+    // dt.getDate() <10 ? (_dd='0'+dt.getDate()):(_dd=dt.getDate());
+    // (dt.getMonth()+1) <10?(_mm='0'+(dt.getMonth()+1)):(_mm = dt.getDate()+1);
+    // let out_dt = `${_dd}/${_mm}/${_yy}`;
+    // return out_dt
+    return dt.toLocaleDateString()
+    
+
 }
 
 function on_edit_avatar_click(avatar_id) {
@@ -157,12 +171,27 @@ async function fetch_and_render_next_blog_tiles(blog_ids) {
     }
     let blog_tiles = temp.data;
     console.log(blog_tiles)
+    if (preferences != undefined) {
+        
+        let temp = []
+        blog_tiles.forEach((blog_tile) => {
+            let fits_all = fits_preferences(blog_tile)
+            if(fits_all){
+                temp.push(blog_tile)
+            }
+            else{
+                currently_hidden += 1;
+            }
+        })
+        blog_tiles = temp;
+        
+    }
     let authored_blogs_container = $("#authored-blogs-container");
     blog_tiles.forEach((blog_tile_data, index) => {
         insert_blog_tile(blog_tile_data, "#authored-blogs-container")
     })
     currently_showing = Math.min(currently_showing + blogs_increment, blog_ids.length);
-    $("#blogs-shown").innerHTML = `${currently_showing}/${blog_ids.length}`;
+    $("#blogs-shown").innerHTML = `${currently_showing}${currently_hidden != 0 ? " (" + currently_hidden + " hidden)" : ""}/${blog_ids.length}`;
     // If all of the authored blogs are shown, then we should remove the "show more" blogs button.
     temp = $("#authored-blogs-show-more-btn")
     if (temp != null && currently_showing == blog_ids.length) {
@@ -269,10 +298,12 @@ async function profile_main(username) {
     profile_info = profile_temp.data;
     console.log(profile_info);
     currently_showing = 0;
-
+    
     // This happens when the requested account exists
     if (profile_temp.code === 1) {
         profile_info.username = username;
+        profile_info.date_created = convert_iso_date(new Date(profile_info.date_created))
+        profile_info.date_last_accessed = convert_iso_date(new Date(profile_info.date_last_accessed))
         insert_profile_info(profile_info);
     }
     // This happens when the requested account does not exist
