@@ -283,8 +283,6 @@ function initialize_page_state() {
         change_page_state(path + location.search);
     }else if(path === "/admin"){
         change_page_state("/admin");
-    } else if (path === "/advancedsearch") {
-        change_page_state("advancedsearch");
     }
 }
 
@@ -869,11 +867,7 @@ allowed, but sharing pictures is prohibited.
         }
         let search_domstring = `
         <div id="search-page" class="flex-vertical align-center">
-            <h3 style="text-align: center">Search results</h3>
-            <span class="width-full flex-horizontal" style="justify-content:flex-end">Blogs shown: <strong id="blogs-shown" style="margin-left:2px">?/?</strong></span>
-            <div id="authored-blogs-container" class="flex-horizontal align-center flex-wrap">
-                        
-            </div>
+            
         </div>
         
         `
@@ -919,102 +913,9 @@ allowed, but sharing pictures is prohibited.
             get_all_blog_reports();
             get_all_user_reports();
         }
-    else if (new_state === "advancedsearch") {
-        let advancedsearch = `
-        <div class="flex-vertical align-center" id="advancedpagecontainer">
-            <h3>Search Parameters</h3>
-            <div id="advancedpagesection">
-                <div class="advancedsearchtitle">
-                    <div style="float:left;width: 10%">
-                        Title
-                    </div>
-                    <div style="width: 90%">
-                        <input type="text" class="advancedstringinput" placeholder="String" style="width: 80%; text-align: center">
-                    </div>
-                </div>
-                <div class="advancedsearchtitle">
-                    <div style="float: left;width:30%">
-                    Date Created
-                    </div>
-                    <div style="float: right;width: 60%;">    
-                        <input type="text" class="advancednuminput" placeholder="Min Int" style="text-align: center">
-                        &nbsp
-                        <input type="text" class="advancednuminput" placeholder="Max Int" style="text-align: center">
-                    </div>
-                </div>
-                <div class="advancedsearchtitle">
-                    <div style="width: 20%; float:left">
-                        Category
-                    </div>
-                    <div style="width: 80%; float:right">
-                        <input type="text" class="advancedstringinput" placeholder="(Select From Options)" style="width:70%;text-align: center" >
-                    </div>
-                    
-                </div>
-                <div class="advancedsearchtitle">
-                    <div style="width: 10%; float:left">
-                        Tags
-                    </div>
-                    <div  style="width:90%; float: right">
-                        <input type="text" class="advancedstringinput" placeholder="(Select From Options)" style="text-align: center">
-                        <button class="genericbtn" style="width:50%; float: right;">
-                            Add new tag
-                        </button>
-                    </div>
-                </div>
-                <div class="advancedsearchtitle">
-                    <div style="width: 30%; float:left; text-align: center">
-                        Average Controversial Rating
-                    </div>
-                    <div style="float: right;width: 60%;"> 
-                        <input type="text" class="advancednuminput" placeholder="Min Int" style="text-align: center">
-                        &nbsp
-                        <input type="text" class="advancednuminput" placeholder="Max Int" style="text-align: center">
-                    </div>
-                </div>
-                <div class="advancedsearchtitle">
-                    <div style="width: 30%; float:left; text-align: center">
-                        Average Relevancy Rating
-                    </div>
-                    <div style="float: right;width: 60%;"> 
-                        <input type="text" class="advancednuminput" placeholder="Min Int" style="text-align: center">
-                        &nbsp
-                        <input type="text" class="advancednuminput" placeholder="Max Int" style="text-align: center">
-                    </div>
-                    </div>
-                <div class="advancedsearchtitle">
-                    <div style="width: 30%; float:left; text-align: center">
-                        Average Impression Rating
-                    </div>
-                    <div style="float: right;width: 60%;"> 
-                        <input type="text" class="advancednuminput" placeholder="Min Int" style="text-align: center">
-                        &nbsp
-                        <input type="text" class="advancednuminput" placeholder="Max Int" style="text-align: center">
-                    </div>
-                </div>
-                <div class="advancedsearchtitle">
-                    <div style="width: 20%; float:left; text-align: center">
-                        Creator's Username
-                    </div>
-                    <div style="width: 70%;float:right;padding-right:5%">
-                        <input type="text" class="advancedstringinput" placeholder="(String)" style="width:100%; float:right; text-align: center">
-                    </div>
-                </div>
-                <div class="advancedsearchtitle">
-                    <button class="genericbtn">
-                        Add parameter
-                    </button>
-                </div>
-            </div>
-            <button class="genericbtn" id="advancedsearchbtn">
-                <b>Search</b>
-            </button>
-        </div>
-        `
-        history.pushState({ page_state: page_state }, null, "/advancedsearch");
-        main_html.insertAdjacentHTML("beforeend", advancedsearch);
+    
     }
-    }
+    
 }
 
 // Called after userinfo is loaded. Initializes the page
