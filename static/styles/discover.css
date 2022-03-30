@@ -1,5 +1,11 @@
-#recommend-carousel{
+.carousel-control-next, .carousel-control-prev {
+    position: static;
+    width: fit-content;
     
+
+}
+#carousel-container{
+    grid-column: 1 / 3;
 }
 #recommend-carousel .carousel-item{
     display: none !important;
@@ -10,16 +16,15 @@
 }
 
 /*vertical*/
-@media screen and (max-width: 800px) {
-    #recommend-carousel .carousel-item {
-        margin-left: 15%;
-        margin-right: 15%;
-        width: 80%;
-        height: 100%;
+@media screen and (max-width: 768px) {
+    .carousel-control-next-icon, .carousel-control-prev-icon{
+        width: 1.5rem;
+        height: 1.5rem;
     }
-
+    #carousel-container{
+        grid-column: unset;
+    }
     #recommend-carousel .carousel-item.active{
-        display: grid !important;
+        flex-direction: column;
     }
-
 }

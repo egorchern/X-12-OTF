@@ -283,32 +283,21 @@ footer {
     height: fit-content;
 }
 
-.height-full{
-  height: 100%;
+.height-full {
+    height: 100%;
 }
 
 /*vertical*/
 @media screen and (max-width: 500px) {
-  .author-avatar{
-    max-width: 35%;
-  }
-  .flex-vertical{
-    font-size:1em;
-  }
-  .flex-vertical-align-center{
-    font-size:1em;
-  }
- 
-
- }
- @media screen and (max-width: 800px) {
- #home-container {
-    display: block;
+    main {
+        padding: 0.5rem;
+    }
 }
+@media screen and (max-width: 768px) {
+    #home-container {
+        grid-template-columns: 1fr;
+    }
+    #create-blog-btn{
+        grid-column: unset;
+    }
 }
- 
- /*horizontal*/
- @media screen and (max-width: 768px) {
-     
- }
-
