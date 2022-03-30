@@ -154,3 +154,57 @@ body ul .draggable {
   min-width: 300px;
   margin: 0.4em;
 }
+
+/*horizontal*/
+@media screen and (max-width: 768px) {
+    #authored-blogs-container {
+        max-width: 768px;
+        margin: 0em;
+    }
+    .cutoff-container{
+        min-width: 0px;
+        margin: 0.4em;
+      }
+}
+
+/*vertical*/
+@media screen and (max-width: 500px) {
+
+    #profile-container {
+    display: contents;
+       width:100%;
+       column-gap: 1rem;
+
+    }
+    #profile-control-container {
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-end;
+        margin-bottom: 2em;
+    }
+    #avatar-img {
+        max-width: 20%;
+    }
+    #username-text {
+        margin-top: 0.3rem;
+    }
+    .profile-control-button {
+        font-size: 1.0em;
+    }
+
+    .profile-description-box {
+        width: 100%;
+        flex-grow: 0.5;
+        margin-bottom: 2em;
+        height: 10em;
+    }
+    #authored-blogs-container {
+        width: 100%;
+        max-width: 100%;
+    }
+    .cutoff-container{
+        min-width: 0px;
+        margin: 0.4em;
+      }
+      
+}

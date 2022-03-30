@@ -282,3 +282,26 @@ footer {
     row-gap: 1.5rem;
     height: fit-content;
 }
+
+.height-full{
+  height: 100%;
+}
+
+/*vertical*/
+@media screen and (max-width: 500px) {
+  .author-avatar{
+    max-width: 35%;
+  }
+  .flex-vertical{
+    font-size:1em;
+  }
+  .flex-vertical-align-center{
+    font-size:1em;
+  }
+ }
+ 
+ /*horizontal*/
+ @media screen and (max-width: 768px) {
+     
+ }
+
