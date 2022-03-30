@@ -266,10 +266,6 @@ output{
 }
 .blog-title{
     font-size: 20px;  
-    width: 100%;
-}
-.blog-tile-top{
-    flex-direction: column;
 }
 
 .blog-tile-ratings-grid {
@@ -278,8 +274,5 @@ output{
     column-gap: 0.35rem;
     row-gap: 0.5rem;
     font-size: 16px;
-}
-.blog-tile-left{
-    font-size: 15px;
 }
 }
