@@ -43,6 +43,7 @@ class Database:
                 access_level integer NOT NULL DEFAULT 0,
                 personal_description VARCHAR(1000),
                 date_created date NOT NULL,
+                user_banned BOOL,
                 PRIMARY KEY (user_id),
                 UNIQUE(username),
                 UNIQUE(email)
@@ -142,10 +143,10 @@ class Database:
             CREATE TABLE IF NOT EXISTS user_preferences
             (
                 user_id integer NOT NULL,
-                ideal_word_count integer,
-                controversial_cutoff real,
-                impression_cutoff real,
-                relevancy_cutoff real,
+                ideal_word_count integer DEFAULT 10,
+                controversial_cutoff real DEFAULT 10,
+                impression_cutoff real DEFAULT 0,
+                relevancy_cutoff real DEFAULT 0,
                 CONSTRAINT user_preferences_pkey PRIMARY KEY (user_id),
                 CONSTRAINT fk_user_id 
                     FOREIGN KEY (user_id)
@@ -336,14 +337,28 @@ class Database:
         params = {"author_user_id": author_user_id}
         return self.execute_query(query, params)
 
-    def get_all_blog_ids(self):
+    def get_all_blog_ids(self, user_id = None):
+        if (user_id is not None):
+            return self.get_all_blog_ids_score_sorted(user_id)
+
         """Fetches all existing blog ids"""
         query = """
-        SELECT blog_id
+        SELECT blog_id, average_relevancy_rating, average_impression_rating, average_controversial_rating, author_user_id
         FROM blogs
         """
         return self.execute_query(query)
     
+    def get_all_blog_ids_score_sorted(self, user_id):
+        query = """
+        SELECT blogs.blog_id, score, average_relevancy_rating, average_impression_rating, average_controversial_rating, author_user_id
+        FROM user_blog_algorithm_score
+        INNER JOIN blogs on blogs.blog_id = user_blog_algorithm_score.blog_id
+        WHERE user_blog_algorithm_score.user_id = :user_id
+        ORDER BY score DESC
+        """
+        params = {"user_id": user_id}
+        return self.execute_query(query, params)
+
     def get_all_blog_tile_data(self, blog_ids: tuple):
         """Returns information required for the blog tile for particular blog"""
         query = """
@@ -659,7 +674,7 @@ class Database:
     def get_user_auth_info(self, auth_token: str) -> dict:
         """Returns user auth information given a token"""
         query = """
-        SELECT username, access_level, users.user_id
+        SELECT username, access_level, users.user_id, user_banned
         FROM users
         INNER JOIN auth_tokens on users.user_id = auth_tokens.user_id
         WHERE auth_token=:auth_token
@@ -690,8 +705,11 @@ class Database:
         """Insert new user into database
         """
         query = """
+
         INSERT INTO users(username, email, password_hash, date_created, date_last_accessed, avatar_image_id, access_level)
                 VALUES(:username, :email, :password_hash, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, :avatar_image_id, :access_level)
+                RETURNING user_id
+
         """
         default_avatar_image_id = 1
         params = {
@@ -701,7 +719,15 @@ class Database:
             'avatar_image_id': default_avatar_image_id,
             'access_level': 1
         }
-        return self.execute_query(query, params, False)    
+        res = self.execute_query(query, params) 
+        self.insert_user_preferences(res[0].get("user_id"), {
+            "ideal_word_count": 200,
+            "controversial_cutoff": 10,
+            "impression_cutoff": 0,
+            "relevancy_cutoff": 0
+        })
+        return res
+        
     
     def insert_auth_token(self, user_id: int, auth_token: str, client_identifier: str):
         """Deletes old auth token with same identifier and inserts new auth_token"""
@@ -747,6 +773,17 @@ class Database:
         params = {"user_id": user_id}
         return self.execute_query(query, params, False)
 
+
+    def get_user_email(self,user_id:int):
+        query = """
+        SELECT email
+        FROM users
+        WHERE user_id = :user_id
+        LIMIT 1"""
+        params = {"user_id": user_id}
+        return self.execute_query(query, params)
+
+
     def get_email_exists(self, email: str):
         query = """
         SELECT 
@@ -770,6 +807,43 @@ class Database:
         """
         params = {"username": username}
         return self.execute_query(query, params)
+
+    def get_user_stats(self, user_id: int):
+        def get_total_blog_views(user_id: int):
+            query = """
+            SELECT sum(views)
+            FROM blogs 
+            WHERE author_user_id = :user_id
+            """
+            params = {"user_id": user_id}
+            return self.execute_query(query, params)
+
+        def get_total_comments(user_id: int):
+            query = """
+            SELECT count(*)
+            FROM comments
+            WHERE blog_id IN (SELECT blog_id FROM blogs WHERE author_user_id = :user_id)
+            """
+            params = {"user_id": user_id}
+            return self.execute_query(query, params)
+
+        def get_total_ratings(user_id: int):
+            query = """
+            SELECT count(*)
+            FROM blog_user_ratings
+            WHERE blog_id IN (SELECT blog_id FROM blogs WHERE author_user_id = :user_id)
+            """
+            params = {"user_id": user_id}
+            return self.execute_query(query, params)
+
+        output_obj = {}
+        res = get_total_blog_views(user_id)
+        output_obj["total_views"] = res[0]["sum"]
+        res = get_total_comments(user_id)
+        output_obj["total_comments"] = res[0]["count"]
+        res = get_total_ratings(user_id)
+        output_obj["total_ratings"] = res[0]["count"]
+        return output_obj
 
     # User functions
 
@@ -849,16 +923,209 @@ class Database:
             temp = f"%{search_query['body_contains_optional']}%"
             params["body_contains_optional"] = temp
             query += " LOWER(blog_body ->> 'text') LIKE LOWER(:body_contains_optional)"
-        # TODO change this to work with category_id
-        if "category" in search_query:
-            params["category"] = search_query["category"]
+        if "category_id" in search_query:
+            params["category_id"] = search_query["category_id"]
             # If we added someting into WHERE, we need to add AND between params
             if param_found:
                 query += " AND "
             else:
                 query += "  WHERE "
             param_found = True
-            query += " category = :category"
+            query += " category_id = :category_id"
+        if "keywords" in search_query:
+            # TODO change to iterate through key words
+            if param_found:
+                query += " OR "
+            else:
+                query += "  WHERE "
+            param_found = True
+            temp = f"%{search_query['keywords']}%"
+            params["keywords"] = temp
+            query += " LOWER(blog_body ->> 'text') LIKE LOWER(:keywords)"
+        if "date_created_min" in search_query:
+            # Need to add percents around query and parameterize to avoid sql inject
+            temp = search_query['date_created_min']
+            params["date_created_min"] = temp
+            # Use lower to not care about letter case
+            if param_found:
+                query += " AND "
+            else:
+                query += "  WHERE "
+            param_found = True
+            query += " date_created >= :date_created_min"
+        if "date_created_max" in search_query:
+            # Need to add percents around query and parameterize to avoid sql inject
+            temp = search_query['date_created_max']
+            params["date_created_max"] = temp
+            # Use lower to not care about letter case
+            if param_found:
+                query += " AND "
+            else:
+                query += "  WHERE "
+            param_found = True
+            query += " date_created <= :date_created_max"
+        if "relevancy_min" in search_query:
+            # Need to add percents around query and parameterize to avoid sql inject
+            temp = search_query['relevancy_min']
+            params["relevancy_min"] = temp
+            # Use lower to not care about letter case
+            if param_found:
+                query += " AND "
+            else:
+                query += "  WHERE "
+            param_found = True
+            query += " average_relevancy_rating >= :relevancy_min"
+        if "relevancy_max" in search_query:
+            # Need to add percents around query and parameterize to avoid sql inject
+            temp = search_query['relevancy_max']
+            params["relevancy_max"] = temp
+            # Use lower to not care about letter case
+            if param_found:
+                query += " AND "
+            else:
+                query += "  WHERE "
+            param_found = True
+            query += " average_relevancy_rating <= :relevancy_max"
+        if "impression_min" in search_query:
+            # Need to add percents around query and parameterize to avoid sql inject
+            temp = search_query['impression_min']
+            params["impression_min"] = temp
+            # Use lower to not care about letter case
+            if param_found:
+                query += " AND "
+            else:
+                query += "  WHERE "
+            param_found = True
+            query += " average_impression_rating >= :impression_min"
+        if "impression_max" in search_query:
+            # Need to add percents around query and parameterize to avoid sql inject
+            temp = search_query['impression_max']
+            params["impression_max"] = temp
+            # Use lower to not care about letter case
+            if param_found:
+                query += " AND "
+            else:
+                query += "  WHERE "
+            param_found = True
+            query += " average_impression_rating <= :impression_max"
+        if "controversial_min" in search_query:
+            # Need to add percents around query and parameterize to avoid sql inject
+            temp = search_query['controversial_min']
+            params["controversial_min"] = temp
+            # Use lower to not care about letter case
+            if param_found:
+                query += " AND "
+            else:
+                query += "  WHERE "
+            param_found = True
+            query += " average_controversial_rating >= :controversial_min"
+        if "controversial_max" in search_query:
+            # Need to add percents around query and parameterize to avoid sql inject
+            temp = search_query['controversial_max']
+            params["controversial_max"] = temp
+            # Use lower to not care about letter case
+            if param_found:
+                query += " AND "
+            else:
+                query += "  WHERE "
+            param_found = True
+            query += " average_controversial_rating <= :controversial_max"
+        if "word_count_min" in search_query:
+            # Need to add percents around query and parameterize to avoid sql inject
+
+            params["word_count_min"] = search_query['word_count_min']
+            # Use lower to not care about letter case
+            if param_found:
+                query += " AND "
+            else:
+                query += "  WHERE "
+            param_found = True
+            query += " word_count >= :word_count_min"
+
+        if "word_count_max" in search_query:
+            # Need to add percents around query and parameterize to avoid sql inject
+            temp = search_query['word_count_max']
+            params["word_count_max"] = temp
+            # Use lower to not care about letter case
+            if param_found:
+                query += " AND "
+            else:
+                query += "  WHERE "
+            param_found = True
+            query += " word_count <= :word_count_max"
+
+        if "views_min" in search_query:
+            # Need to add percents around query and parameterize to avoid sql inject
+            temp = search_query['views_min']
+            params["views_min"] = temp
+            # Use lower to not care about letter case
+            if param_found:
+                query += " AND "
+            else:
+                query += "  WHERE "
+            param_found = True
+            query += " views >= :views_min"
+
+        if "views_max" in search_query:
+            # Need to add percents around query and parameterize to avoid sql inject
+            temp = search_query['views_max']
+            params["views_max"] = temp
+            # Use lower to not care about letter case
+            if param_found:
+                query += " AND "
+            else:
+                query += "  WHERE "
+            param_found = True
+            query += " views <= :views_max"
+        
+        if "number_ratings_min" in search_query:
+            # Need to add percents around query and parameterize to avoid sql inject
+            temp = search_query['number_ratings_min']
+            params["number_ratings_min"] = temp
+            # Use lower to not care about letter case
+            if param_found:
+                query += " AND "
+            else:
+                query += "  WHERE "
+            param_found = True
+            query += " number_ratings >= :number_ratings_min"
+
+        if "number_ratings_max" in search_query:
+            # Need to add percents around query and parameterize to avoid sql inject
+            temp = search_query['number_ratings_max']
+            params["number_ratings_max"] = temp
+            # Use lower to not care about letter case
+            if param_found:
+                query += " AND "
+            else:
+                query += "  WHERE "
+            param_found = True
+            query += " number_ratings <= :number_ratings_max"
+
+        if "date_min" in search_query:
+            # Need to add percents around query and parameterize to avoid sql inject
+            temp = search_query['date_min']
+            params["date_min"] = temp
+            # Use lower to not care about letter case
+            if param_found:
+                query += " AND "
+            else:
+                query += "  WHERE "
+            param_found = True
+            query += " date_created >= :date_min"
+
+        if "date_max" in search_query:
+            # Need to add percents around query and parameterize to avoid sql inject
+            temp = search_query['date_max']
+            params["date_max"] = temp
+            # Use lower to not care about letter case
+            if param_found:
+                query += " AND "
+            else:
+                query += "  WHERE "
+            param_found = True
+            query += " date_created <= :date_max"
+        
         return self.execute_query(query, params)
     
     # Category functions
@@ -995,6 +1262,8 @@ class Database:
 
     # Discover/recommend functions
     
+    #report functions
+
     def insert_blog_report(self, report_data: dict):
         query = """
         INSERT INTO user_blog_reports(reporter_user_id, blog_id, report_reason, report_body, found_harmful, report_date)
@@ -1008,3 +1277,32 @@ class Database:
         VALUES(:reporter_user_id, :user_id, :report_reason, :report_body, False, CURRENT_TIMESTAMP)
         """
         self.execute_query(query, report_data, False)
+
+    def return_user_reports(self):
+        query = """
+        SELECT report_id, reporter_user_id, user_profile_reports.user_id, report_reason, 
+        report_body, found_harmful, report_date, username
+        FROM user_profile_reports
+        INNER JOIN users ON user_profile_reports.user_id = users.user_id
+        """
+        return self.execute_query(query)
+
+    def return_blog_reports(self):
+        query = """ Select * from user_blog_reports """
+        return self.execute_query(query)
+    
+    def ban_user(self,user_id: int):
+        query = """ 
+        UPDATE users
+        SET user_banned = true
+        WHERE user_id = :user_id
+        """
+        params = {"user_id": user_id}
+        return self.execute_query(query,params,False)
+    
+    def get_user_banned(self,user_id: int):
+        query = """
+        SELECT user_banned from users
+        WHERE user_id = :user_id"""
+        params = {"user_id": user_id}
+        return self.execute_query(query, params)

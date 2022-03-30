@@ -1,14 +1,18 @@
 from flask import Blueprint, request as req, make_response
 import json
 import threading
+
+import flask_mail
+
 import requests
 
 class Api:
-    def __init__(self, db, auth, recommend, hcaptcha_secret):
+    def __init__(self, db, auth, recommend, mail, hcaptcha_secret):
         self.db = db
         self.api = Blueprint("api", __name__)
         self.auth = auth
         self.recommend = recommend
+        self.mail = mail
         self.hcaptcha_secret = hcaptcha_secret
         @self.api.route("/api/profile/<username>", methods=["GET"])
         def get_profile_public_info(username):
@@ -92,6 +96,7 @@ class Api:
             CODES: 1 - successfully created the blog
             2 - Not logged in
             3 - invalid input
+            4 - User is banned
             """
             
             request = req
@@ -103,6 +108,9 @@ class Api:
             # This happens when user is not logged in and attempts to create a blog.
             if temp is None:
                 resp["code"] = 2
+                return resp
+            if(get_user_banned(temp).get("user_banned")):
+                resp["code"] = 4
                 return resp
             blog_data["author_user_id"] = temp
             # Need to JSON the blog body
@@ -193,10 +201,15 @@ class Api:
             """
             Returns all of the existing blog tiles data in the array.
             """
+            resp = {}
+            blog_ids = json.loads(blog_ids)
+            if not isinstance(blog_ids, list) or len(blog_ids) == 0 or not isinstance(blog_ids[0], int):
+                resp["code"] = 2
+                return resp, 400
             request = req
             referer_info = self.auth.get_username_and_access_level(request)
-            blog_ids = json.loads(blog_ids)
-            resp = {}
+            
+            
             result = self.db.get_all_blog_tile_data(tuple(blog_ids))
             for i in range(len(result)):
                 result[i] = self.recommend.inject_algo_info(referer_info.get("user_id"), result[i])
@@ -230,6 +243,19 @@ class Api:
            
             return resp
 
+        @self.api.route("/api/blog/get_all_blog_ids", methods=["GET"])
+        def get_all_blog_ids():
+            resp = {}
+            request = req
+            referer_info = self.auth.get_username_and_access_level(request)
+            blog_ids = self.db.get_all_blog_ids(referer_info.get("user_id"))
+            if isinstance(blog_ids, str):
+                resp["code"] = 2
+                return resp, 400
+            resp["code"] = 1
+            resp["data"] = blog_ids
+            return resp
+
         @self.api.route("/api/profile/<username>",methods=["DELETE"])
         def delete_user(username):
             request = req
@@ -252,7 +278,15 @@ class Api:
             request = req
             args = request.args
             resp = {}
-            search_result = self.db.get_blog_ids_by_search(args)
+            arguments = json.loads(json.dumps(args))
+            # if "word_count_min" in arguments:
+            #     arguments["word_count_min"] = int(arguments.get("word_count_min"))
+            # if "word_count_max" in arguments:
+            #     arguments["word_count_max"] = int(arguments.get("word_count_max"))
+            search_result = self.db.get_blog_ids_by_search(arguments)
+            if isinstance(search_result, str):
+                resp["code"] = 2
+                return resp, 400
             # Need to flatten the sql output to just list of blog ids like: [1, 2]
             blog_ids = [x["blog_id"] for x in search_result]
             resp["data"] = blog_ids
@@ -265,6 +299,7 @@ class Api:
             2 - Blog does not exist
             3 - Not logged in or author
             4 - Already rated that blog
+            5 - User is banned
             """
             request = req
             resp = {}
@@ -276,6 +311,12 @@ class Api:
             if auth_info.get("username") is None or author_username == auth_info.get("username"):
                 resp["code"] = 3
                 return resp
+
+            is_banned = self.db.get_user_banned(auth_info.get("user_id"))
+            if isinstance(is_banned, str):
+                resp["code"] = 7
+                return resp, 401
+
             # hcaptcha_response = temp.get("hcaptcha_response")
             # # Hcaptcha verify component
             # hcaptcha_verify_url = "https://hcaptcha.com/siteverify"
@@ -292,6 +333,7 @@ class Api:
             # if not res_json["success"]:
             #     resp["code"] = 5
             #     return resp, 400
+
             rating_data["user_id"] = auth_info.get("user_id")
             blog_user_rating_from_db = self.db.get_blog_user_rating(
                 rating_data.get("user_id"),
@@ -340,7 +382,6 @@ class Api:
             if referrer_info.get("user_id") is None:
                 resp["code"] = 2
                 return resp, 401
-            
             rating_data = self.db.get_blog_user_rating(referrer_info.get("user_id"), blog_id)
             if len(rating_data) == 0:
                 resp["code"] = 3
@@ -416,6 +457,105 @@ class Api:
                 resp["code"] = 3
             return resp
             
+
+        @self.api.route("/api/user/ban",methods=['POST'])
+        def ban_user():
+            request = req
+            resp = {}
+            data = request.json
+            email = self.db.get_user_email(data.get("user_id"))
+            email=email[0].get("email")
+            if email is None:
+                resp["code"] = 2
+                return resp
+            result = self.db.get_user_password_hash(email)
+            if result is None:
+                resp["code"] = 3
+                return resp
+            try:
+                resp["code"] = 1
+                msg = flask_mail.Message("Account ban (OTF)", sender="OTF mailing bot", recipients=[email])
+                msg.body = f"Our admin team have found that your actions have breached our code of misconduct. \nHere at Open Thought Floor we take misbehaviour such as this very seriously and limitations will be placed on your account meaning you will not be able to create any new blogs."
+                
+                self.mail.send(msg)
+            except:
+                resp["code"] = 4
+                return resp
+            self.db.ban_user(data.get("user_id"))
+            return resp
+
+        @self.api.route("/api/blog/ban", methods=['POST'])
+        def ban_blog():
+            request = req
+            resp = {}
+            data = request.json
+            email = self.db.get_user_email(data.get("author_user_id"))
+            email = email[0].get("email")
+            if email is None:
+                resp["code"] = 2
+                return resp
+            result = self.db.get_user_password_hash(email)
+            if result is None:
+                resp["code"] = 3
+                return resp
+            try:
+                resp["code"] = 1
+                msg = flask_mail.Message("Blog ban (OTF)", sender="OTF mailing bot", recipients=[email])
+                msg.body = f"Our admin team have found that one of your blogs named"+data.get("blog_title")+"has breached our code of misconduct. \nHere at Open Thought Floor we take misbehaviour such as this very seriously and limitations will be placed on this blog."
+                
+                self.mail.send(msg)
+            except:
+                resp["code"] = 4
+                return resp
+            self.db.delete_blog(data.get("blog_id"))
+            return resp
+
+
+        @self.api.route("/api/user/report_get_reports",methods=['GET'])
+        def get_user_reports():
+            request = req
+            resp = {}
+            result = self.db.return_user_reports()
+            if isinstance(result, str):
+                resp["code"] = 2
+                resp["data"] = []
+                return resp
+
+            resp["code"] = 1
+            resp["data"] = result
+            return resp
+
+        @self.api.route("/api/blogs/report_get_reports",methods=['GET'])
+        def get_blog_reports():
+            request = req
+            resp = {}
+            result = self.db.return_blog_reports()
+            if isinstance(result, str):
+                resp["code"] = 2
+                resp["data"] = []
+                return resp
+
+            resp["code"] = 1
+            resp["data"] = result
+            return resp
+
+        @self.api.route("/api/users/get_banned/<user_id>", methods=['GET'])
+        def get_user_banned(user_id):
+            request = req
+            resp = {}
+            result = self.db.get_user_banned(user_id)
+            if(len(result)>0):
+                resp["code"] = 1
+                resp["data"] = result[0]
+                return resp
+            resp["code"] = 2
+            return resp
+
+
+
+            
+            
+
         @self.api.route("/api/blog/post_comment", methods=['POST'])
         def post_comment():
             request = req
@@ -424,7 +564,10 @@ class Api:
             if referer_info.get("username") is None:
                 resp["code"] = 2
                 return resp, 401
-            
+            is_banned = self.db.get_user_banned(referer_info.get("user_id"))
+            if isinstance(is_banned, str):
+                resp["code"] = 7
+                return resp, 401
             data = request.json
             # hcaptcha_response = data.get("hcaptcha_response")
             # # Hcaptcha verify component
@@ -533,3 +676,17 @@ class Api:
                 resp["data"] = comments_data
                 
             return resp
+        
+        @self.api.route("/api/user/get_stats", methods=["GET"])
+        def get_stats():
+            request = req
+            resp = {}
+            referer_info = self.auth.get_username_and_access_level(request)
+            if referer_info.get("user_id") is None:
+                resp["code"] = 2
+                return resp, 401
+            result = self.db.get_user_stats(referer_info.get("user_id"))
+            resp["data"] = result
+            resp["code"] = 1
+            return resp
+

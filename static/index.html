@@ -17,6 +17,9 @@
     integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"
     crossorigin="anonymous"></script>
   <link rel="icon" href="/images/logo.webp">
+
+  <link rel="stylesheet" href="/styles/admin.css">
+
   <link rel="preload" as="style" onload="this.rel = 'stylesheet'" href="/styles/main.css">
   <link rel="preload" as="style" onload="this.rel = 'stylesheet'" href="/styles/allcookies.css">
   <link rel="preload" as="style" onload="this.rel = 'stylesheet'" href="/styles/aboutus.css">
@@ -27,7 +30,10 @@
   <link rel="preload" as="style" onload="this.rel = 'stylesheet'" href="/styles/contentguidelines.css">
   <link rel="preload" as="style" onload="this.rel = 'stylesheet'" href="/styles/TermsandLegal.css">
   <link rel="preload" as="style" onload="this.rel = 'stylesheet'" href="/styles/spinner.css">
+  <link rel="preload" as="style" onload="this.rel = 'stylesheet'" href="/styles/discover.css">
+  <link rel="preload" as="style" onload="this.rel = 'stylesheet'" href="/styles/advancedpage.css">
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="preload" as="style" onload="this.rel = 'stylesheet'">
+
   <script src="/scripts/main.js"></script>
   <script src="https://js.hcaptcha.com/1/api.js"></script>
   <script src="/scripts/login.js" ></script>
@@ -37,7 +43,11 @@
   <script src="/scripts/cookie.js" ></script>
   <script src="/scripts/search.js"></script>
   <script src="/scripts/preferences.js"></script>
-  <script src="/scripts/report_page.js"></script>
+
+  <script src="/scripts/report_page.js" async ></script>
+  <script src="/scripts/admin_panel.js"></script>
+
+  <script src="/scripts/discover.js"></script>
   
 </head>
 
@@ -61,7 +71,7 @@
     <div class="nav-item-container flex-vertical search-bar-container">
       <form class="nav-search-bar flex-horizontal" id="search-bar">
         <button type="button" class="advanced-search-button flex-vertical align-center btn btn-primary"
-          role="navigation" tabindex="0">
+          role="navigation" tabindex="0" id="advancedsearch">
           Advanced search
         </button>
         <input type="text" class="form-control" id="quick-search-input">
@@ -72,7 +82,7 @@
         </button>
       </form>
     </div>
-    <button class="nav-item-container nav-button flex-horizontal" role="navigation" tabindex="0">
+    <!-- <button class="nav-item-container nav-button flex-horizontal" role="navigation" tabindex="0">
 
       <span class="material-icons">
         lightbulb
@@ -80,7 +90,7 @@
       <span class="nav-heading">
         Discover
       </span>
-    </button>
+    </button> -->
     <!--
     <div class="nav-item-container nav-button flex-horizontal" role="navigation" tabindex="0">
 

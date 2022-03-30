@@ -27,7 +27,7 @@ async function parse_categories(){
     })
 }
 
-parse_categories();
+let categories_promise = parse_categories();
 
 async function delete_blog(blog_id){
     return fetch(`/api/blog/delete/${blog_id}`, {

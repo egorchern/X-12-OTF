@@ -13,6 +13,7 @@ class Auth:
 
         self.db = db
         self.mail = mail
+        
         self.hcaptcha_secret = hcaptcha_secret
         self.hcaptcha_site_key = "28dd5d54-e402-445c-ac00-541d3e9cadc3"
         self.token_length = 48
@@ -175,7 +176,7 @@ class Auth:
                 return resp, 200
             resp["code"] = 2
             return resp, 404
-            
+        
     # Hash password
     def hash(self, text: str) -> str:
         """Returns a hashed text"""
@@ -321,9 +322,11 @@ class Auth:
         )
         
         # if just successfully registered then retun 1
-        if result is None:
+        if len(result) == 1 and isinstance(result[0], dict):
             print(f"User registered: {username}, {email}")
+            self.recommend.on_user_preferences_change(result[0].get("user_id"))
             resp["code"] = 1
+            
             return resp
 
         # If some error occured, find the error, whether email or the username already exists
@@ -379,7 +382,7 @@ class Auth:
             return {
                 "username": None,
                 "access_level": 1,
-                "user_id": -1
+                "user_id": None
             }
 
     def get_recovery_link_status(self, user_id: int, recovery_token: str):
@@ -456,3 +459,5 @@ class Auth:
         else:
             resp["code"] = 4
         return resp
+    
+    
