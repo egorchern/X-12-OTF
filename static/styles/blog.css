@@ -279,4 +279,7 @@ output{
     row-gap: 0.5rem;
     font-size: 16px;
 }
+.blog-tile-left{
+    font-size: 15px;
+}
 }
