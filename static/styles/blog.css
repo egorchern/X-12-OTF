@@ -214,12 +214,12 @@
 
 }
 
-/*vertical*/
-@media screen and (max-width: 500px) {
+@media screen and (max-width: 768px) {
  .blog-tile{
      margin: 0em;
      margin-bottom: 1em;
      font-size: 0.85em;
+     max-width: 80%;
  }
 
  #top-blog-info-container{
@@ -248,25 +248,20 @@ output{
 #blog-body, .comment-body {
     margin-bottom: 0em;
 }
+.blog-tile{
+    margin: 0em;
+    margin-bottom: 1em;
+    width: 100%;
+    max-width: 90%;
+}
+#rating-container{
+    margin-top: 2em;
 }
 
-/*horizontal*/
-@media screen and (max-width: 768px) {
-    .blog-tile{
-        margin: 0em;
-        margin-bottom: 1em;
-        width: 100%;
-        max-width: 90%;
-    }
-    #rating-container{
-        margin-top: 2em;
-    }
-    
-    output{
-        width: 6% !important;
-    }
-    #blog-body, .comment-body {
-        margin-bottom: 0em;
-    }
-    
+output{
+    width: 6% !important;
+}
+#blog-body, .comment-body {
+    margin-bottom: 0em;
+}
 }

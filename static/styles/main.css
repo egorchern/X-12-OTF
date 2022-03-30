@@ -298,7 +298,14 @@ footer {
   .flex-vertical-align-center{
     font-size:1em;
   }
+ 
+
  }
+ @media screen and (max-width: 800px) {
+ #home-container {
+    display: block;
+}
+}
  
  /*horizontal*/
  @media screen and (max-width: 768px) {
