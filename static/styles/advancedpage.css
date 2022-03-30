@@ -23,3 +23,9 @@
     padding: 0.6rem 2rem;
     padding: larger;
 }
+
+@media screen and (max-width: 768px){
+    #advancedpagesection{
+        grid-template-columns: 1fr;
+    }
+}

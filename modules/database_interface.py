@@ -353,7 +353,7 @@ class Database:
         SELECT blogs.blog_id, score, average_relevancy_rating, average_impression_rating, average_controversial_rating, author_user_id
         FROM user_blog_algorithm_score
         INNER JOIN blogs on blogs.blog_id = user_blog_algorithm_score.blog_id
-        WHERE user_blog_algorithm_score.user_id = :user_id
+        WHERE user_blog_algorithm_score.user_id = :user_id AND NOT EXISTS(SELECT user_id FROM blog_user_ratings WHERE user_id = :user_id AND blog_id = blogs.blog_id)
         ORDER BY score DESC
         """
         params = {"user_id": user_id}
