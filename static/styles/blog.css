@@ -220,6 +220,7 @@
      margin: 0em;
      margin-bottom: 1em;
      font-size: 0.85em;
+     max-width: 80%;
  }
 
  #top-blog-info-container{

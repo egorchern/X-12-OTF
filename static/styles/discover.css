@@ -8,3 +8,18 @@
 #recommend-carousel .carousel-item.active{
     display: flex !important;
 }
+
+/*vertical*/
+@media screen and (max-width: 800px) {
+    #recommend-carousel .carousel-item {
+        margin-left: 15%;
+        margin-right: 15%;
+        width: 80%;
+        height: 100%;
+    }
+
+    #recommend-carousel .carousel-item.active{
+        display: grid !important;
+    }
+
+}
