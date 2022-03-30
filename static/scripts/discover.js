@@ -118,15 +118,16 @@ async function render_recommend_carousel(){
     //     return b.score - a.score
     // })
     let domstring = `
-    <div style="grid-column: 1 / 3">
+    <div id="carousel-container">
         <h3 style="text-align: center">Recommendation queue</h3>
-        <div id="recommend-carousel" class="carousel carousel-dark slide" data-bs-interval="false">
-            <div class="carousel-inner">
-            </div>
+        <div id="recommend-carousel" class="carousel flex-horizontal align-center carousel-dark slide" data-bs-interval="false">
             <button class="carousel-control-prev" type="button"  data-bs-slide="prev">
                 <span class="carousel-control-prev-icon" aria-hidden="true"></span>
                 <span class="visually-hidden">Previous</span>
             </button>
+            <div class="carousel-inner">
+            </div>
+            
             <button class="carousel-control-next" type="button"  data-bs-slide="next">
                 <span class="carousel-control-next-icon" aria-hidden="true"></span>
                 <span class="visually-hidden">Next</span>

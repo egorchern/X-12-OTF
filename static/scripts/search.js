@@ -141,7 +141,7 @@ async function render_search_page(search_query) {
                         
                         <div>
                             <label>Title</label>
-                            <input type="text" id="blog_title" class="form-control" placeholder="String" style="text-align: center">
+                            <input type="text" size="1" id="blog_title" class="form-control" placeholder="String" style="text-align: center">
                         </div>
                     </div>
                     <div class="advancedsearchtitle">

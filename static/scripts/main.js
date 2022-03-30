@@ -167,7 +167,7 @@ function insert_blog_tile(
                         
                         <img src="/images/flag.png" class="controversy-flag" style="opacity: ${controversial_percentage}">
                     </div>
-                    <div class="flex-horizontal align-center width-full">
+                    <div class="flex-horizontal align-center width-full blog-title-container">
                         <h5 style="text-align: center; flex-grow: 1" class="blog-title">
                             
                         </h5>
@@ -340,7 +340,7 @@ async function change_page_state(new_state) {
             ${(auth_info.username != null) ? create_blog_dom_string : ""}
             <div id="random-blog" class="flex-vertical align-center">
                 <div class="flex-horizontal align-center">
-                    <h4>Random blog, discover something new!</h4>
+                    <h4 style="text-align:center">Random blog, discover something new!</h4>
                     <button class="flex-horizontal align-center btn btn-outline-primary" id="new-random-blog-btn" style="margin-left: 1rem; font-size: 0.8em;">
                         <span class="material-icons">
                         refresh

@@ -55,7 +55,8 @@ function insert_top_blog_info(blog_data) {
             </div>
         </div>
         <div class="flex-horizontal align-center" style="margin-top: 1rem;flex-grow:1">
-            <h5>Tags:</h5>
+            <span>Number of comments:</span>
+            <strong  style="margin-left: 0.3rem;">${comment_ids.length}</strong>
         </div>
         <div class="flex-horizontal align-center" style="margin-top: 1rem;flex-grow:1">
             <span>Date Modified:</span>
@@ -255,7 +256,7 @@ async function parse_posted_blog_rating(blog_data) {
                     <strong style="font-size: larger">Relevancy:</strong>
                 </div>
                 <div class="flex-vertical align-right" style="float:right,width:40%">
-                    <font size="-1.5">How strongly do you feel that everything in the blog was relevant to the title, category or tags?</font>
+                    <font size="-1.5">How strongly do you feel that everything in the blog was relevant to the title or category?</font>
                 </div>
                 <input style="" type="range" min="0" max="10" value="5" class="ratingslider" id="relevancyRange" oninput="this.nextElementSibling.value = this.value">
                 <output style="width: 4%; text-align: center;font-weight: bolder;">5</output>
@@ -561,16 +562,14 @@ async function render_view_blog(blog_id) {
     $("#view-blog-container").insertAdjacentHTML("beforeend", view_blog_dom_string);
     $("#blog-title").insertAdjacentText("beforeend", blog_data.blog_title)
     $("#blog-body").insertAdjacentText('beforeend', blog_data.blog_body.text)
-
-    insert_top_blog_info(blog_data)
-    parse_posted_blog_rating(blog_data)
-
     temp = await get_comment_ids(blog_id);
-    if (temp.code != 1){
-        return null;
-    }
     comment_ids = temp.data;
+
+    parse_posted_blog_rating(blog_data)
+    insert_top_blog_info(blog_data)
+    
     render_comments_prereq();
+    
 }
 
 async function post_comment(blog_id, comment_text, hcaptcha_response) {
