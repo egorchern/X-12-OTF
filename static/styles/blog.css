@@ -265,16 +265,18 @@ output{
     margin-bottom: 0em;
 }
 .blog-title{
-    font-size: 20px;   
+    font-size: 20px;  
+    width: 100%;
 }
-.width-full{
-    display: block;
-    font-size: 16px;
+.blog-tile-top{
+    flex-direction: column;
 }
+
 .blog-tile-ratings-grid {
     display: block;
     grid-template-columns: min-content auto min-content;
     column-gap: 0.35rem;
     row-gap: 0.5rem;
+    font-size: 16px;
 }
 }
