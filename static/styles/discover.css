@@ -22,8 +22,4 @@
     #recommend-carousel .carousel-item.active{
         display: grid !important;
     }
-    .h5, h5{
-        font-size: 1em;
-    }
-
 }
