@@ -265,8 +265,10 @@ output{
     margin-bottom: 0em;
 }
 .blog-title{
-    font-size: 16px;
-    
+    font-size: 20px;   
+}
+.width-full{
+    display: block;
 }
 .blog-tile-ratings-grid {
     display: block;
