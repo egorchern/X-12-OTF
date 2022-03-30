@@ -27,6 +27,7 @@
   <link rel="preload" as="style" onload="this.rel = 'stylesheet'" href="/styles/contentguidelines.css">
   <link rel="preload" as="style" onload="this.rel = 'stylesheet'" href="/styles/TermsandLegal.css">
   <link rel="preload" as="style" onload="this.rel = 'stylesheet'" href="/styles/spinner.css">
+  <link rel="preload" as="style" onload="this.rel = 'stylesheet'" href="/styles/feedback.css">
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="preload" as="style" onload="this.rel = 'stylesheet'">
   <script src="/scripts/main.js"></script>
   <script src="https://js.hcaptcha.com/1/api.js"></script>
@@ -38,6 +39,7 @@
   <script src="/scripts/search.js"></script>
   <script src="/scripts/preferences.js"></script>
   <script src="/scripts/report_page.js"></script>
+  <script src="/scripts/feedback.js"></script>
   
 </head>
 
@@ -103,7 +105,7 @@
     <span>© 2021 OpenThoughtFloor All Right Reserved</span>
     <div class="links-container flex-horizontal">
       <span role="navigation" tabindex="0" id="about-us-btn">About Us</span>
-      <span role="navigation" tabindex="0" id="feedback-btn">Feedback</span>
+      <span role="navigation" tabindex="0" id="feedback-btn" onclick=change_page_state("/feedback")>Feedback</span>
       <span role="navigation" tabindex="0" id="legal-btn">Legal</span>
     </div>
 

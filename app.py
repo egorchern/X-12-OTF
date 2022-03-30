@@ -70,6 +70,10 @@ def home():
 def aboutus():
     return flask.render_template('index.html')
 
+@app.route('/feedback', methods=['GET'])
+def feedback():
+    return flask.render_template('index.html')
+
 # Routes for internal page states
 
 @app.route('/legalpage', methods=['GET'])

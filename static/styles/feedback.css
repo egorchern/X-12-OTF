@@ -1,0 +1,58 @@
+.feedback-page-container{
+    height: 100%;
+}
+
+.feedback-form{
+    background-color: white;
+    padding: 0.65rem;
+    border: 1px solid hsl(0deg 0% 85%);
+    border-radius: 0.8rem;
+    box-shadow: 0 4px 16px 4px rgb(0 0 0 / 14%);
+}
+.feedback-form > div{
+    width: 100%;
+    margin: 0.5rem;
+}
+
+.alert{
+    width: 100%;
+}
+
+.hoverable-text{
+    color: hsl(206, 100%, 40%);
+    cursor: pointer;
+}
+.hoverable-text:hover{
+    text-decoration: underline;
+}
+
+.form-btn{
+    margin: 0.5rem;
+    width: 30%;
+}
+
+.bottom-switch-sentence{
+    border-top: 1px solid hsla(0, 0%, 10%, 0.3);
+    padding-top: 0.65rem;
+}
+.fixed-alert{
+    z-index: 99999;
+    top: 6rem;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 1rem;
+    max-width: 40rem;
+    position: fixed;
+    border-radius: 20px;
+    color: white !important;
+    background-color: hsl(0, 0%, 10%, 0.9);
+    box-shadow:0 5px 25px rgb(0 0 0 / 20%);
+}
+.close-btn{
+    font-size: 1.25em;
+    opacity: 0.8;
+    transition: opacity 0.25s;
+}
+.close-btn:hover{
+    opacity: 1;
+}

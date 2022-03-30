@@ -245,7 +245,9 @@ function initialize_page_state() {
         change_page_state("/home");
     } else if (path === "/login-register") {
         change_page_state("/login");
-    } else if (/^\/profile\/(?<username>.+)$/.test(path)) {
+    } else if (path === "/feedback") {
+		change_page_state("/feedback");
+	} else if (/^\/profile\/(?<username>.+)$/.test(path)) {
         change_page_state(path);
     } else if (/^\/edit_blog\/\d+$/.test(path)) {
         change_page_state(path);
@@ -272,6 +274,7 @@ Page States:
 "/home": Home
 "/login": Login
 "/about_us": About us
+"/feedback": Feedback
 "/profile/<username>": Profile of a certain username
 "/edit_blog/<blog_id>": Edit some blog
 "/blog/<blog_id>": View blog
@@ -413,6 +416,49 @@ async function change_page_state(new_state) {
         main_html.insertAdjacentHTML("beforeend", edit_blog_dom_string);
         render_edit_blog(blog_id);
     }
+	else if (new_state === "/feedback") {
+		feedback_domstring = `
+		<div id="feedback-alert-box" class="flex-vertical align-center">
+							
+			<form class='feedback-form flex-vertical align-center animate__animated animate__fadeIn needs-validation' novalidate>
+				<div >
+					<label for='bug-or-general' class='form-label'>Thank you for taking the time to give us feedback. Please tell us whether your feedback is based on a bug you have discovered or general feedback.</label>
+					<input type='text' class="form-control" id='bug-or-general' maxlength="100" >
+					<div class="invalid-feedback" id="bug-or-general-invalid-feedback">
+						placeholder
+					</div>
+				</div>
+				<div >
+					<div >
+						<label for='feedback-text' class='form-label'>Please give a description.</label>
+					</div>
+					<input type='text' class="form-control" id='feedback-text'>
+					<div class="invalid-feedback" id="feedback-text-invalid-feedback">
+						placeholder
+					</div>
+				</div>
+				<button type="submit" class="btn btn-outline-primary form-btn" id="send-feedback-btn" >Submit feedback</button>
+			</form>
+		</div>
+		`
+	
+		history.pushState({ page_state: page_state }, null, "/feedback");
+		main_html.insertAdjacentHTML("beforeend", feedback_domstring);
+            $(".feedback-form").onsubmit = (feedbackEv) => 
+            {
+                feedbackEv.preventDefault();
+				
+				let feedback_reason = document.getElementById("bug-or-general").value;
+				let feedback_body = document.getElementById("feedback-text").value;
+				let feedback_date = new Date().toLocaleDateString();
+				console.log(feedback_reason);
+				console.log(feedback_body);
+				console.log(feedback_date);
+				/* i hate json please dont hate me egor x */
+                alert("Feedback Successful");
+				change_page_state("/home");
+            };
+	}
     else if (/^\/blog\/\d+$/.test(new_state)) {
         let temp = /^\/blog\/(?<blog_id>\d+)$/.exec(new_state);
         if (temp === null) {
