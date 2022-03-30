@@ -280,7 +280,9 @@ function initialize_page_state() {
     } else if (path === "/contentguidelines") {
         change_page_state("/contentguidelines");
     } else if (/^\/search$/.test(path)) {
-        change_page_state(path + location.search);
+        let postfix = location.search != "" ? location.search : "?"
+        
+        change_page_state(path + postfix);
     }else if(path === "/admin"){
         change_page_state("/admin");
     }
@@ -862,16 +864,13 @@ allowed, but sharing pictures is prohibited.
 
     else if (/^\/search\?(?<search_query>.*)$/.test(new_state)) {
         let temp = /^\/search\?(?<search_query>.*)$/.exec(new_state)
+        
         if (temp === null) {
             return null;
         }
         let search_domstring = `
         <div id="search-page" class="flex-vertical align-center">
-            <h3 style="text-align: center">Search results</h3>
-            <span class="width-full flex-horizontal" style="justify-content:flex-end">Blogs shown: <strong id="blogs-shown" style="margin-left:2px">?/?</strong></span>
-            <div id="authored-blogs-container" class="flex-horizontal align-center flex-wrap">
-                        
-            </div>
+            
         </div>
         
         `
@@ -917,7 +916,9 @@ allowed, but sharing pictures is prohibited.
             get_all_blog_reports();
             get_all_user_reports();
         }
+    
     }
+    
 }
 
 // Called after userinfo is loaded. Initializes the page
@@ -985,6 +986,9 @@ async function main() {
     $("#legal-btn").onclick = () => {
         change_page_state("/legalpage");
     };
+    $("#advancedsearch").onclick = () => {
+        change_page_state("/search?")
+    }
     $("#search-bar").onsubmit = (ev) => {
         ev.preventDefault();
         on_simple_search_click()
