@@ -269,6 +269,7 @@ output{
 }
 .width-full{
     display: block;
+    font-size: 16px;
 }
 .blog-tile-ratings-grid {
     display: block;
