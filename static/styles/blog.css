@@ -215,7 +215,7 @@
 }
 
 /*vertical*/
-@media screen and (max-width: 500px) {
+@media screen and (max-width: 768px) {
  .blog-tile{
      margin: 0em;
      margin-bottom: 1em;
