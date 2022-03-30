@@ -7,6 +7,17 @@ const urlencode = (query_dict) => {
     return output
 }
 
+function urldecode(str) {
+    let tokens = str.split("&")
+    let outObj = {}
+    for(let i = 0; i < tokens.length - 1; i += 1){
+        let token = tokens[i]
+        let reg = /^(?<param>.*)=(?<value>.*)$/.exec(token)
+        outObj[reg.groups.param] = reg.groups.value
+    }
+    return outObj
+}
+
 async function on_simple_search_click() {
     let blog_title = $("#quick-search-input").value
     let url_encoded = `/search?${urlencode({ blog_title: blog_title, body_contains_optional: blog_title })}`
@@ -18,7 +29,7 @@ async function on_advanced_search_click(){
     let query_dict = {
         
     }
-    let cur = $("#title").value
+    let cur = $("#blog_title").value
     if (cur != ""){
         query_dict.blog_title = cur
     }
@@ -26,11 +37,11 @@ async function on_advanced_search_click(){
     if (cur != ""){
         query_dict.keywords = cur
     }
-    cur = $("#date-min").value
+    cur = $("#date_min").value
     if (cur != ""){
         query_dict.date_min = cur
     }
-    cur = $("#date-max").value
+    cur = $("#date_max").value
     if (cur != ""){
         query_dict.date_max = cur
     }
@@ -38,33 +49,54 @@ async function on_advanced_search_click(){
     if (cur != "Any"){
         query_dict.category_id = objectFlip(categories_hashmap)[cur]
     }
-    cur = $("#controversial-min").value
+    cur = $("#controversial_min").value
     if (cur != ""){
         query_dict.controversial_min = cur
     }
-    cur = $("#controversial-max").value
+    cur = $("#controversial_max").value
     if (cur != ""){
         query_dict.controversial_max = cur
     }
-    cur = $("#relevancy-min").value
+    cur = $("#relevancy_min").value
     if (cur != ""){
         query_dict.relevancy_min = cur
     }
-    cur = $("#relevancy-max").value
+    cur = $("#relevancy_max").value
     if (cur != ""){
         query_dict.relevancy_max = cur
     }
-    cur = $("#impression-min").value
+    cur = $("#impression_min").value
     if (cur != ""){
         query_dict.impression_min = cur
     }
-    cur = $("#impression-max").value
+    cur = $("#impression_max").value
     if (cur != ""){
         query_dict.impression_max = cur
     }
-    cur = $("#username").value
+    
+    cur = $("#word_count_min").value
     if (cur != ""){
-        query_dict.username = cur
+        query_dict.word_count_min = cur
+    }
+    cur = $("#word_count_max").value
+    if (cur != ""){
+        query_dict.word_count_max = cur
+    }
+    cur = $("#number_ratings_min").value
+    if (cur != ""){
+        query_dict.number_ratings_min = cur
+    }
+    cur = $("#number_ratings_max").value
+    if (cur != ""){
+        query_dict.number_ratings_max = cur
+    }
+    cur = $("#views_min").value
+    if (cur != ""){
+        query_dict.views_min = cur
+    }
+    cur = $("#views_max").value
+    if (cur != ""){
+        query_dict.views_max = cur
     }
     let url_encoded = `/search?${urlencode(query_dict)}`
     change_page_state(url_encoded)
@@ -87,7 +119,7 @@ async function search_blogs(search_query) {
 }
 
 async function render_search_page(search_query) {
-    console.log(search_query)
+    
     categories_promise.then(async function(result){
 
 
@@ -97,19 +129,19 @@ async function render_search_page(search_query) {
             let category = categories_hashmap[category_key];
             console.log(category)
             category_options_dom_string += `
-            <option value=${index}>${category}</option>
+            <option value=${category_key}>${category}</option>
             `
         })
         category_options_dom_string += `<option selected>Any</option>`
         let advancedsearch = `
             <form class="flex-vertical align-center" id="advancedpagecontainer">
-                <h3>Search Parameters</h3>
+                <h3>Advanced search</h3>
                 <div id="advancedpagesection">
                     <div class="advancedsearchtitle">
                         
                         <div>
                             <label>Title</label>
-                            <input type="text" id="title" class="form-control" placeholder="String" style="text-align: center">
+                            <input type="text" id="blog_title" class="form-control" placeholder="String" style="text-align: center">
                         </div>
                     </div>
                     <div class="advancedsearchtitle">
@@ -120,13 +152,35 @@ async function render_search_page(search_query) {
                         </div>
                     </div>
                     <div class="advancedsearchtitle">
+                        
+                        <div>
+                            <label>Word count</label>
+                            <div class="flex-horizontal align-center">    
+                                <input type="text" id="word_count_min" class="form-control" placeholder="Min Int" style="text-align: center">
+                                
+                                <input type="text" id="word_count_max" class="form-control" placeholder="Max Int" style="text-align: center; margin-left: 0.5rem;">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="advancedsearchtitle">
+                        
+                        <div>
+                            <label>Number of ratings</label>
+                            <div class="flex-horizontal align-center">    
+                                <input type="text" id="number_ratings_min" class="form-control" placeholder="Min Int" style="text-align: center">
+                                
+                                <input type="text" id="number_ratings_max" class="form-control" placeholder="Max Int" style="text-align: center; margin-left: 0.5rem;">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="advancedsearchtitle">
                         <div>
                         Date Created
                         </div>
                         <div class="flex-horizontal align-center">    
-                            <input type="date" id="date-min" class="form-control" placeholder="Min Int" style="text-align: center">
+                            <input type="date" id="date_min" class="form-control" placeholder="Min Int" style="text-align: center">
                             
-                            <input type="date" id="date-max" class="form-control" placeholder="Max Int" style="text-align: center; margin-left: 0.5rem;">
+                            <input type="date" id="date_max" class="form-control" placeholder="Max Int" style="text-align: center; margin-left: 0.5rem;">
                         </div>
                     </div>
                     <div class="advancedsearchtitle">
@@ -143,9 +197,9 @@ async function render_search_page(search_query) {
                             Average Controversial Rating
                         </div>
                         <div class="flex-horizontal align-center"> 
-                            <input type="text" class="form-control" id="controversial-min" placeholder="Min float" style="text-align: center">
+                            <input type="text" class="form-control" id="controversial_min" placeholder="Min float" style="text-align: center">
                             
-                            <input type="text" class="form-control" id="controversial-max" placeholder="Max float" style="text-align: center; margin-left: 0.5rem;">
+                            <input type="text" class="form-control" id="controversial_max" placeholder="Max float" style="text-align: center; margin-left: 0.5rem;">
                         </div>
                     </div>
                     <div class="advancedsearchtitle">
@@ -153,9 +207,9 @@ async function render_search_page(search_query) {
                             Average Relevancy Rating
                         </div>
                         <div class="flex-horizontal align-center"> 
-                            <input type="text" class="form-control" id="relevancy-min" placeholder="Min float" style="text-align: center">
+                            <input type="text" class="form-control" id="relevancy_min" placeholder="Min float" style="text-align: center">
                             
-                            <input type="text" class="form-control" id="relevancy-max"  placeholder="Max float" style="text-align: center; margin-left: 0.5rem;">
+                            <input type="text" class="form-control" id="relevancy_max"  placeholder="Max float" style="text-align: center; margin-left: 0.5rem;">
                         </div>
                         </div>
                     <div class="advancedsearchtitle">
@@ -163,17 +217,19 @@ async function render_search_page(search_query) {
                             Average Impression Rating
                         </div>
                         <div class="flex-horizontal align-center"> 
-                            <input type="text" class="form-control" id="impression-min" placeholder="Min float" style="text-align: center">
+                            <input type="text" class="form-control" id="impression_min" placeholder="Min float" style="text-align: center">
                             &nbsp
-                            <input type="text" class="form-control" id="impression-max" placeholder="Max float" style="text-align: center; margin-left: 0.5rem;">
+                            <input type="text" class="form-control" id="impression_max" placeholder="Max float" style="text-align: center; margin-left: 0.5rem;">
                         </div>
                     </div>
                     <div class="advancedsearchtitle">
-                        <div >
-                            Creator's Username
-                        </div>
-                        <div >
-                            <input type="text" class="form-control" id="username" placeholder="(String)" style="text-align: center">
+                        <div>
+                            <label>Views</label>
+                            <div class="flex-horizontal align-center">    
+                                <input type="text" id="views_min" class="form-control" placeholder="Min Int" style="text-align: center">
+                                
+                                <input type="text" id="views_max" class="form-control" placeholder="Max Int" style="text-align: center; margin-left: 0.5rem;">
+                            </div>
                         </div>
                     </div>
                     
@@ -195,7 +251,17 @@ async function render_search_page(search_query) {
         $("#search-page").insertAdjacentHTML("beforeend", advancedsearch)
         $("#advancedpagecontainer").onsubmit = (ev) => { ev.preventDefault(); on_advanced_search_click(); }
         $("#search-page").insertAdjacentHTML("beforeend", serach_results)
-        
+        let decoded_url = urldecode(search_query)
+        for (const [key, value] of Object.entries(decoded_url)) {
+            if(key == "category_id"){
+                $("#category").value = value
+            }
+            
+            else{
+                $(`#${key}`).value = value
+            }
+            
+        }
         // Need to reset this variable to prevent pages from affecting each other, like profile authored blogs affect this variable
         currently_showing = 0;
         currently_hidden = 0;

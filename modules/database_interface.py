@@ -923,16 +923,209 @@ class Database:
             temp = f"%{search_query['body_contains_optional']}%"
             params["body_contains_optional"] = temp
             query += " LOWER(blog_body ->> 'text') LIKE LOWER(:body_contains_optional)"
-        # TODO change this to work with category_id
-        if "category" in search_query:
-            params["category"] = search_query["category"]
+        if "category_id" in search_query:
+            params["category_id"] = search_query["category_id"]
             # If we added someting into WHERE, we need to add AND between params
             if param_found:
                 query += " AND "
             else:
                 query += "  WHERE "
             param_found = True
-            query += " category = :category"
+            query += " category_id = :category_id"
+        if "keywords" in search_query:
+            # TODO change to iterate through key words
+            if param_found:
+                query += " OR "
+            else:
+                query += "  WHERE "
+            param_found = True
+            temp = f"%{search_query['keywords']}%"
+            params["keywords"] = temp
+            query += " LOWER(blog_body ->> 'text') LIKE LOWER(:keywords)"
+        if "date_created_min" in search_query:
+            # Need to add percents around query and parameterize to avoid sql inject
+            temp = search_query['date_created_min']
+            params["date_created_min"] = temp
+            # Use lower to not care about letter case
+            if param_found:
+                query += " AND "
+            else:
+                query += "  WHERE "
+            param_found = True
+            query += " date_created >= :date_created_min"
+        if "date_created_max" in search_query:
+            # Need to add percents around query and parameterize to avoid sql inject
+            temp = search_query['date_created_max']
+            params["date_created_max"] = temp
+            # Use lower to not care about letter case
+            if param_found:
+                query += " AND "
+            else:
+                query += "  WHERE "
+            param_found = True
+            query += " date_created <= :date_created_max"
+        if "relevancy_min" in search_query:
+            # Need to add percents around query and parameterize to avoid sql inject
+            temp = search_query['relevancy_min']
+            params["relevancy_min"] = temp
+            # Use lower to not care about letter case
+            if param_found:
+                query += " AND "
+            else:
+                query += "  WHERE "
+            param_found = True
+            query += " average_relevancy_rating >= :relevancy_min"
+        if "relevancy_max" in search_query:
+            # Need to add percents around query and parameterize to avoid sql inject
+            temp = search_query['relevancy_max']
+            params["relevancy_max"] = temp
+            # Use lower to not care about letter case
+            if param_found:
+                query += " AND "
+            else:
+                query += "  WHERE "
+            param_found = True
+            query += " average_relevancy_rating <= :relevancy_max"
+        if "impression_min" in search_query:
+            # Need to add percents around query and parameterize to avoid sql inject
+            temp = search_query['impression_min']
+            params["impression_min"] = temp
+            # Use lower to not care about letter case
+            if param_found:
+                query += " AND "
+            else:
+                query += "  WHERE "
+            param_found = True
+            query += " average_impression_rating >= :impression_min"
+        if "impression_max" in search_query:
+            # Need to add percents around query and parameterize to avoid sql inject
+            temp = search_query['impression_max']
+            params["impression_max"] = temp
+            # Use lower to not care about letter case
+            if param_found:
+                query += " AND "
+            else:
+                query += "  WHERE "
+            param_found = True
+            query += " average_impression_rating <= :impression_max"
+        if "controversial_min" in search_query:
+            # Need to add percents around query and parameterize to avoid sql inject
+            temp = search_query['controversial_min']
+            params["controversial_min"] = temp
+            # Use lower to not care about letter case
+            if param_found:
+                query += " AND "
+            else:
+                query += "  WHERE "
+            param_found = True
+            query += " average_controversial_rating >= :controversial_min"
+        if "controversial_max" in search_query:
+            # Need to add percents around query and parameterize to avoid sql inject
+            temp = search_query['controversial_max']
+            params["controversial_max"] = temp
+            # Use lower to not care about letter case
+            if param_found:
+                query += " AND "
+            else:
+                query += "  WHERE "
+            param_found = True
+            query += " average_controversial_rating <= :controversial_max"
+        if "word_count_min" in search_query:
+            # Need to add percents around query and parameterize to avoid sql inject
+
+            params["word_count_min"] = search_query['word_count_min']
+            # Use lower to not care about letter case
+            if param_found:
+                query += " AND "
+            else:
+                query += "  WHERE "
+            param_found = True
+            query += " word_count >= :word_count_min"
+
+        if "word_count_max" in search_query:
+            # Need to add percents around query and parameterize to avoid sql inject
+            temp = search_query['word_count_max']
+            params["word_count_max"] = temp
+            # Use lower to not care about letter case
+            if param_found:
+                query += " AND "
+            else:
+                query += "  WHERE "
+            param_found = True
+            query += " word_count <= :word_count_max"
+
+        if "views_min" in search_query:
+            # Need to add percents around query and parameterize to avoid sql inject
+            temp = search_query['views_min']
+            params["views_min"] = temp
+            # Use lower to not care about letter case
+            if param_found:
+                query += " AND "
+            else:
+                query += "  WHERE "
+            param_found = True
+            query += " views >= :views_min"
+
+        if "views_max" in search_query:
+            # Need to add percents around query and parameterize to avoid sql inject
+            temp = search_query['views_max']
+            params["views_max"] = temp
+            # Use lower to not care about letter case
+            if param_found:
+                query += " AND "
+            else:
+                query += "  WHERE "
+            param_found = True
+            query += " views <= :views_max"
+        
+        if "number_ratings_min" in search_query:
+            # Need to add percents around query and parameterize to avoid sql inject
+            temp = search_query['number_ratings_min']
+            params["number_ratings_min"] = temp
+            # Use lower to not care about letter case
+            if param_found:
+                query += " AND "
+            else:
+                query += "  WHERE "
+            param_found = True
+            query += " number_ratings >= :number_ratings_min"
+
+        if "number_ratings_max" in search_query:
+            # Need to add percents around query and parameterize to avoid sql inject
+            temp = search_query['number_ratings_max']
+            params["number_ratings_max"] = temp
+            # Use lower to not care about letter case
+            if param_found:
+                query += " AND "
+            else:
+                query += "  WHERE "
+            param_found = True
+            query += " number_ratings <= :number_ratings_max"
+
+        if "date_min" in search_query:
+            # Need to add percents around query and parameterize to avoid sql inject
+            temp = search_query['date_min']
+            params["date_min"] = temp
+            # Use lower to not care about letter case
+            if param_found:
+                query += " AND "
+            else:
+                query += "  WHERE "
+            param_found = True
+            query += " date_created >= :date_min"
+
+        if "date_max" in search_query:
+            # Need to add percents around query and parameterize to avoid sql inject
+            temp = search_query['date_max']
+            params["date_max"] = temp
+            # Use lower to not care about letter case
+            if param_found:
+                query += " AND "
+            else:
+                query += "  WHERE "
+            param_found = True
+            query += " date_created <= :date_max"
+        
         return self.execute_query(query, params)
     
     # Category functions

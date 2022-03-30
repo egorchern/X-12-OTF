@@ -864,7 +864,7 @@ allowed, but sharing pictures is prohibited.
 
     else if (/^\/search\?(?<search_query>.*)$/.test(new_state)) {
         let temp = /^\/search\?(?<search_query>.*)$/.exec(new_state)
-        console.log(temp);
+        
         if (temp === null) {
             return null;
         }

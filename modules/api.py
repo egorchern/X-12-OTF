@@ -278,7 +278,15 @@ class Api:
             request = req
             args = request.args
             resp = {}
-            search_result = self.db.get_blog_ids_by_search(args)
+            arguments = json.loads(json.dumps(args))
+            # if "word_count_min" in arguments:
+            #     arguments["word_count_min"] = int(arguments.get("word_count_min"))
+            # if "word_count_max" in arguments:
+            #     arguments["word_count_max"] = int(arguments.get("word_count_max"))
+            search_result = self.db.get_blog_ids_by_search(arguments)
+            if isinstance(search_result, str):
+                resp["code"] = 2
+                return resp, 400
             # Need to flatten the sql output to just list of blog ids like: [1, 2]
             blog_ids = [x["blog_id"] for x in search_result]
             resp["data"] = blog_ids
@@ -304,9 +312,10 @@ class Api:
                 resp["code"] = 3
                 return resp
 
-            if(get_user_banned(auth_info.user_id).get("user_banned")):
-                resp["code"] = 5
-                return resp
+            is_banned = self.db.get_user_banned(auth_info.get("user_id"))
+            if isinstance(is_banned, str):
+                resp["code"] = 7
+                return resp, 401
 
             # hcaptcha_response = temp.get("hcaptcha_response")
             # # Hcaptcha verify component
@@ -555,7 +564,7 @@ class Api:
             if referer_info.get("username") is None:
                 resp["code"] = 2
                 return resp, 401
-            is_banned = self.db.get_banned(referer_info.get("user_id"))
+            is_banned = self.db.get_user_banned(referer_info.get("user_id"))
             if isinstance(is_banned, str):
                 resp["code"] = 7
                 return resp, 401
