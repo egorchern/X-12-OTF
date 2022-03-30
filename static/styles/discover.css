@@ -16,10 +16,14 @@
         margin-right: 15%;
         width: 80%;
         height: 100%;
+        font-size: 0.75em;
     }
 
     #recommend-carousel .carousel-item.active{
         display: grid !important;
+    }
+    .h5, h5{
+        font-size: 1em;
     }
 
 }
