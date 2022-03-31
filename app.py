@@ -6,6 +6,7 @@ from modules.database_interface import Database
 from modules.auth import Auth
 from modules.api import Api
 from modules.recommend import Recommend
+from flask_talisman import Talisman
 
 
 # Get database url
@@ -33,7 +34,7 @@ app.config['MAIL_PASSWORD'] = mailing_password
 app.config['MAIL_USE_TLS'] = False
 app.config['MAIL_USE_SSL'] = True
 mail = flask_mail.Mail(app)
-
+Talisman(app)
 
 # Initialize component classes
 
