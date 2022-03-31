@@ -34,7 +34,7 @@ app.config['MAIL_PASSWORD'] = mailing_password
 app.config['MAIL_USE_TLS'] = False
 app.config['MAIL_USE_SSL'] = True
 mail = flask_mail.Mail(app)
-Talisman(app)
+Talisman(app, force_https_permanent=False, force_https=False)
 
 # Initialize component classes
 
