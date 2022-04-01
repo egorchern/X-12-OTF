@@ -11,7 +11,7 @@ function insert_top_blog_info(blog_data) {
         <img class="author-avatar" src="/images/avatar_${blog_data.avatar_image_id}.webp">
         <div class="flex-vertical align-center">
             <span>Created by:</span>
-            <a href="/profile/${blog_data.username}" style="font-weight: bolder" class="hoverable-text" id="author_hyperlink" role="navigation" tabindex="0">${blog_data.username}</a>
+            <button style="font-weight: bolder" class="hoverable-text" id="author_hyperlink" role="navigation" tabindex="0">${blog_data.username}</button>
         </div>
         <div class="flex-vertical align-center">
             <span>Word count:</span>
@@ -88,7 +88,7 @@ function insert_top_blog_info(blog_data) {
     `
     $("#top-blog-info-container").insertAdjacentHTML("beforeend", top_blog_info_dom_string)
     $("#category").insertAdjacentText("beforeend", categories_hashmap[blog_data.category_id])
-    // $("#author_hyperlink").onclick = () => {change_page_state(`/profile/${blog_data.username}`)}
+    $("#author_hyperlink").onclick = () => {change_page_state(`/profile/${blog_data.username}`)}
     if (auth_info.user_id === blog_data.author_user_id){
         $("#edit-blog-btn").onclick = () => {change_page_state(`/edit_blog/${blog_data.blog_id}`)};
     }else if(auth_info.access_level === 2){
@@ -439,7 +439,7 @@ async function insert_comment(comment_data){
         <img src="/images/avatar_${comment_data.avatar_image_id}.webp" alt="profile avatar">
         <div class="flex-vertical" style="margin-left: 0.8rem;">
             <div class="flex-horizontal" style="padding-left: 0.5rem; justify-content: flex-start; align-items:center">
-                <a href="/profile/${comment_data.username}" style="font-weight: bolder" class="comment_author_hyperlink hoverable-text">${comment_data.username}</a>
+                <button style="font-weight: bolder" class="comment_author_hyperlink hoverable-text">${comment_data.username}</button>
                 <time datetime=${comment_data.datetime_created}>${new Date(comment_data.datetime_created).toLocaleString()}</time>
             </div>
             <p class="comment-body" style="margin-bottom:0"></p>
@@ -449,7 +449,7 @@ async function insert_comment(comment_data){
     `
     $(".comments-container").insertAdjacentHTML("beforeend", comment_template)
     $(`#${comment_id} .comment-body`).insertAdjacentText("beforeend", comment_data.comment_text);
-    // $(`#${comment_id} .comment_author_hyperlink`).onclick = () => {change_page_state(`/profile/${comment_data.username}`)}
+    $(`#${comment_id} .comment_author_hyperlink`).onclick = () => {change_page_state(`/profile/${comment_data.username}`)}
     if (comment_data.user_id != auth_info.user_id) {return null}
     let own_comment_controls = `
     <div class="flex-horizontal align-items" style="flex-grow:1; justify-content:flex-end">

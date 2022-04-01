@@ -9,9 +9,6 @@ img {
     width: 100%;
     height: auto;
 }
-a:hover{
-    color: inherit; 
-}
 html,
 body {
     width: 100%;
@@ -87,7 +84,6 @@ button {
 }
 .nav-button:hover {
     box-shadow: var(--nav-button-hover-shadow);
-    color: inherit;
 }
 nav {
     display: flex;
