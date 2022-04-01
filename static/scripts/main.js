@@ -139,7 +139,7 @@ function insert_blog_tile(
     let relevancy_percentage = `${(blog_data.average_relevancy_rating / rating_limit * 100).toFixed(2)}%`;
     let impression_percentage = `${(blog_data.average_impression_rating / rating_limit * 100).toFixed(2)}%`;
     let blog_tile_dom_string = `
-    <div class="blog-tile animate__animated animate__fadeIn" id="blog-tile-${blog_data.blog_id}" onclick="change_page_state('/blog/${blog_data.blog_id}')">
+    <a href="/blog/${blog_data.blog_id}" class="blog-tile animate__animated animate__fadeIn" id="blog-tile-${blog_data.blog_id}">
         <div class="blog-tile-top">
             <div class="flex-vertical align-center blog-tile-left" style="word-break:break-all">
                 <img class="author-avatar" src="/images/avatar_${blog_data.avatar_image_id}.webp">
@@ -224,7 +224,7 @@ function insert_blog_tile(
                 
             </div>
         </div>
-    </div>
+    </a>
     `;
     $(identifier).insertAdjacentHTML("beforeend", blog_tile_dom_string);
     $(`${identifier} #blog-tile-${blog_data.blog_id} .username`).insertAdjacentText("beforeend", blog_data.username)
@@ -927,7 +927,7 @@ async function main() {
     let nav_element = $("nav");
     if (auth_info.username != null) {
         let profile_domstring = `
-            <button class="nav-item-container nav-button flex-horizontal" role="navigation" tabindex="0" id="profile">
+            <a href="/profile/${auth_info.username}" class="nav-item-container nav-button flex-horizontal" role="navigation" tabindex="0" id="profile">
 
                 <span class="material-icons">
                     account_circle
@@ -936,23 +936,23 @@ async function main() {
                     Profile
                 </span>
             
-            </button>
+            </a>
         `;
         nav_element.insertAdjacentHTML("beforeend", profile_domstring);
-        $("#profile").onclick = () => {
-            change_page_state(`/profile/${auth_info.username}`);
-        };
+        // $("#profile").onclick = () => {
+        //     change_page_state(`/profile/${auth_info.username}`);
+        // };
     } else {
         let login_domstring = `
-            <button class="nav-item-container nav-button flex-horizontal" id="login" role="navigation" tabindex="0">
+            <a href="/login-register" class="nav-item-container nav-button flex-horizontal" id="login" role="navigation" tabindex="0">
 
-            <span class="material-icons">
-                login
-            </span>
-            <span class="nav-heading">
-                Login/Register
-            </span>
-            </button>
+                <span class="material-icons">
+                    login
+                </span>
+                <span class="nav-heading">
+                    Login/Register
+                </span>
+            </a>
         `;
         nav_element.insertAdjacentHTML("beforeend", login_domstring);
         $("#login").onclick = () => {
@@ -977,18 +977,18 @@ async function main() {
             change_page_state("/admin");
         }
     }
-    $("#home-btn").onclick = () => {
-        change_page_state("/home");
-    };
-    $("#about-us-btn").onclick = () => {
-        change_page_state("/aboutus");
-    };
-    $("#legal-btn").onclick = () => {
-        change_page_state("/legalpage");
-    };
-    $("#advancedsearch").onclick = () => {
-        change_page_state("/search?")
-    }
+    // $("#home-btn").onclick = () => {
+    //     change_page_state("/home");
+    // };
+    // $("#about-us-btn").onclick = () => {
+    //     change_page_state("/aboutus");
+    // };
+    // $("#legal-btn").onclick = () => {
+    //     change_page_state("/legalpage");
+    // };
+    // $("#advancedsearch").onclick = () => {
+    //     change_page_state("/search?")
+    // }
     $("#search-bar").onsubmit = (ev) => {
         ev.preventDefault();
         on_simple_search_click()
